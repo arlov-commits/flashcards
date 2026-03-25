@@ -1,0 +1,50 @@
+﻿include,chinese,pinyin,english_def,multichar,ch_tag,eng_tag
+1,普,pǔ,universal; all-pervading,False,普賢,puxian_exhortation
+1,賢,xián,worthy; sage,False,普賢,puxian_exhortation
+1,警,jǐng,warn; exhort,False,普賢,puxian_exhortation
+0,眾,zhòng,multitude; assembly,False,普賢,puxian_exhortation
+1,偈,jì,verse; gatha,False,普賢,puxian_exhortation
+1,是,shì,this,False,普賢,puxian_exhortation
+0,日,rì,day,False,普賢,puxian_exhortation
+1,已,yǐ,already,False,普賢,puxian_exhortation
+1,過,guò,passed; over,False,普賢,puxian_exhortation
+1,命,mìng,life,False,普賢,puxian_exhortation
+1,亦,yì,also,False,普賢,puxian_exhortation
+1,隨,suí,follow; accordingly,False,普賢,puxian_exhortation
+1,減,jiǎn,less; diminish,False,普賢,puxian_exhortation
+0,如,rú,like,False,普賢,puxian_exhortation
+1,少,shǎo,little,False,普賢,puxian_exhortation
+0,水,shuǐ,water,False,普賢,puxian_exhortation
+0,魚,yú,fish,False,普賢,puxian_exhortation
+1,斯,sī,this; such,False,普賢,puxian_exhortation
+1,有,yǒu,there is; have,False,普賢,puxian_exhortation
+1,何,hé,what,False,普賢,puxian_exhortation
+0,樂,lè,joy; happiness,False,普賢,puxian_exhortation
+0,大,dà,great,False,普賢,puxian_exhortation
+0,眾,zhòng,assembly; multitude,False,普賢,puxian_exhortation
+1,當,dāng,should; must,False,普賢,puxian_exhortation
+1,勤,qín,diligent,False,普賢,puxian_exhortation
+1,精,jīng,vigorous; essence,False,普賢,puxian_exhortation
+1,進,jìn,advance; progress,False,普賢,puxian_exhortation
+1,救,jiù,save; rescue,False,普賢,puxian_exhortation
+1,頭,tóu,head,False,普賢,puxian_exhortation
+1,然,rán,burning; on fire,False,普賢,puxian_exhortation
+1,但,dàn,only; just,False,普賢,puxian_exhortation
+0,念,niàn,think of; mindful,False,普賢,puxian_exhortation
+0,無,wú,without; no,False,普賢,puxian_exhortation
+1,常,cháng,permanent; constant,False,普賢,puxian_exhortation
+1,慎,shèn,careful; cautious,False,普賢,puxian_exhortation
+1,勿,wù,do not,False,普賢,puxian_exhortation
+1,放,fàng,let go; release,False,普賢,puxian_exhortation
+1,逸,yì,lax; idle,False,普賢,puxian_exhortation
+1,普賢,pǔ xián,Samantabhadra (Universal Worthy),True,普賢,puxian_exhortation
+0,菩薩,pú sà,Bodhisattva,True,普賢,puxian_exhortation
+1,警眾偈,jǐng zhòng jì,Verse of Exhortation,True,普賢,puxian_exhortation
+1,已過,yǐ guò,already over,True,普賢,puxian_exhortation
+1,隨減,suí jiǎn,follows in diminishing,True,普賢,puxian_exhortation
+1,少水,shǎo shuǐ,little water,True,普賢,puxian_exhortation
+0,大眾,dà zhòng,great assembly,True,普賢,puxian_exhortation
+1,精進,jīng jìn,vigorous; diligent progress,True,普賢,puxian_exhortation
+1,無常,wú cháng,impermanence,True,普賢,puxian_exhortation
+1,放逸,fàng yì,be lax; negligent,True,普賢,puxian_exhortation
+0,阿彌陀佛,ā mí tuó fó,Amitabha Buddha,True,普賢,puxian_exhortation

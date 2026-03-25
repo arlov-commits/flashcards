@@ -1,0 +1,62 @@
+﻿include,chinese,pinyin,english_def,multichar,ch_tag,eng_tag
+1,回,huí,return; transfer,False,回向,merit_transfer
+1,向,xiàng,toward; direct,False,回向,merit_transfer
+1,偈,jì,verse; gatha,False,回向,merit_transfer
+0,願,yuàn,vow; may,False,回向,merit_transfer
+1,以,yǐ,by; with; from,False,回向,merit_transfer
+1,此,cǐ,this,False,回向,merit_transfer
+1,功,gōng,merit; achievement,False,回向,merit_transfer
+1,德,dé,virtue; merit,False,回向,merit_transfer
+1,莊,zhuāng,adorn; dignified,False,回向,merit_transfer
+1,嚴,yán,solemn; adorned,False,回向,merit_transfer
+0,佛,fó,Buddha,False,回向,merit_transfer
+0,淨,jìng,pure,False,回向,merit_transfer
+0,土,dù,land; earth,False,回向,merit_transfer
+1,上,shàng,above; superior,False,回向,merit_transfer
+1,報,bào,repay; requite,False,回向,merit_transfer
+1,四,sì,four,False,回向,merit_transfer
+1,重,chóng,weighty; important,False,回向,merit_transfer
+1,恩,ēn,kindness; gratitude,False,回向,merit_transfer
+1,下,xià,below; lower,False,回向,merit_transfer
+1,濟,jì,rescue; aid,False,回向,merit_transfer
+0,三,sān,three,False,回向,merit_transfer
+1,途,tú,path; way,False,回向,merit_transfer
+0,苦,kǔ,suffering,False,回向,merit_transfer
+1,若,ruò,if; suppose,False,回向,merit_transfer
+1,有,yǒu,there is; have,False,回向,merit_transfer
+0,見,jiàn,see,False,回向,merit_transfer
+1,聞,wén,hear,False,回向,merit_transfer
+0,者,zhě,one who; person,False,回向,merit_transfer
+1,悉,xī,all; entirely,False,回向,merit_transfer
+1,發,fā,generate; bring forth,False,回向,merit_transfer
+1,菩,pú,bodhi; enlightenment,False,回向,merit_transfer
+1,提,tí,bodhi; enlightenment,False,回向,merit_transfer
+0,心,xīn,mind; heart,False,回向,merit_transfer
+1,盡,jìn,exhaust; when finished,False,回向,merit_transfer
+0,一,yī,one,False,回向,merit_transfer
+1,報,bào,retribution; reward,False,回向,merit_transfer
+0,身,shēn,body,False,回向,merit_transfer
+1,同,tóng,together; same,False,回向,merit_transfer
+0,生,shēng,be born; birth,False,回向,merit_transfer
+0,極,jí,ultimate; extreme,False,回向,merit_transfer
+0,樂,lè,bliss; happiness,False,回向,merit_transfer
+0,國,guó,land; country,False,回向,merit_transfer
+1,回向,huí xiàng,transferring merit,True,回向,merit_transfer
+1,功德,gōng dé,merit; virtuous merit,True,回向,merit_transfer
+1,莊嚴,zhuāng yán,adorn; solemnly adorn,True,回向,merit_transfer
+1,淨土,jìng dù,pure land,True,回向,merit_transfer
+1,上報,shàng bào,repay above,True,回向,merit_transfer
+1,四重恩,sì chóng ēn,four weighty kindnesses,True,回向,merit_transfer
+1,下濟,xià jì,rescue below,True,回向,merit_transfer
+1,三途,sān tú,three lower paths,True,回向,merit_transfer
+1,途苦,tú kǔ,suffering of the paths,True,回向,merit_transfer
+1,若有,ruò yǒu,if there is,True,回向,merit_transfer
+1,見聞,jiàn wén,see and hear,True,回向,merit_transfer
+1,聞者,wén zhě,those who hear,True,回向,merit_transfer
+1,悉發,xī fā,all bring forth,True,回向,merit_transfer
+1,菩提,pú tí,bodhi; awakening,True,回向,merit_transfer
+1,菩提心,pú tí xīn,bodhi mind; awakening mind,True,回向,merit_transfer
+1,報身,bào shēn,retribution body; physical body,True,回向,merit_transfer
+1,同生,tóng shēng,together be born,True,回向,merit_transfer
+0,極樂,jí lè,ultimate bliss,True,回向,merit_transfer
+0,極樂國,jí lè guó,Land of Ultimate Bliss; Pure Land,True,回向,merit_transfer
