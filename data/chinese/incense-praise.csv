@@ -1,0 +1,41 @@
+﻿include,chinese,pinyin,english_def,multichar,ch_tag,eng_tag
+1,香, xiāng, incense; fragrance,False,香讚,incense_praise
+1,讚, zàn, praise; hymn,False,香讚,incense_praise
+1,鑪, lú, censer; incense burner,False,香讚,incense_praise
+1,乍, zhà, now; suddenly,False,香讚,incense_praise
+1,熱, rè, burn; hot,False,香讚,incense_praise
+1,蒙, méng, receive; cover,False,香讚,incense_praise
+1,熏, xūn, fragrance; fumigate,False,香讚,incense_praise
+1,會, huì, assembly; gathering,False,香讚,incense_praise
+1,悉, xī, all; entirely,False,香讚,incense_praise
+1,遙, yáo, afar; distant,False,香讚,incense_praise
+1,聞, wén, hear; inhale,False,香讚,incense_praise
+1,隨, suí, follow; accordingly,False,香讚,incense_praise
+1,處, chù, place; everywhere,False,香讚,incense_praise
+1,結, jié, form; bind,False,香讚,incense_praise
+1,祥, xiáng, auspicious,False,香讚,incense_praise
+1,誠, chéng, sincere,False,香讚,incense_praise
+1,意, yì, intention; thought,False,香讚,incense_praise
+1,方, fāng, then; thus,False,香讚,incense_praise
+1,殷, yīn, earnest; abundant,False,香讚,incense_praise
+1,現, xiàn, appear; manifest,False,香讚,incense_praise
+1,全, quán, complete; perfect,False,香讚,incense_praise
+1,香讚, xiāng zàn, incense praise,True,香讚,incense_praise
+1,鑪香, lú xiāng, censer incense,True,香讚,incense_praise
+1,乍熱, zhà rè, now burning,True,香讚,incense_praise
+1,蒙熏, méng xūn, receives fragrance,True,香讚,incense_praise
+1,諸佛, zhū fó, all buddhas,True,香讚,incense_praise
+1,海會, hǎi huì, vast assembly,True,香讚,incense_praise
+1,遙聞, yáo wén, from afar inhale,True,香讚,incense_praise
+1,隨處, suí chù, everywhere; in every place,True,香讚,incense_praise
+1,結雲, jié yún, form clouds,True,香讚,incense_praise
+1,祥雲, xiáng yún, auspicious clouds,True,香讚,incense_praise
+1,誠意, chéng yì, sincere intention,True,香讚,incense_praise
+1,方殷, fāng yīn, thus fulfilling; earnest,True,香讚,incense_praise
+1,全身, quán shēn, perfect body,True,香讚,incense_praise
+1,香雲, xiāng yún, incense cloud,True,香讚,incense_praise
+1,雲蓋, yún gài, cloud canopy,True,香讚,incense_praise
+1,悉遙聞, xī yáo wén, all from afar inhale,True,香讚,incense_praise
+1,結祥雲, jié xiáng yún, form auspicious clouds,True,香讚,incense_praise
+1,現全身, xiàn quán shēn, manifest perfect body,True,香讚,incense_praise
+1,香雲蓋, xiāng yún gài, incense cloud canopy,True,香讚,incense_praise

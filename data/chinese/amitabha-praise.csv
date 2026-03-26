@@ -1,0 +1,106 @@
+﻿include,chinese,pinyin,english_def,multichar,ch_tag,eng_tag
+0,四, sì, four,False,佛讚,amitabha_praise
+1,登, dēng, reach; ascend,False,佛讚,amitabha_praise
+0,寶, bǎo, jewel; precious,False,佛讚,amitabha_praise
+0,三, sān, three,False,佛讚,amitabha_praise
+1,托, tuō, entrust; rely on,False,佛讚,amitabha_praise
+1,蓮, lián, lotus,False,佛讚,amitabha_praise
+1,河, hé, river,False,佛讚,amitabha_praise
+1,餓, è, hungry,False,佛讚,amitabha_praise
+1,證, zhèng, attain; realize,False,佛讚,amitabha_praise
+1,萬, wàn, ten thousand; myriad,False,佛讚,amitabha_praise
+1,情, qíng, feeling; sentience,False,佛讚,amitabha_praise
+1,身, shēn, body,False,佛讚,amitabha_praise
+1,色, sè, color; form,False,佛讚,amitabha_praise
+1,好, hǎo, excellent; fine,False,佛讚,amitabha_praise
+1,明, míng, bright; splendor,False,佛讚,amitabha_praise
+1,等, děng, equal; match,False,佛讚,amitabha_praise
+1,白, bái, white,False,佛讚,amitabha_praise
+1,五, wǔ, five,False,佛讚,amitabha_praise
+1,目, mù, eye,False,佛讚,amitabha_praise
+1,清, qīng, clear; pure,False,佛讚,amitabha_praise
+1,海, hǎi, sea; ocean,False,佛讚,amitabha_praise
+1,數, shù, number; count,False,佛讚,amitabha_praise
+1,眾, zhòng, multitude; assembly,False,佛讚,amitabha_praise
+1,邊, biān, side; limit,False,佛讚,amitabha_praise
+1,願, yuàn, vow,False,佛讚,amitabha_praise
+1,九, jiǔ, nine,False,佛讚,amitabha_praise
+1,咸, xián, all; together,False,佛讚,amitabha_praise
+1,彼, bǐ, that; other,False,佛讚,amitabha_praise
+1,西, xī, west,False,佛讚,amitabha_praise
+1,極, jí, ultimate; extreme,False,佛讚,amitabha_praise
+1,世, shì, world,False,佛讚,amitabha_praise
+1,慈, cí, kindness; compassion,False,佛讚,amitabha_praise
+1, 生, shēng, beings; born,False,佛讚,amitabha_praise
+1, 於, yú, to; at,False,佛讚,amitabha_praise
+1, 地, dì, land; ground,False,佛讚,amitabha_praise
+1, 有, yǒu, realms; existence,False,佛讚,amitabha_praise
+1, 化, huà, transform; be born,False,佛讚,amitabha_praise
+1, 池, chí, pond; pool,False,佛讚,amitabha_praise
+1, 沙, shā, sand,False,佛讚,amitabha_praise
+1, 鬼, guǐ, ghost,False,佛讚,amitabha_praise
+1, 賢, xián, worthy; sage,False,佛讚,amitabha_praise
+1, 類, lèi, kind; category,False,佛讚,amitabha_praise
+1, 十, shí, ten,False,佛讚,amitabha_praise
+1, 金, jīn, gold; golden,False,佛讚,amitabha_praise
+1, 相, xiàng, hallmark; appearance,False,佛讚,amitabha_praise
+1, 光, guāng, light,False,佛讚,amitabha_praise
+1, 無, wú, without; none,False,佛讚,amitabha_praise
+1, 倫, lún, peer; compare,False,佛讚,amitabha_praise
+1, 毫, háo, fine hair urna,False,佛讚,amitabha_praise
+1, 紺, gàn, dark blue; pure,False,佛讚,amitabha_praise
+1, 澄, chéng, clear; pure,False,佛讚,amitabha_praise
+1, 大, dà, great; vast,False,佛讚,amitabha_praise
+1, 中, zhōng, in; within,False,佛讚,amitabha_praise
+1, 億, yì, hundred million,False,佛讚,amitabha_praise
+1, 亦, yì, also; too,False,佛讚,amitabha_praise
+1, 八, bā, eight,False,佛讚,amitabha_praise
+1, 度, dù, liberate; save,False,佛讚,amitabha_praise
+1, 品, pǐn, grade; stage,False,佛讚,amitabha_praise
+1, 令, lìng, cause; make,False,佛讚,amitabha_praise
+1, 岸, àn, shore,False,佛讚,amitabha_praise
+1, 方, fāng, direction; region,False,佛讚,amitabha_praise
+1, 樂, lè, bliss; happiness,False,佛讚,amitabha_praise
+1, 界, jiè, realm; boundary,False,佛讚,amitabha_praise
+1, 悲, bēi, compassion; pity,False,佛讚,amitabha_praise
+1,四生, sì shēng, four kinds of beings,True,佛讚,amitabha_praise
+1,寶地, bǎo dì, jewelled land,True,佛讚,amitabha_praise
+1,三有, sān yǒu, three realms of existence,True,佛讚,amitabha_praise
+1,托化, tuō huà, be born from; transformation,True,佛讚,amitabha_praise
+1,蓮池, lián chí, lotus pond,True,佛讚,amitabha_praise
+1,河沙, hé shā, countless like river sands,True,佛讚,amitabha_praise
+1,餓鬼, è guǐ, hungry ghost,True,佛讚,amitabha_praise
+1,三賢, sān xián, three-fold worthiness,True,佛讚,amitabha_praise
+1,萬類, wàn lèi, countless kinds,True,佛讚,amitabha_praise
+1,有情, yǒu qíng, sentient beings,True,佛讚,amitabha_praise
+1,十地, shí dì, ten grounds,True,佛讚,amitabha_praise
+1,金色, jīn sè, golden color,True,佛讚,amitabha_praise
+1,相好, xiàng hǎo, hallmarks of a Buddha,True,佛讚,amitabha_praise
+1,光明, guāng míng, splendor; light,True,佛讚,amitabha_praise
+1,白毫, bái háo, white hair between brows,True,佛讚,amitabha_praise
+1,宛轉, wǎn zhuǎn, winding; shine round,True,佛讚,amitabha_praise
+1,須彌, xū mí, Sumeru cosmic mountain,True,佛讚,amitabha_praise
+1,紺目, gàn mù, blue-black eyes,True,佛讚,amitabha_praise
+1,澄清, chéng qīng, pure and clear,True,佛讚,amitabha_praise
+1,光中, guāng zhōng, within the light,True,佛讚,amitabha_praise
+1,化佛, huà fó, transformation Buddha,True,佛讚,amitabha_praise
+1,無數, wú shù, countless,True,佛讚,amitabha_praise
+1,菩薩, pú sà, Bodhisattva,True,佛讚,amitabha_praise
+1,無邊, wú biān, boundless; infinite,True,佛讚,amitabha_praise
+1,眾生, zhòng shēng, sentient beings,True,佛讚,amitabha_praise
+1,九品, jiǔ pǐn, nine lotus stages,True,佛讚,amitabha_praise
+1,彼岸, bǐ àn, farther shore; nirvana,True,佛讚,amitabha_praise
+1,南無, nā mó, homage to,True,佛讚,amitabha_praise
+1,西方, xī fāng, western,True,佛讚,amitabha_praise
+1,極樂, jí lè, ultimate bliss,True,佛讚,amitabha_praise
+1,世界, shì jiè, world,True,佛讚,amitabha_praise
+1,大慈, dà cí, great kindness,True,佛讚,amitabha_praise
+1,大悲, dà bēi, great compassion,True,佛讚,amitabha_praise
+1,無等倫, wú děng lún, incomparable; has no peer,True,佛讚,amitabha_praise
+1,五須彌, wǔ xū mí, five Sumeru mountains,True,佛讚,amitabha_praise
+1,四大海, sì dà hǎi, four great seas,True,佛讚,amitabha_praise
+1,化菩薩, huà pú sà, transformation Bodhisattvas,True,佛讚,amitabha_praise
+1,四十八願, sì shí bā yuàn, forty-eight vows,True,佛讚,amitabha_praise
+1,極樂世界, jí lè shì jiè, Land of Ultimate Bliss,True,佛讚,amitabha_praise
+1,大慈大悲, dà cí dà bēi, great kindness and compassion,True,佛讚,amitabha_praise
+1,阿彌陀佛, ā mí tuó fó, Amitabha Buddha,True,佛讚,amitabha_praise
