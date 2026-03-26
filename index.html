@@ -361,14 +361,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <h2>Download</h2>
       <div class="download-grid">
         <div class="download-card">
-          <h4>PDF &mdash; Version A</h4>
-          <p>Front: fields you selected<br>Back: remaining fields</p>
-          <button class="btn btn-primary" onclick="generatePDF('A')">Download PDF A</button>
-        </div>
-        <div class="download-card">
-          <h4>PDF &mdash; Version B</h4>
-          <p>Front: primary field only<br>Back: all other fields</p>
-          <button class="btn btn-primary" onclick="generatePDF('B')">Download PDF B</button>
+          <h4>Printable PDF</h4>
+          <p>Front &amp; back pages for double-sided printing</p>
+          <button class="btn btn-primary" onclick="generatePDF()">Download PDF</button>
         </div>
         <div class="download-card">
           <h4>Anki CSV</h4>
@@ -710,54 +705,66 @@ function arrayBufferToBase64(buffer) {
 
 /* ============================================================
    PDF GENERATION
+   Uses the user's front/back field mapping from the UI.
+   Fonts: Noto Serif SC (Chinese), Noto Sans SC (pinyin/English).
    ============================================================ */
-async function generatePDF(version) {
+async function generatePDF() {
   const overlay = document.getElementById('loading-overlay');
   const loadingText = document.getElementById('loading-text');
   overlay.classList.add('active');
-  loadingText.textContent = 'Preparing fonts...';
 
   try {
     const { jsPDF } = window.jspdf;
+    const fields = currentTradition.fields;
 
-    // Load Noto Serif SC for Chinese (variable weight TTF from Google Fonts)
-    const chineseFontUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf';
-    loadingText.textContent = 'Downloading Chinese font (first time may take a moment)...';
-    const fontBuffer = await loadFontAsArrayBuffer(chineseFontUrl);
-    const chineseFontB64 = arrayBufferToBase64(fontBuffer);
+    // --- Load fonts (Noto Serif SC for Chinese, Noto Sans SC for pinyin/English) ---
+    const serifUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf';
+    const sansUrl  = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf';
 
-    loadingText.textContent = 'Generating cards...';
+    loadingText.textContent = 'Downloading Chinese serif font\u2026';
+    const serifBuf = await loadFontAsArrayBuffer(serifUrl);
+    loadingText.textContent = 'Downloading sans font\u2026';
+    const sansBuf  = await loadFontAsArrayBuffer(sansUrl);
 
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'letter'
-    });
+    loadingText.textContent = 'Preparing fonts\u2026';
+    const serifB64 = arrayBufferToBase64(serifBuf);
+    const sansB64  = arrayBufferToBase64(sansBuf);
 
-    // Register Chinese font
-    pdf.addFileToVFS('NotoSerifSC.ttf', chineseFontB64);
+    loadingText.textContent = 'Generating cards\u2026';
+
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
+
+    // Register fonts — normal + bold variants from the same variable-weight file
+    pdf.addFileToVFS('NotoSerifSC.ttf', serifB64);
     pdf.addFont('NotoSerifSC.ttf', 'NotoSerifSC', 'normal');
+    pdf.addFileToVFS('NotoSerifSC-Bold.ttf', serifB64);
+    pdf.addFont('NotoSerifSC-Bold.ttf', 'NotoSerifSC', 'bold');
 
+    pdf.addFileToVFS('NotoSansSC.ttf', sansB64);
+    pdf.addFont('NotoSansSC.ttf', 'NotoSansSC', 'normal');
+    pdf.addFileToVFS('NotoSansSC-Bold.ttf', sansB64);
+    pdf.addFont('NotoSansSC-Bold.ttf', 'NotoSansSC', 'bold');
+
+    // --- Layout constants (match flashcards-xlsx2.py) ---
     const marginX = 7.62;
     const marginY = 7.62;
     const wCard = (279.4 - 2 * marginX) / 4;
     const hCard = (215.9 - 2 * marginY) / 4;
 
     const cards = allCards.filter(c => c._included);
-    const fields = currentTradition.fields;
     const tagField = currentTradition.tag_field;
 
-    // Determine field roles dynamically
-    const targetLangField = fields.find(f => f.type === 'target_lang');
-    const romanizationField = fields.find(f => f.type === 'romanization');
-    const translationField = fields.find(f => f.type === 'translation');
+    // Build ordered field lists for front and back from user selection
+    const frontFieldObjs = fields.filter(f => frontFields.includes(f.key));
+    const backFieldObjs  = fields.filter(f => backFields.includes(f.key));
 
-    function drawGridCell(pdf, x, y) {
+    // --- Helpers ---
+    function drawGridCell(x, y) {
       pdf.setDrawColor(200, 200, 200);
       pdf.rect(x, y, wCard, hCard);
     }
 
-    function drawSourceTag(pdf, x, y, tag) {
+    function drawSourceTag(x, y, tag) {
       pdf.setTextColor(120, 120, 120);
       pdf.setFont('NotoSerifSC', 'normal');
       pdf.setFontSize(8);
@@ -765,157 +772,179 @@ async function generatePDF(version) {
       pdf.setTextColor(0, 0, 0);
     }
 
-    // Multi-cell helper: word-wrap text centered in a box
-    function drawWrappedText(pdf, text, x, y, maxWidth, lineHeight, align) {
-      const lines = pdf.splitTextToSize(text, maxWidth);
-      for (let i = 0; i < lines.length; i++) {
-        if (align === 'center') {
-          pdf.text(lines[i], x + maxWidth / 2, y + i * lineHeight, { align: 'center' });
-        } else {
-          pdf.text(lines[i], x, y + i * lineHeight);
-        }
-      }
+    // Choose font family based on the field's font_category from manifest
+    function fontForField(field) {
+      return field.font_category === 'chinese' ? 'NotoSerifSC' : 'NotoSansSC';
     }
 
+    // Render a list of fields stacked vertically inside a card cell.
+    // Adapts font sizes based on field type and content length.
+    function renderFieldsInCell(fieldObjs, card, x, y, isFront) {
+      if (fieldObjs.length === 0) return;
+
+      const cx = x + wCard / 2;  // horizontal center
+
+      if (fieldObjs.length === 1) {
+        // Single field: center it vertically in the card
+        const f = fieldObjs[0];
+        const val = (card[f.key] || '').trim();
+        if (!val) return;
+
+        if (f.type === 'target_lang') {
+          let sz = isFront && fieldObjs.length === 1 ? 32 : 28;
+          if (val.length >= 5) sz = isFront ? 22 : 20;
+          else if (val.length >= 3) sz = isFront ? 26 : 24;
+          pdf.setFont(fontForField(f), 'normal');
+          pdf.setFontSize(sz);
+          pdf.text(val, cx, y + hCard / 2 + 2, { align: 'center' });
+        } else if (f.type === 'romanization') {
+          const style = card.multichar ? 'bold' : 'normal';
+          const sz = val.length >= 18 ? 11 : 14;
+          pdf.setFont(fontForField(f), style);
+          pdf.setFontSize(sz);
+          pdf.text(val, cx, y + hCard / 2 + 2, { align: 'center' });
+        } else {
+          // translation or other
+          pdf.setFont(fontForField(f), 'normal');
+          pdf.setFontSize(11);
+          const lines = pdf.splitTextToSize(val, wCard - 4);
+          const blockH = lines.length * 5;
+          const startY = y + (hCard - blockH) / 2 + 4;
+          lines.forEach((line, i) => pdf.text(line, cx, startY + i * 5, { align: 'center' }));
+        }
+        return;
+      }
+
+      // Multiple fields: stack them with smart vertical distribution
+      // Separate target_lang (big) from others (smaller)
+      const targetIdx = fieldObjs.findIndex(f => f.type === 'target_lang');
+      const hasTarget = targetIdx !== -1;
+
+      if (hasTarget && fieldObjs.length === 2) {
+        // Two fields with target_lang (e.g. Chinese + Pinyin, or Chinese + English)
+        const targetF = fieldObjs[targetIdx];
+        const otherF  = fieldObjs[1 - targetIdx];
+        const targetVal = (card[targetF.key] || '').trim();
+        const otherVal  = (card[otherF.key] || '').trim();
+
+        // Target language — upper portion
+        let sz = 28;
+        if (targetVal.length >= 5) sz = 20;
+        else if (targetVal.length >= 3) sz = 24;
+        pdf.setFont(fontForField(targetF), 'normal');
+        pdf.setFontSize(sz);
+        const charY = y + (hCard / 2) - 12;
+        pdf.text(targetVal, cx, charY + 5, { align: 'center' });
+
+        // Other field — below
+        if (otherF.type === 'romanization') {
+          const style = card.multichar ? 'bold' : 'normal';
+          pdf.setFont(fontForField(otherF), style);
+          pdf.setFontSize(14);
+          pdf.text(otherVal, cx, charY + 21, { align: 'center' });
+        } else {
+          pdf.setFont(fontForField(otherF), 'normal');
+          pdf.setFontSize(11);
+          const lines = pdf.splitTextToSize(otherVal, wCard - 4);
+          lines.forEach((line, i) => pdf.text(line, cx, charY + 20 + i * 5, { align: 'center' }));
+        }
+        return;
+      }
+
+      if (!hasTarget && fieldObjs.length === 2) {
+        // Two non-target fields (e.g. Pinyin + English on back)
+        const f0 = fieldObjs[0];
+        const f1 = fieldObjs[1];
+        const v0 = (card[f0.key] || '').trim();
+        const v1 = (card[f1.key] || '').trim();
+
+        // First field near top
+        if (f0.type === 'romanization') {
+          const style = card.multichar ? 'bold' : 'normal';
+          const sz = v0.length >= 18 ? 11 : 14;
+          pdf.setFont(fontForField(f0), style);
+          pdf.setFontSize(sz);
+          pdf.text(v0, cx, y + 17, { align: 'center' });
+        } else {
+          pdf.setFont(fontForField(f0), 'normal');
+          pdf.setFontSize(11);
+          pdf.text(v0, cx, y + 17, { align: 'center' });
+        }
+
+        // Horizontal separator
+        const lineY = y + 25;
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(x + 10, lineY, x + wCard - 10, lineY);
+
+        // Second field below line
+        pdf.setFont(fontForField(f1), 'normal');
+        pdf.setFontSize(11);
+        const lines = pdf.splitTextToSize(v1, wCard - 4);
+        lines.forEach((line, i) => pdf.text(line, cx, lineY + 7 + i * 5, { align: 'center' }));
+        return;
+      }
+
+      // 3+ fields: evenly distribute vertically
+      const slotH = hCard / (fieldObjs.length + 1);
+      fieldObjs.forEach((f, fi) => {
+        const val = (card[f.key] || '').trim();
+        const slotY = y + slotH * (fi + 1);
+
+        if (f.type === 'target_lang') {
+          let sz = 24;
+          if (val.length >= 5) sz = 18;
+          else if (val.length >= 3) sz = 20;
+          pdf.setFont(fontForField(f), 'normal');
+          pdf.setFontSize(sz);
+          pdf.text(val, cx, slotY, { align: 'center' });
+        } else if (f.type === 'romanization') {
+          const style = card.multichar ? 'bold' : 'normal';
+          pdf.setFont(fontForField(f), style);
+          pdf.setFontSize(12);
+          pdf.text(val, cx, slotY, { align: 'center' });
+        } else {
+          pdf.setFont(fontForField(f), 'normal');
+          pdf.setFontSize(10);
+          const lines = pdf.splitTextToSize(val, wCard - 4);
+          lines.forEach((line, i) => pdf.text(line, cx, slotY + i * 4.5, { align: 'center' }));
+        }
+      });
+    }
+
+    // --- Page generation ---
     let isFirstPage = true;
 
-    if (version === 'A') {
-      // Version A: front fields on front, back fields on back
-      // Matching Python: Front = Chinese + Pinyin, Back = English
-      for (let i = 0; i < cards.length; i += 16) {
-        const chunk = cards.slice(i, i + 16);
+    for (let i = 0; i < cards.length; i += 16) {
+      const chunk = cards.slice(i, i + 16);
 
-        // FRONT PAGE
-        if (!isFirstPage) pdf.addPage();
-        isFirstPage = false;
+      // FRONT PAGE
+      if (!isFirstPage) pdf.addPage();
+      isFirstPage = false;
 
-        for (let idx = 0; idx < chunk.length; idx++) {
-          const card = chunk[idx];
-          const col = idx % 4;
-          const row = Math.floor(idx / 4);
-          const x = marginX + col * wCard;
-          const y = marginY + row * hCard;
+      for (let idx = 0; idx < chunk.length; idx++) {
+        const card = chunk[idx];
+        const col = idx % 4;
+        const row = Math.floor(idx / 4);
+        const x = marginX + col * wCard;
+        const yPos = marginY + row * hCard;
 
-          drawGridCell(pdf, x, y);
-
-          // Target language (e.g., Chinese) - centered
-          if (targetLangField) {
-            const charText = card[targetLangField.key] || '';
-            let fontSize = 28;
-            if (charText.length >= 5) fontSize = 20;
-            else if (charText.length >= 3) fontSize = 24;
-
-            pdf.setFont('NotoSerifSC', 'normal');
-            pdf.setFontSize(fontSize);
-            const charY = y + (hCard / 2) - 12;
-            pdf.text(charText, x + wCard / 2, charY + 5, { align: 'center' });
-          }
-
-          // Romanization (e.g., Pinyin) - below target lang
-          if (romanizationField) {
-            const pinyinText = card[romanizationField.key] || '';
-            const style = card.multichar ? 'bold' : 'normal';
-            // Use helvetica for pinyin in PDF (supports diacritics better)
-            pdf.setFont('helvetica', style);
-            pdf.setFontSize(14);
-            const charY = y + (hCard / 2) - 12;
-            pdf.text(pinyinText, x + wCard / 2, charY + 21, { align: 'center' });
-          }
-        }
-
-        // BACK PAGE (mirrored columns)
-        pdf.addPage();
-
-        for (let idx = 0; idx < chunk.length; idx++) {
-          const card = chunk[idx];
-          const col = 3 - (idx % 4); // mirror
-          const row = Math.floor(idx / 4);
-          const x = marginX + col * wCard;
-          const y = marginY + row * hCard;
-
-          drawGridCell(pdf, x, y);
-
-          // Translation (e.g., English)
-          if (translationField) {
-            const engText = card[translationField.key] || '';
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(11);
-            drawWrappedText(pdf, engText, x + 2, y + (hCard / 2) - 1, wCard - 4, 5, 'center');
-          }
-
-          drawSourceTag(pdf, x, y, card[tagField] || '');
-        }
+        drawGridCell(x, yPos);
+        renderFieldsInCell(frontFieldObjs, card, x, yPos, true);
       }
-    } else {
-      // Version B: target_lang only on front, romanization + translation on back
-      // Matching Python: Front = Chinese only, Back = Pinyin + English
-      for (let i = 0; i < cards.length; i += 16) {
-        const chunk = cards.slice(i, i + 16);
 
-        // FRONT PAGE
-        if (!isFirstPage) pdf.addPage();
-        isFirstPage = false;
+      // BACK PAGE (columns mirrored for double-sided printing)
+      pdf.addPage();
 
-        for (let idx = 0; idx < chunk.length; idx++) {
-          const card = chunk[idx];
-          const col = idx % 4;
-          const row = Math.floor(idx / 4);
-          const x = marginX + col * wCard;
-          const y = marginY + row * hCard;
+      for (let idx = 0; idx < chunk.length; idx++) {
+        const card = chunk[idx];
+        const col = 3 - (idx % 4);
+        const row = Math.floor(idx / 4);
+        const x = marginX + col * wCard;
+        const yPos = marginY + row * hCard;
 
-          drawGridCell(pdf, x, y);
-
-          if (targetLangField) {
-            const charText = card[targetLangField.key] || '';
-            let fontSize = 32;
-            if (charText.length >= 5) fontSize = 22;
-            else if (charText.length >= 3) fontSize = 26;
-
-            pdf.setFont('NotoSerifSC', 'normal');
-            pdf.setFontSize(fontSize);
-            const charY = y + (hCard / 2) - 5;
-            pdf.text(charText, x + wCard / 2, charY + 5, { align: 'center' });
-          }
-        }
-
-        // BACK PAGE (mirrored)
-        pdf.addPage();
-
-        for (let idx = 0; idx < chunk.length; idx++) {
-          const card = chunk[idx];
-          const col = 3 - (idx % 4);
-          const row = Math.floor(idx / 4);
-          const x = marginX + col * wCard;
-          const y = marginY + row * hCard;
-
-          drawGridCell(pdf, x, y);
-
-          // Romanization near top
-          if (romanizationField) {
-            const pinyinText = card[romanizationField.key] || '';
-            const style = card.multichar ? 'bold' : 'normal';
-            const pinyinSize = pinyinText.length >= 18 ? 11 : 14;
-            pdf.setFont('helvetica', style);
-            pdf.setFontSize(pinyinSize);
-            pdf.text(pinyinText, x + wCard / 2, y + 17, { align: 'center' });
-          }
-
-          // Horizontal line separator
-          const lineY = y + 25;
-          const padding = 10;
-          pdf.setDrawColor(200, 200, 200);
-          pdf.line(x + padding, lineY, x + wCard - padding, lineY);
-
-          // Translation below line
-          if (translationField) {
-            const engText = card[translationField.key] || '';
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(11);
-            drawWrappedText(pdf, engText, x + 2, lineY + 7, wCard - 4, 5, 'center');
-          }
-
-          drawSourceTag(pdf, x, y, card[tagField] || '');
-        }
+        drawGridCell(x, yPos);
+        renderFieldsInCell(backFieldObjs, card, x, yPos, false);
+        drawSourceTag(x, yPos, card[tagField] || '');
       }
     }
 
@@ -923,7 +952,7 @@ async function generatePDF(version) {
       .filter(([k, v]) => v)
       .map(([k]) => currentTradition.sets[k].eng_name.toLowerCase().replace(/\s+/g, '-'))
       .join('_');
-    pdf.save(`flashcards-${version.toLowerCase()}-${setNames}.pdf`);
+    pdf.save(`flashcards-${setNames}.pdf`);
 
   } catch (err) {
     console.error('PDF generation error:', err);
