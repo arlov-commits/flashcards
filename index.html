@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buddhist Liturgy Flashcards</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -688,18 +688,24 @@ function selectAllCards(val) {
 /* ============================================================
    FONT LOADING FOR PDF
    ============================================================ */
-async function loadFontAsBase64(url) {
+async function loadFontAsArrayBuffer(url) {
   if (fontDataCache[url]) return fontDataCache[url];
   const resp = await fetch(url);
-  const blob = await resp.arrayBuffer();
-  const bytes = new Uint8Array(blob);
+  if (!resp.ok) throw new Error(`Font fetch failed: ${resp.status} ${resp.statusText}`);
+  const buf = await resp.arrayBuffer();
+  fontDataCache[url] = buf;
+  return buf;
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 8192;
   let binary = '';
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const slice = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode.apply(null, slice);
   }
-  const b64 = btoa(binary);
-  fontDataCache[url] = b64;
-  return b64;
+  return btoa(binary);
 }
 
 /* ============================================================
@@ -714,9 +720,11 @@ async function generatePDF(version) {
   try {
     const { jsPDF } = window.jspdf;
 
-    // Load Noto Serif SC for Chinese
-    const chineseFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/noto-serif-sc@latest/chinese-simplified/400-normal.ttf';
-    const chineseFontB64 = await loadFontAsBase64(chineseFontUrl);
+    // Load Noto Serif SC for Chinese (variable weight TTF from Google Fonts)
+    const chineseFontUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf';
+    loadingText.textContent = 'Downloading Chinese font (first time may take a moment)...';
+    const fontBuffer = await loadFontAsArrayBuffer(chineseFontUrl);
+    const chineseFontB64 = arrayBufferToBase64(fontBuffer);
 
     loadingText.textContent = 'Generating cards...';
 
@@ -727,8 +735,8 @@ async function generatePDF(version) {
     });
 
     // Register Chinese font
-    pdf.addFileToVFS('NotoSerifSC-Regular.ttf', chineseFontB64);
-    pdf.addFont('NotoSerifSC-Regular.ttf', 'NotoSerifSC', 'normal');
+    pdf.addFileToVFS('NotoSerifSC.ttf', chineseFontB64);
+    pdf.addFont('NotoSerifSC.ttf', 'NotoSerifSC', 'normal');
 
     const marginX = 7.62;
     const marginY = 7.62;
@@ -949,7 +957,7 @@ function exportAnkiCSV() {
     .filter(([k, v]) => v)
     .map(([k]) => currentTradition.sets[k].eng_name.toLowerCase().replace(/\s+/g, '-'))
     .join('_');
-  a.download = `flashcards-anki-${setNames}.txt`;
+  a.download = `flashcards-anki-${setNames}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
