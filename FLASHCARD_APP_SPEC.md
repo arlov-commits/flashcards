@@ -1,7 +1,7 @@
 # Buddhist Liturgy Flashcard App — Project Specification
 
-**Last updated:** March 24, 2026  
-**Status:** Planning / Scoping  
+**Last updated:** April 4, 2026  
+**Status:** Active Development  
 **Live URL (future):** `arlov-commits.github.io/flashcards` (or similar)
 
 ---
@@ -68,21 +68,21 @@ A free, permanent web app where Buddhist students can generate printable flashca
 
 ## 3. Data Structure
 
-### Chinese Cards — Actual Column Structure (from `lexicon.xlsx`)
+### Chinese Cards — Column Structure (v2)
 | Column | Type | Description |
 |--------|------|-------------|
-| `include` | 0 or 1 | Default selection state (1=selected, 0=deselected — student can override either way) |
 | `chinese` | text | Traditional Chinese character(s) |
 | `pinyin` | text | Romanized pronunciation with tone marks |
 | `english_def` | text | English definition PLUCKED from canonical translation (not reinvented) |
-| `multichar` | True/False | Whether this is a compound term (binome, trinome, etc.) — rendered bold in pinyin on PDF |
 | `ch_tag` | text | Chinese name of the liturgy section (e.g., 香讚, 心經, 佛讚) |
 | `eng_tag` | text | English name of the liturgy section (e.g., incense_praise, heart_sutra, amitabha_praise) |
-| `frequency` | integer | Count of how many times this Chinese term appears across the ENTIRE corpus (all sources). Used to order Type B cards by frequency. **App must handle this column being absent** — if missing, default to source order. All CSVs will be re-generated with this field. |
+| `frequency` | integer | Count of how many times this Chinese term appears across the ENTIRE corpus (all sources). Used to order Type B cards by frequency. **App must handle this column being absent** — if missing, default to source order. |
 
-**Current database size:** 420 cards across 6 sections, 342 active (include=1), 78 excluded
+**Deprecated columns (v1 legacy):** `include` and `multichar` are no longer generated but may exist in older CSVs. The app ignores them gracefully — all cards are selected by default regardless of `include`, and `multichar` is no longer used for PDF styling.
 
-### Current Tag Distribution (include=1 only)
+**Current database size:** 420 cards across 6 sections
+
+### Current Tag Distribution
 | Section | eng_tag | ch_tag | Card Count |
 |---------|---------|--------|------------|
 | Amitabha Praise | amitabha_praise | 佛讚 | 102 |
@@ -217,22 +217,41 @@ When a user selects multiple card sets, the app deduplicates:
   - File is processed entirely in-browser — never leaves the student's device
 
 ### Export Formats
-- [ ] **Printable PDF:** 4×4 landscape grid, double-sided, with field mapping per selected study mode
+- [x] **Printable PDF:** 4×4 landscape grid, double-sided, with field mapping per selected study mode
   - Generated in-browser using jsPDF
-- [ ] **Preferences/progress file:** JSON export for backup/device transfer
-- [ ] ~~Anki CSV export~~ — **DEFERRED to final stage. Remove from current UI.**
+- [x] **Progress file (Export/Import):** JSON file containing both known lists and uploaded file data. Import merges known lists (union) and restores uploads.
+- ~~Anki CSV export~~ — **DEFERRED to final stage (Phase 6). Removed from current UI.**
+
+### Global Known System
+The app maintains two persistent "known" lists in localStorage, one per study mode:
+- **`known_typeA`** — set of `chinese` values the student has learned in Type A mode
+- **`known_typeB`** — set of `chinese` values the student has learned in Type B mode
+
+**Rules:**
+- The two lists are independent — no cascading between them.
+- Terms enter the known list when the student **unchecks them** in the card list OR when they **print a PDF** (all checked cards at print time are added to known).
+- Terms leave the known list only when the student **manually re-checks** them.
+- The known list is keyed on `chinese` value, not on source — a term marked known from one source is pre-unchecked everywhere it appears.
+- Deleting an uploaded file does NOT affect the known lists.
+- The card list shows a count: "X cards already known" with a toggle to show/hide known cards.
+
+### Custom Upload Persistence
+- Uploaded CSV/XLSX files are saved to localStorage and persist across page reloads.
+- Shown in a "My Uploads" section on the landing page.
+- Each upload has a delete button. Deleting removes the file data but does NOT affect known lists.
+- Uploaded data is treated identically to canonical sets for customization, preview, and export.
 
 ### Progress / Preferences
-- [ ] **localStorage:** Day-to-day persistence in the student's browser
-  - Remembers which cards marked as "printed" (separately for Type A and Type B)
-  - Remembers customization preferences (fonts, layout, field mapping)
+- [x] **localStorage:** Day-to-day persistence in the student's browser
+  - Known lists per study mode (Type A and Type B independent)
+  - Uploaded file data
   - Tied to device/browser — not synced across devices
-- [ ] **Export/Import JSON file:** Manual backup for device transfers
-- [ ] **URL-encoded state (permalink):** Preference state serialized into URL hash
+- [x] **Export/Import JSON file:** Manual backup for device transfers. Export contains both known lists + uploaded files. Import merges (union) known lists and restores uploads.
+- [ ] **URL-encoded state (permalink):** Preference state serialized into URL hash (deferred)
 
 ### Future Considerations (noted, not implemented)
 - **Term blacklist:** A file preventing specific term+definition combinations from appearing. Deferred until Art has ~10 examples.
-- **Anki export:** Reinstated as final-stage feature only.
+- **Anki export:** Reinstated as final-stage feature only (Phase 6).
 - **Username/lightweight identity:** Students type a username to persist progress. Mechanism TBD.
 - **Master dictionary:** All distinct characters with full definition sets tagged by source. May not be needed — current per-source CSV approach handles this naturally.
 
@@ -381,19 +400,28 @@ All fonts are open-licensed via Google Fonts. No hosting cost.
 
 ## 10. Phases & Roadmap
 
-### Phase 1: MVP (CURRENT — largely done)
+### Phase 1: MVP (DONE)
 - [x] Landing page with tradition selector
-- [x] Set selection with checkboxes
+- [x] Accordion-style set selection (no page navigation)
+- [x] Group current sets under "Evening Chanting" subcategory
 - [x] Card list with include/exclude
 - [x] PDF generation (field mapping)
+- [x] Fix fonts in PDF (Noto Serif SC / Noto Sans SC)
+- [x] Browser back button support (history.pushState)
+- [x] Upload option on landing page
+- [x] Remove Anki CSV button
 - [x] Deploy to GitHub Pages
-- [ ] Remove Anki CSV button (per vision update 4/1)
-- [ ] Fix fonts in PDF (Noto Serif SC / Noto Sans SC)
+
+### Phase 1.5: Study Modes & Known System (CURRENT)
+- [x] Type A / Type B study mode selector
+- [x] Global known list system (per-mode, keyed on `chinese` value)
+- [x] Known cards pre-unchecked with show/hide toggle
+- [x] Printing adds checked cards to known list
+- [x] Custom upload persistence in localStorage with "My Uploads" section
+- [x] Export/import progress as JSON file
+- [x] New CSV format (6 columns, `include`/`multichar` deprecated)
+- [x] Type B ordering by frequency when available
 - [ ] Card preview in browser
-- [ ] Browser back button support (history.pushState)
-- [ ] Upload option on landing page
-- [ ] Accordion-style set selection (not page navigation)
-- [ ] Group current sets under "Evening Chanting" subcategory
 
 ### Phase 2: Data Pipeline & Deduplication
 - [ ] Finalize AI prompt template for reproducible ETL
@@ -403,13 +431,8 @@ All fonts are open-licensed via Google Fonts. No hosting cost.
 - [ ] Context tag on FRONT of card when term has multiple meanings across sets
 - [ ] Expand data: Morning Chanting, Meal Offering, Great Compassion Repentance, etc.
 
-### Phase 3: Progress Tracking & Study Modes
-- [ ] Type A / Type B as two explicit study mode presets
-- [ ] "Printed" checkbox tracking per card, per type (A and B independent)
-- [ ] Type B ordering by frequency (most common terms first)
+### Phase 3: Advanced Progress
 - [ ] Cross-mode awareness (flag if a card is printed in the other mode)
-- [ ] localStorage persistence of printed status
-- [ ] Export/import progress as JSON file
 - [ ] URL permalink state system
 
 ### Phase 4: Advanced Features
@@ -457,4 +480,4 @@ All fonts are open-licensed via Google Fonts. No hosting cost.
 
 ---
 
-*This document is updated live during planning conversations. Last conversation: March 24, 2026.*
+*This document is updated live during planning conversations. Last conversation: April 4, 2026.*
