@@ -786,7 +786,7 @@ function parseUploadedCSV(text, filename) {
     }
     row._setKey = '_upload';
     row._index = i;
-    row._included = row.include;
+    row._included = true;
     allCards.push(row);
   });
 
@@ -829,7 +829,7 @@ async function loadCards() {
           }
           row._setKey = setKey;
           row._index = i;
-          row._included = row.include;
+          row._included = true;
           allCards.push(row);
         });
       })
