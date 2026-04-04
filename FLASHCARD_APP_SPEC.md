@@ -71,13 +71,14 @@ A free, permanent web app where Buddhist students can generate printable flashca
 ### Chinese Cards — Actual Column Structure (from `lexicon.xlsx`)
 | Column | Type | Description |
 |--------|------|-------------|
-| `include` | 0 or 1 | Whether card is active (0 = excluded, e.g., very basic characters like 一, 不, 是 that students already know) |
+| `include` | 0 or 1 | Default selection state (1=selected, 0=deselected — student can override either way) |
 | `chinese` | text | Traditional Chinese character(s) |
 | `pinyin` | text | Romanized pronunciation with tone marks |
 | `english_def` | text | English definition PLUCKED from canonical translation (not reinvented) |
 | `multichar` | True/False | Whether this is a compound term (binome, trinome, etc.) — rendered bold in pinyin on PDF |
 | `ch_tag` | text | Chinese name of the liturgy section (e.g., 香讚, 心經, 佛讚) |
 | `eng_tag` | text | English name of the liturgy section (e.g., incense_praise, heart_sutra, amitabha_praise) |
+| `frequency` | integer | Count of how many times this Chinese term appears across the ENTIRE corpus (all sources). Used to order Type B cards by frequency. **App must handle this column being absent** — if missing, default to source order. All CSVs will be re-generated with this field. |
 
 **Current database size:** 420 cards across 6 sections, 342 active (include=1), 78 excluded
 
@@ -176,47 +177,64 @@ Key rules given to the AI:
 ## 5. App Features
 
 ### Core Functionality
-- [ ] Browse card sets by chapter/liturgy section (Source Tag)
-- [ ] Choose what data field goes on front vs. back of card
+- [ ] Browse card sets by tradition → subcategory → section (accordion/tree, no page navigation)
+- [ ] Flexible field mapping: user picks what goes on front vs. back
 - [ ] Preview cards in-browser before downloading
 - [ ] Deselect individual cards the student already knows
 - [ ] Language-agnostic field handling (app reads whatever columns exist in the dataset)
+- [ ] Upload custom CSV/XLSX files from landing page
+
+### Study Modes (Type A / Type B)
+The app presents two named study modes as presets built on top of the flexible field mapping:
+
+**Type A — Recognition Mode (standard):**
+- Front: Chinese + Pinyin
+- Back: English
+- This is the default learning path. Students start here.
+
+**Type B — Recall Mode (advanced):**
+- Front: Chinese only
+- Back: Pinyin + English
+- Considerably more challenging. Students adopt this once they have a steady Type A practice.
+- When generated from the built-in corpus (not a single source), Type B cards are ordered by FREQUENCY of occurrence across all sources, not sequential order. Most common Dharma terms first.
+
+Each mode has independent progress tracking — a student can track which Type A cards they've printed separately from Type B cards. The two tracks interact: if a Type B card has been printed, it should be flagged when encountered in Type A generation (and vice versa).
+
+### Cross-Set Deduplication
+When a user selects multiple card sets, the app deduplicates:
+- **Same `chinese` + same `english_def`** → true duplicate, show once
+- **Same `chinese` + different `english_def`** → keep both as separate cards, show context tag (`ch_tag`) on FRONT of card (not just back) to disambiguate
+- The deduplication applies at PDF generation time, not in the card list UI (user sees all cards, but the generated PDF is deduplicated)
 
 ### Customization
 - [ ] Font selection for front and back independently
 - [ ] Curated font list (see Section 7 below)
 - [ ] Card layout options:
   - **Current:** 4×4 grid on letter-size landscape (16 cards/page, double-sided)
-  - **Future:** 4×5 grid option (20 cards/page) — slightly smaller cards but more per page
-- [ ] Students can upload their own card data files (CSV/Excel) if in the correct format
-  - App validates column structure against expected format
+  - **Future:** 4×5 grid option (20 cards/page)
+- [ ] Students can upload their own card data files (CSV/XLSX)
   - Sample template provided for download
   - File is processed entirely in-browser — never leaves the student's device
 
 ### Export Formats
-- [ ] **Printable PDF:** 4×4 landscape grid, double-sided, matching Art's existing Python layout logic
-  - Generated in-browser using jsPDF (no server needed)
-  - Art's Python script to be ported to JavaScript
-- [ ] **Anki-compatible CSV:** Simple TSV/CSV download with selected fields mapped to front/back
-- [ ] **Preferences file:** Bundled in a ZIP with the PDF
-  - Human-readable summary at top (set, fonts, card count, etc.)
-  - Raw JSON for drag-and-drop restore
-  - Permalink URL at bottom (see Section 6)
+- [ ] **Printable PDF:** 4×4 landscape grid, double-sided, with field mapping per selected study mode
+  - Generated in-browser using jsPDF
+- [ ] **Preferences/progress file:** JSON export for backup/device transfer
+- [ ] ~~Anki CSV export~~ — **DEFERRED to final stage. Remove from current UI.**
 
 ### Progress / Preferences
 - [ ] **localStorage:** Day-to-day persistence in the student's browser
-  - Remembers which cards marked as "known"
+  - Remembers which cards marked as "printed" (separately for Type A and Type B)
   - Remembers customization preferences (fonts, layout, field mapping)
   - Tied to device/browser — not synced across devices
 - [ ] **Export/Import JSON file:** Manual backup for device transfers
-  - "Save Progress" → downloads small JSON file
-  - "Load Progress" → drag-and-drop or file picker to restore
-- [ ] **URL-encoded state (permalink):**
-  - Entire preference state serialized into URL hash
-  - Example: `site.com/#set=amitabha&front=chinese&back=pinyin&font=mashanzheng&exclude=12,47`
-  - For large exclusion lists, state compressed via base64
-  - Students can bookmark, share with classmates, or paste into notes
-  - Included at bottom of preferences file in ZIP export
+- [ ] **URL-encoded state (permalink):** Preference state serialized into URL hash
+
+### Future Considerations (noted, not implemented)
+- **Term blacklist:** A file preventing specific term+definition combinations from appearing. Deferred until Art has ~10 examples.
+- **Anki export:** Reinstated as final-stage feature only.
+- **Username/lightweight identity:** Students type a username to persist progress. Mechanism TBD.
+- **Master dictionary:** All distinct characters with full definition sets tagged by source. May not be needed — current per-source CSV approach handles this naturally.
 
 ---
 
@@ -363,44 +381,67 @@ All fonts are open-licensed via Google Fonts. No hosting cost.
 
 ## 10. Phases & Roadmap
 
-### Phase 1: Chinese Launch (MVP)
-- [ ] Convert first 3–5 Chinese datasets from Excel to JSON
-- [ ] Build the app (single HTML file)
-- [ ] Core features: browse sets, field mapping, font selection, preview, PDF export, Anki CSV export
-- [ ] Deploy to GitHub Pages
-- [ ] Students can start using it immediately
+### Phase 1: MVP (CURRENT — largely done)
+- [x] Landing page with tradition selector
+- [x] Set selection with checkboxes
+- [x] Card list with include/exclude
+- [x] PDF generation (field mapping)
+- [x] Deploy to GitHub Pages
+- [ ] Remove Anki CSV button (per vision update 4/1)
+- [ ] Fix fonts in PDF (Noto Serif SC / Noto Sans SC)
+- [ ] Card preview in browser
+- [ ] Browser back button support (history.pushState)
+- [ ] Upload option on landing page
+- [ ] Accordion-style set selection (not page navigation)
+- [ ] Group current sets under "Evening Chanting" subcategory
 
-### Phase 2: Polish & Expand Chinese
-- [ ] Add remaining Chinese datasets as they're verified
-- [ ] Add custom file upload support
-- [ ] Add localStorage progress tracking
-- [ ] Add export/import preferences (JSON file + ZIP bundle)
-- [ ] Add URL permalink state system
-- [ ] Add 4×5 grid layout option
+### Phase 2: Data Pipeline & Deduplication
+- [ ] Finalize AI prompt template for reproducible ETL
+- [ ] Add `frequency` column to all CSVs (count of term across entire corpus)
+- [ ] Re-generate all 6 existing CSVs with frequency data
+- [ ] Implement cross-set deduplication logic in the app
+- [ ] Context tag on FRONT of card when term has multiple meanings across sets
+- [ ] Expand data: Morning Chanting, Meal Offering, Great Compassion Repentance, etc.
 
-### Phase 3: Pali Expansion
+### Phase 3: Progress Tracking & Study Modes
+- [ ] Type A / Type B as two explicit study mode presets
+- [ ] "Printed" checkbox tracking per card, per type (A and B independent)
+- [ ] Type B ordering by frequency (most common terms first)
+- [ ] Cross-mode awareness (flag if a card is printed in the other mode)
+- [ ] localStorage persistence of printed status
+- [ ] Export/import progress as JSON file
+- [ ] URL permalink state system
+
+### Phase 4: Advanced Features
+- [ ] 4×5 grid layout option
+- [ ] Term blacklist file (when Art has ~10 examples)
+- [ ] Translation source metadata (BTTS, Kalavinka, era tagging)
+- [ ] Font selection UI with preview
+
+### Phase 5: Pali / Multi-Tradition Expansion
 - [ ] Consult with Pali monk community on romanization scheme
 - [ ] Evaluate and add Pali-friendly fonts
 - [ ] Adapt data pipeline for Pali (multiple English sources)
 - [ ] Generate first Pali datasets
+- [ ] Joined Pali-Chinese dataset for common Dharma terms
 - [ ] Update app UI to handle Pali field structure
-- [ ] Deploy Pali card sets
 
-### Phase 4 (Optional): Community Hosting
-- [ ] If community support exists: purchase domain, add to shared hosting
-- [ ] Database-backed progress sync (Supabase or similar) as enhancement layer
-- [ ] Automated database backups to external location
-- [ ] Migration plan documented for hosting changes
+### Phase 6: Community & Sustainability
+- [ ] Fork instructions for user-contributed data
+- [ ] Optional username/lightweight identity system
+- [ ] Custom domain if community support materializes
+- [ ] Anki export (final-stage feature, reinstated here)
 
 ---
 
 ## 11. Open Questions / TBD
 
-- [ ] Exact priority order of Chinese liturgy sections for data generation
-- [ ] Grouping rules documentation (Art refining separately)
-- [ ] AI prompt template for data extraction (Art to document)
-- [ ] Python print script details (Art to share)
+- [ ] AI prompt template finalization (separate workstream)
 - [ ] Pali romanization scheme preference (consult monk community)
+- [ ] Pali font candidates (evaluate when Phase 5 begins)
+- [ ] Username/identity mechanism for progress persistence
+- [ ] Term blacklist format and implementation (wait for examples)
+- [ ] Whether context tag on front should always show or only for multi-meaning terms
 - [ ] Pali font candidates (evaluate when Phase 3 begins)
 - [ ] Whether any Chinese fonts need self-hosting vs. Google Fonts CDN
 
