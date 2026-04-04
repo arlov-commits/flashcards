@@ -27,6 +27,9 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .known-viewer-link { position: absolute; top: 40px; right: 0; font-size: 0.85rem; color: var(--accent); cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 4px; }
 .known-viewer-link:hover { text-decoration: underline; }
 .known-viewer-link .known-badge { background: var(--accent); color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+@media (max-width: 600px) {
+  .known-viewer-link { position: static; justify-content: center; margin-top: 10px; }
+}
 
 /* Accordion */
 .accordion-section { margin-top: 16px; }
@@ -111,6 +114,7 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 table.card-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 table.card-table th { position: sticky; top: 0; background: #e8dfd4; text-align: left; padding: 8px 10px; border-bottom: 1.5px solid var(--border); font-weight: 600; font-size: 0.85rem; color: var(--text); z-index: 1; }
 table.card-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+table.card-table td.chinese-cell { font-size: calc(0.9rem + 3pt); }
 table.card-table tr:last-child td { border-bottom: none; }
 table.card-table tr.excluded { opacity: 0.45; }
 table.card-table td:first-child { width: 36px; text-align: center; }
@@ -118,8 +122,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Field mapping */
 .field-mapping { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
-@media (max-width: 500px) { .field-mapping { grid-template-columns: 1fr; } }
+@media (max-width: 500px) { .field-mapping { grid-template-columns: 1fr; gap: 8px; } }
 .field-group { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+@media (max-width: 500px) { .field-group { padding: 10px; } .field-group h3 { font-size: 0.9rem; margin-bottom: 4px; } }
 .field-group label { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 0.9rem; cursor: pointer; }
 .field-group label input[type="checkbox"] { accent-color: var(--accent); }
 
@@ -215,10 +220,14 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <span class="mode-label">Type B</span>
         <span class="mode-desc">Chinese only front</span>
       </button>
+      <button class="mode-btn" data-mode="C" onclick="setStudyMode('C')">
+        <span class="mode-label">Custom</span>
+        <span class="mode-desc">Choose fields</span>
+      </button>
     </div>
+    <div id="mode-field-summary" style="font-size:0.85rem;color:var(--text-muted);margin:-8px 0 12px;"></div>
 
-    <h2>Field Mapping</h2>
-    <div class="field-mapping">
+    <div id="field-mapping-section" class="field-mapping" style="display:none">
       <div class="field-group"><h3>Front</h3><div id="front-fields"></div></div>
       <div class="field-group"><h3>Back</h3><div id="back-fields"></div></div>
     </div>
@@ -286,7 +295,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v1.5';
+var APP_VERSION = 'v1.6';
 
 /* ============================================================
    LOCALSTORAGE: KNOWN LISTS & UPLOADS
@@ -754,7 +763,6 @@ function setStudyMode(mode) {
   studyMode = mode;
   renderModeButtons();
 
-  // Set field mapping based on mode
   var fields = currentTradition.fields;
   var targetKey = null, romanKey = null, transKey = null;
   for (var i = 0; i < fields.length; i++) {
@@ -763,12 +771,23 @@ function setStudyMode(mode) {
     else if (fields[i].type === 'translation') transKey = fields[i].key;
   }
 
+  var summaryEl = document.getElementById('mode-field-summary');
+  var mappingEl = document.getElementById('field-mapping-section');
+
   if (mode === 'A') {
     frontFields = [targetKey, romanKey].filter(Boolean);
     backFields = [transKey].filter(Boolean);
-  } else {
-    backFields = [romanKey, transKey].filter(Boolean);
+    mappingEl.style.display = 'none';
+    summaryEl.textContent = 'Front: Chinese + Pinyin · Back: English';
+  } else if (mode === 'B') {
     frontFields = [targetKey].filter(Boolean);
+    backFields = [romanKey, transKey].filter(Boolean);
+    mappingEl.style.display = 'none';
+    summaryEl.textContent = 'Front: Chinese · Back: Pinyin + English';
+  } else {
+    // Custom — keep current fields, show mapping editor
+    mappingEl.style.display = '';
+    summaryEl.textContent = '';
   }
 
   // Sort by frequency for Type B if available
@@ -776,7 +795,7 @@ function setStudyMode(mode) {
     allCards.sort(function(a, b) {
       var fa = parseInt(a.frequency) || 999999;
       var fb = parseInt(b.frequency) || 999999;
-      return fa - fb; // lower frequency number = more common = first
+      return fa - fb;
     });
   } else {
     allCards.sort(function(a, b) { return a._index - b._index; });
@@ -883,17 +902,21 @@ function renderFieldMapping() {
   var backDiv = document.getElementById('back-fields');
   frontDiv.innerHTML = '';
   backDiv.innerHTML = '';
+  var isCustom = studyMode === 'C';
 
   fields.forEach(function(f) {
     var fl = document.createElement('label');
     var fcb = document.createElement('input');
     fcb.type = 'checkbox';
     fcb.checked = frontFields.indexOf(f.key) !== -1;
-    fcb.addEventListener('change', function() {
-      if (fcb.checked) { if (frontFields.indexOf(f.key) === -1) frontFields.push(f.key); }
-      else { frontFields = frontFields.filter(function(k) { return k !== f.key; }); }
-      updateSummary();
-    });
+    fcb.disabled = !isCustom;
+    if (isCustom) {
+      fcb.addEventListener('change', function() {
+        if (fcb.checked) { if (frontFields.indexOf(f.key) === -1) frontFields.push(f.key); }
+        else { frontFields = frontFields.filter(function(k) { return k !== f.key; }); }
+        updateSummary();
+      });
+    }
     fl.appendChild(fcb);
     fl.appendChild(document.createTextNode(' ' + f.label));
     frontDiv.appendChild(fl);
@@ -902,11 +925,14 @@ function renderFieldMapping() {
     var bcb = document.createElement('input');
     bcb.type = 'checkbox';
     bcb.checked = backFields.indexOf(f.key) !== -1;
-    bcb.addEventListener('change', function() {
-      if (bcb.checked) { if (backFields.indexOf(f.key) === -1) backFields.push(f.key); }
-      else { backFields = backFields.filter(function(k) { return k !== f.key; }); }
-      updateSummary();
-    });
+    bcb.disabled = !isCustom;
+    if (isCustom) {
+      bcb.addEventListener('change', function() {
+        if (bcb.checked) { if (backFields.indexOf(f.key) === -1) backFields.push(f.key); }
+        else { backFields = backFields.filter(function(k) { return k !== f.key; }); }
+        updateSummary();
+      });
+    }
     bl.appendChild(bcb);
     bl.appendChild(document.createTextNode(' ' + f.label));
     backDiv.appendChild(bl);
@@ -980,6 +1006,7 @@ function renderCardTable() {
     for (var fi = 0; fi < fields.length; fi++) {
       var td = document.createElement('td');
       td.textContent = card2[fields[fi].key] || '';
+      if (fields[fi].type === 'target_lang') td.className = 'chinese-cell';
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
