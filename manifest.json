@@ -37,48 +37,53 @@
         "english_def"
       ],
       "tag_field": "ch_tag",
-      "sets": {
-        "incense_praise": {
-          "file": "data/chinese/incense-praise.csv",
-          "display_tag": "香讚",
-          "eng_name": "Incense Praise",
-          "total_cards": 40,
-          "active_cards": 40
-        },
-        "heart_sutra": {
-          "file": "data/chinese/heart-sutra.csv",
-          "display_tag": "心經",
-          "eng_name": "Heart Sutra",
-          "total_cards": 104,
-          "active_cards": 90
-        },
-        "amitabha_praise": {
-          "file": "data/chinese/amitabha-praise.csv",
-          "display_tag": "佛讚",
-          "eng_name": "Amitabha Praise",
-          "total_cards": 105,
-          "active_cards": 102
-        },
-        "three_refuges": {
-          "file": "data/chinese/three-refuges.csv",
-          "display_tag": "三皈依",
-          "eng_name": "Three Refuges",
-          "total_cards": 61,
-          "active_cards": 30
-        },
-        "puxian_exhortation": {
-          "file": "data/chinese/puxian-exhortation.csv",
-          "display_tag": "普賢",
-          "eng_name": "Puxian Exhortation",
-          "total_cards": 49,
-          "active_cards": 36
-        },
-        "merit_transfer": {
-          "file": "data/chinese/merit-transfer.csv",
-          "display_tag": "回向",
-          "eng_name": "Merit Transfer",
-          "total_cards": 61,
-          "active_cards": 44
+      "subcategories": {
+        "evening_chanting": {
+          "display_name": "Evening Chanting",
+          "sets": {
+            "incense_praise": {
+              "file": "data/chinese/incense-praise.csv",
+              "display_tag": "香讚",
+              "eng_name": "Incense Praise",
+              "total_cards": 40,
+              "active_cards": 40
+            },
+            "heart_sutra": {
+              "file": "data/chinese/heart-sutra.csv",
+              "display_tag": "心經",
+              "eng_name": "Heart Sutra",
+              "total_cards": 104,
+              "active_cards": 90
+            },
+            "amitabha_praise": {
+              "file": "data/chinese/amitabha-praise.csv",
+              "display_tag": "佛讚",
+              "eng_name": "Amitabha Praise",
+              "total_cards": 105,
+              "active_cards": 102
+            },
+            "three_refuges": {
+              "file": "data/chinese/three-refuges.csv",
+              "display_tag": "三皈依",
+              "eng_name": "Three Refuges",
+              "total_cards": 61,
+              "active_cards": 30
+            },
+            "puxian_exhortation": {
+              "file": "data/chinese/puxian-exhortation.csv",
+              "display_tag": "普賢",
+              "eng_name": "Puxian Exhortation",
+              "total_cards": 49,
+              "active_cards": 36
+            },
+            "merit_transfer": {
+              "file": "data/chinese/merit-transfer.csv",
+              "display_tag": "回向",
+              "eng_name": "Merit Transfer",
+              "total_cards": 61,
+              "active_cards": 44
+            }
+          }
         }
       }
     },
@@ -90,7 +95,7 @@
       "default_front": [],
       "default_back": [],
       "tag_field": "",
-      "sets": {}
+      "subcategories": {}
     }
   }
 }

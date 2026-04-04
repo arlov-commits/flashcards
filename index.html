@@ -49,7 +49,7 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 
 .tradition-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-top: 24px;
 }
@@ -72,11 +72,91 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
   cursor: not-allowed;
 }
 .tradition-card h3 { font-size: 1.2rem; margin-bottom: 4px; }
-.tradition-card .coming-soon {
+.tradition-card .sub-text {
   font-size: 0.85rem;
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* Accordion tree */
+.accordion-section { margin-top: 16px; }
+
+.accordion-tradition {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.accordion-tradition.expanded { border-color: var(--accent-light); }
+
+.accordion-tradition-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.accordion-tradition-header:hover { background: rgba(0,0,0,0.02); }
+.accordion-tradition-header .arrow {
+  transition: transform 0.2s;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.accordion-tradition.expanded > .accordion-tradition-header .arrow {
+  transform: rotate(90deg);
+}
+.accordion-tradition-header .trad-count {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.accordion-tradition-body {
+  display: none;
+  padding: 0 18px 14px;
+}
+.accordion-tradition.expanded > .accordion-tradition-body { display: block; }
+
+.accordion-subcat {
+  margin-top: 8px;
+}
+.accordion-subcat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.accordion-subcat-header:hover { color: var(--accent); }
+.accordion-subcat-header .arrow {
+  transition: transform 0.2s;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.accordion-subcat.expanded > .accordion-subcat-header .arrow {
+  transform: rotate(90deg);
+}
+.accordion-subcat-header .subcat-count {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.accordion-subcat-body {
+  display: none;
+  padding-left: 8px;
+}
+.accordion-subcat.expanded > .accordion-subcat-body { display: block; }
 
 /* Buttons */
 .btn {
@@ -123,16 +203,16 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .nav-bar .back-link:hover { text-decoration: underline; }
 
 /* Set selection */
-.set-list { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.set-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
 
 .set-item {
   display: flex;
   align-items: center;
   gap: 12px;
   background: var(--bg-card);
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--border-light);
   border-radius: var(--radius);
-  padding: 14px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   transition: border-color 0.2s;
 }
@@ -142,15 +222,33 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
   width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0;
 }
 .set-item .set-info { flex: 1; }
-.set-item .set-name { font-weight: 600; }
-.set-item .set-tag { color: var(--text-muted); font-size: 0.9rem; }
-.set-item .set-count { color: var(--text-muted); font-size: 0.85rem; white-space: nowrap; }
+.set-item .set-name { font-weight: 600; font-size: 0.9rem; }
+.set-item .set-tag { color: var(--text-muted); font-size: 0.8rem; }
+.set-item .set-count { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
 
 .total-count {
   font-size: 0.95rem;
   color: var(--text-muted);
   margin: 8px 0 16px;
 }
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin-top: 16px;
+  background: var(--bg-card);
+}
+.upload-area:hover, .upload-area.dragover {
+  border-color: var(--accent);
+  background: #faf5f0;
+}
+.upload-area p { color: var(--text-muted); font-size: 0.9rem; margin-top: 8px; }
+.upload-area input[type="file"] { display: none; }
 
 /* Card list */
 .card-list-controls {
@@ -236,21 +334,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Download section */
 .download-section { margin-top: 24px; }
-.download-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
-}
-.download-card {
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  text-align: center;
-}
-.download-card h4 { font-size: 0.95rem; margin-bottom: 4px; }
-.download-card p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
 
 .summary-text {
   background: var(--bg-card);
@@ -298,34 +381,39 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
 <div class="container">
 
-  <!-- SCREEN 1: Landing -->
+  <!-- SCREEN 1: Landing + Accordion Set Selection -->
   <div id="screen-landing" class="screen active">
     <div class="landing-header">
       <h1>Buddhist Liturgy Flashcards</h1>
-      <p>Select a liturgical tradition to create printable flashcards and Anki decks for your study practice.</p>
+      <p>Select a liturgical tradition to browse card sets, or upload your own flashcard data.</p>
     </div>
-    <h2>Choose a Tradition</h2>
-    <div id="tradition-grid" class="tradition-grid"></div>
+
+    <h2>Browse Card Sets</h2>
+    <div id="accordion-container" class="accordion-section"></div>
+
+    <div id="set-total" class="total-count" style="display:none"></div>
+    <div class="btn-row" id="landing-actions" style="display:none">
+      <button class="btn btn-primary" id="btn-to-customize" disabled onclick="goToCustomize()">Customize &amp; Download</button>
+    </div>
+
+    <h2 style="margin-top:32px">Or Upload Your Own</h2>
+    <div class="tradition-grid" style="margin-top:12px">
+      <div class="tradition-card" onclick="document.getElementById('upload-input').click()">
+        <h3>Upload CSV / XLSX</h3>
+        <span class="sub-text">Use your own flashcard data</span>
+      </div>
+    </div>
+    <div id="upload-area" class="upload-area" style="display:none">
+      <strong>Drop a file here or click to browse</strong>
+      <p>Accepts .csv or .xlsx files with header row</p>
+      <input type="file" id="upload-input" accept=".csv,.xlsx">
+    </div>
   </div>
 
-  <!-- SCREEN 2: Set Selection -->
-  <div id="screen-sets" class="screen">
-    <div class="nav-bar">
-      <a class="back-link" onclick="showScreen('landing')">&larr; Back</a>
-      <span id="tradition-title"></span>
-    </div>
-    <h2>Select Card Sets</h2>
-    <div id="set-list" class="set-list"></div>
-    <div id="set-total" class="total-count"></div>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="btn-to-customize" disabled onclick="goToCustomize()">Next</button>
-    </div>
-  </div>
-
-  <!-- SCREEN 3: Customize & Card List & Download -->
+  <!-- SCREEN 2: Customize & Card List & Download -->
   <div id="screen-customize" class="screen">
     <div class="nav-bar">
-      <a class="back-link" onclick="showScreen('sets')">&larr; Back to Sets</a>
+      <a class="back-link" onclick="navigateTo('landing')">&larr; Back to Sets</a>
       <span id="customize-title"></span>
     </div>
 
@@ -359,18 +447,8 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
     <div class="download-section">
       <h2>Download</h2>
-      <div class="download-grid">
-        <div class="download-card">
-          <h4>Printable PDF</h4>
-          <p>Front &amp; back pages for double-sided printing</p>
-          <button class="btn btn-primary" onclick="generatePDF()">Download PDF</button>
-        </div>
-        <div class="download-card">
-          <h4>Anki CSV</h4>
-          <p>Tab-separated for Anki import</p>
-          <button class="btn btn-outline" onclick="exportAnkiCSV()">Download CSV</button>
-        </div>
-      </div>
+      <button class="btn btn-primary" onclick="generatePDF()" style="margin-top:8px">Download PDF</button>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing</p>
     </div>
   </div>
 
@@ -391,11 +469,12 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 let manifest = null;
 let currentTradition = null;
 let currentTraditionKey = null;
-let selectedSets = {};       // { setKey: true/false }
-let allCards = [];            // flat array of card objects with _setKey, _index
-let frontFields = [];         // field keys for front
-let backFields = [];          // field keys for back
-let fontDataCache = {};       // { url: base64 }
+let selectedSets = {};       // { setKey: true }
+let allCards = [];            // flat array of card objects
+let frontFields = [];
+let backFields = [];
+let fontDataCache = {};
+let isUploadMode = false;    // true when using uploaded file
 
 /* ============================================================
    INIT
@@ -405,11 +484,30 @@ async function init() {
     const res = await fetch('manifest.json');
     manifest = await res.json();
     renderLanding();
+    setupUpload();
+    setupHistory();
   } catch (e) {
-    document.getElementById('tradition-grid').innerHTML =
-      '<p style="color:red">Failed to load manifest.json. Make sure the file exists.</p>';
+    document.getElementById('accordion-container').innerHTML =
+      '<p style="color:red">Failed to load manifest.json.</p>';
     console.error(e);
   }
+}
+
+/* ============================================================
+   HISTORY / BACK BUTTON
+   ============================================================ */
+function setupHistory() {
+  // Replace initial state
+  history.replaceState({ screen: 'landing' }, '', '');
+  window.addEventListener('popstate', (e) => {
+    const screen = (e.state && e.state.screen) || 'landing';
+    showScreen(screen);
+  });
+}
+
+function navigateTo(screen) {
+  history.pushState({ screen }, '', '');
+  showScreen(screen);
 }
 
 /* ============================================================
@@ -422,91 +520,289 @@ function showScreen(name) {
 }
 
 /* ============================================================
-   SCREEN 1: LANDING
+   HELPER: resolve all sets from a tradition (via subcategories)
    ============================================================ */
-function renderLanding() {
-  const grid = document.getElementById('tradition-grid');
-  grid.innerHTML = '';
-  for (const [key, trad] of Object.entries(manifest.traditions)) {
-    const card = document.createElement('div');
-    card.className = 'tradition-card' + (trad.available ? '' : ' disabled');
-    card.innerHTML = `
-      <h3>${trad.display_name}</h3>
-      ${!trad.available ? '<span class="coming-soon">Coming soon</span>' : ''}
-    `;
-    if (trad.available) {
-      card.onclick = () => selectTradition(key, trad);
+function getAllSets(tradition) {
+  const result = {};
+  if (tradition.subcategories) {
+    for (const subcat of Object.values(tradition.subcategories)) {
+      if (subcat.sets) {
+        for (const [k, v] of Object.entries(subcat.sets)) {
+          result[k] = v;
+        }
+      }
     }
-    grid.appendChild(card);
   }
-}
-
-function selectTradition(key, trad) {
-  currentTraditionKey = key;
-  currentTradition = trad;
-  selectedSets = {};
-  renderSetSelection();
-  showScreen('sets');
+  // Fallback: also check top-level sets for backwards compat
+  if (tradition.sets) {
+    for (const [k, v] of Object.entries(tradition.sets)) {
+      result[k] = v;
+    }
+  }
+  return result;
 }
 
 /* ============================================================
-   SCREEN 2: SET SELECTION
+   LANDING: ACCORDION TREE
    ============================================================ */
-function renderSetSelection() {
-  document.getElementById('tradition-title').textContent = currentTradition.display_name;
-  const list = document.getElementById('set-list');
-  list.innerHTML = '';
+function renderLanding() {
+  const container = document.getElementById('accordion-container');
+  container.innerHTML = '';
 
-  for (const [setKey, setInfo] of Object.entries(currentTradition.sets)) {
-    const item = document.createElement('div');
-    item.className = 'set-item';
-    item.innerHTML = `
-      <input type="checkbox" id="set-${setKey}" data-set="${setKey}">
-      <div class="set-info">
-        <div class="set-name">${setInfo.eng_name}</div>
-        <div class="set-tag">${setInfo.display_tag}</div>
-      </div>
-      <div class="set-count">${setInfo.active_cards} / ${setInfo.total_cards} cards</div>
-    `;
-    const cb = item.querySelector('input');
-    cb.addEventListener('change', () => {
-      selectedSets[setKey] = cb.checked;
-      item.classList.toggle('checked', cb.checked);
-      updateSetTotal();
-    });
-    item.addEventListener('click', (e) => {
-      if (e.target !== cb) {
-        cb.checked = !cb.checked;
-        cb.dispatchEvent(new Event('change'));
+  for (const [tradKey, trad] of Object.entries(manifest.traditions)) {
+    const tradEl = document.createElement('div');
+    tradEl.className = 'accordion-tradition' + (trad.available ? '' : ' disabled');
+
+    const allTradSets = getAllSets(trad);
+    const totalCards = Object.values(allTradSets).reduce((s, v) => s + v.total_cards, 0);
+
+    // Tradition header
+    const header = document.createElement('div');
+    header.className = 'accordion-tradition-header';
+    header.innerHTML = '<span class="arrow">&#9654;</span>' +
+      '<span>' + trad.display_name + '</span>' +
+      (!trad.available ? '<span class="sub-text" style="margin-left:8px">Coming soon</span>' : '') +
+      '<span class="trad-count">' + (trad.available ? totalCards + ' cards' : '') + '</span>';
+
+    if (trad.available) {
+      header.addEventListener('click', () => {
+        tradEl.classList.toggle('expanded');
+      });
+    }
+    tradEl.appendChild(header);
+
+    // Tradition body with subcategories
+    if (trad.available && trad.subcategories) {
+      const body = document.createElement('div');
+      body.className = 'accordion-tradition-body';
+
+      for (const [subcatKey, subcat] of Object.entries(trad.subcategories)) {
+        const subcatEl = document.createElement('div');
+        subcatEl.className = 'accordion-subcat expanded'; // start expanded
+
+        const subcatSets = subcat.sets || {};
+        const subcatTotal = Object.values(subcatSets).reduce((s, v) => s + v.total_cards, 0);
+
+        const subcatHeader = document.createElement('div');
+        subcatHeader.className = 'accordion-subcat-header';
+        subcatHeader.innerHTML = '<span class="arrow">&#9654;</span>' +
+          '<span>' + subcat.display_name + '</span>' +
+          '<span class="subcat-count">' + subcatTotal + ' cards</span>';
+        subcatHeader.addEventListener('click', (e) => {
+          e.stopPropagation();
+          subcatEl.classList.toggle('expanded');
+        });
+        subcatEl.appendChild(subcatHeader);
+
+        const subcatBody = document.createElement('div');
+        subcatBody.className = 'accordion-subcat-body';
+
+        const setList = document.createElement('div');
+        setList.className = 'set-list';
+
+        for (const [setKey, setInfo] of Object.entries(subcatSets)) {
+          const item = document.createElement('div');
+          item.className = 'set-item';
+          item.innerHTML =
+            '<input type="checkbox" data-tradition="' + tradKey + '" data-set="' + setKey + '">' +
+            '<div class="set-info">' +
+              '<div class="set-name">' + setInfo.eng_name + '</div>' +
+              '<div class="set-tag">' + setInfo.display_tag + '</div>' +
+            '</div>' +
+            '<div class="set-count">' + setInfo.active_cards + ' / ' + setInfo.total_cards + '</div>';
+
+          const cb = item.querySelector('input');
+          cb.addEventListener('change', () => {
+            if (cb.checked) {
+              // Set the current tradition when first checkbox is checked
+              if (!currentTraditionKey || currentTraditionKey !== tradKey) {
+                currentTraditionKey = tradKey;
+                currentTradition = trad;
+                // Uncheck sets from other traditions
+                document.querySelectorAll('.set-item input[type="checkbox"]').forEach(other => {
+                  if (other !== cb && other.dataset.tradition !== tradKey && other.checked) {
+                    other.checked = false;
+                    other.closest('.set-item').classList.remove('checked');
+                  }
+                });
+                selectedSets = {};
+              }
+              selectedSets[setKey] = true;
+            } else {
+              delete selectedSets[setKey];
+            }
+            item.classList.toggle('checked', cb.checked);
+            isUploadMode = false;
+            updateSetTotal();
+          });
+          item.addEventListener('click', (e) => {
+            if (e.target !== cb) {
+              cb.checked = !cb.checked;
+              cb.dispatchEvent(new Event('change'));
+            }
+          });
+          setList.appendChild(item);
+        }
+
+        subcatBody.appendChild(setList);
+        subcatEl.appendChild(subcatBody);
+        body.appendChild(subcatEl);
       }
-    });
-    list.appendChild(item);
+      tradEl.appendChild(body);
+    }
+    container.appendChild(tradEl);
   }
   updateSetTotal();
 }
 
 function updateSetTotal() {
-  let total = 0;
-  let active = 0;
-  for (const [k, v] of Object.entries(selectedSets)) {
-    if (v) {
-      total += currentTradition.sets[k].total_cards;
-      active += currentTradition.sets[k].active_cards;
+  const keys = Object.keys(selectedSets);
+  const totalEl = document.getElementById('set-total');
+  const actionsEl = document.getElementById('landing-actions');
+  const btn = document.getElementById('btn-to-customize');
+
+  if (keys.length === 0) {
+    totalEl.style.display = 'none';
+    actionsEl.style.display = 'none';
+    btn.disabled = true;
+    return;
+  }
+
+  const allSets = getAllSets(currentTradition);
+  let total = 0, active = 0;
+  for (const k of keys) {
+    if (allSets[k]) {
+      total += allSets[k].total_cards;
+      active += allSets[k].active_cards;
     }
   }
-  const any = Object.values(selectedSets).some(v => v);
-  document.getElementById('btn-to-customize').disabled = !any;
-  document.getElementById('set-total').textContent = any
-    ? `${active} active of ${total} total cards selected`
-    : 'No sets selected';
+
+  totalEl.textContent = active + ' active of ' + total + ' total cards selected';
+  totalEl.style.display = 'block';
+  actionsEl.style.display = 'flex';
+  btn.disabled = false;
 }
 
 /* ============================================================
-   SCREEN 3: CUSTOMIZE
+   FILE UPLOAD
+   ============================================================ */
+function setupUpload() {
+  const uploadCard = document.querySelector('.tradition-card[onclick]');
+  const uploadArea = document.getElementById('upload-area');
+  const fileInput = document.getElementById('upload-input');
+
+  // Show upload area when card is clicked (it also triggers file input)
+  // But also show the drop area
+  if (uploadCard) {
+    uploadCard.addEventListener('click', (e) => {
+      uploadArea.style.display = 'block';
+    });
+  }
+
+  // Drag and drop
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+  });
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleUploadedFile(e.dataTransfer.files[0]);
+  });
+  uploadArea.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) handleUploadedFile(fileInput.files[0]);
+  });
+}
+
+function handleUploadedFile(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.csv')) {
+    const reader = new FileReader();
+    reader.onload = (e) => parseUploadedCSV(e.target.result, file.name);
+    reader.readAsText(file);
+  } else if (name.endsWith('.xlsx')) {
+    alert('XLSX support requires the SheetJS library which is not yet loaded. Please convert to CSV first.');
+  } else {
+    alert('Please upload a .csv or .xlsx file.');
+  }
+}
+
+function parseUploadedCSV(text, filename) {
+  const clean = text.replace(/^\uFEFF/, '');
+  const parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
+
+  if (!parsed.data.length || !parsed.meta.fields || parsed.meta.fields.length < 2) {
+    alert('Could not parse the file. Make sure it has a header row and at least 2 columns.');
+    return;
+  }
+
+  // Auto-detect fields from headers
+  const headers = parsed.meta.fields;
+  const fields = headers
+    .filter(h => !['include','multichar','ch_tag','eng_tag','frequency'].includes(h.toLowerCase()))
+    .map(h => ({
+      key: h,
+      label: h.charAt(0).toUpperCase() + h.slice(1).replace(/_/g, ' '),
+      type: 'translation',
+      font_category: 'english'
+    }));
+
+  // Try to detect chinese/pinyin/target_lang fields
+  for (const f of fields) {
+    const k = f.key.toLowerCase();
+    if (k === 'chinese' || k === 'hanzi' || k === 'character' || k === 'chars') {
+      f.type = 'target_lang';
+      f.font_category = 'chinese';
+    } else if (k === 'pinyin' || k === 'romanization' || k === 'romanized') {
+      f.type = 'romanization';
+    }
+  }
+
+  // Build a synthetic tradition for the uploaded data
+  isUploadMode = true;
+  currentTraditionKey = '_upload';
+  currentTradition = {
+    display_name: filename,
+    fields: fields,
+    default_front: fields.length >= 2 ? [fields[0].key] : [],
+    default_back: fields.length >= 2 ? [fields[1].key] : [],
+    tag_field: headers.includes('ch_tag') ? 'ch_tag' : (headers.includes('eng_tag') ? 'eng_tag' : ''),
+    meta_fields: {}
+  };
+  selectedSets = { _upload: true };
+
+  // Load cards directly
+  allCards = [];
+  parsed.data.forEach((row, i) => {
+    row.include = row.include !== undefined ? String(row.include).trim() === '1' : true;
+    row.multichar = row.multichar !== undefined ? String(row.multichar).trim().toLowerCase() === 'true' : false;
+    for (const f of fields) {
+      if (row[f.key] !== undefined) row[f.key] = (row[f.key] || '').trim();
+    }
+    row._setKey = '_upload';
+    row._index = i;
+    row._included = row.include;
+    allCards.push(row);
+  });
+
+  document.getElementById('customize-title').textContent = filename;
+  navigateTo('customize');
+  renderFieldMapping();
+  renderCardTable();
+}
+
+/* ============================================================
+   CUSTOMIZE SCREEN
    ============================================================ */
 async function goToCustomize() {
+  if (!currentTradition) return;
   document.getElementById('customize-title').textContent = currentTradition.display_name;
-  showScreen('customize');
+  navigateTo('customize');
   await loadCards();
   renderFieldMapping();
   renderCardTable();
@@ -515,29 +811,25 @@ async function goToCustomize() {
 async function loadCards() {
   allCards = [];
   const fields = currentTradition.fields;
+  const allSets = getAllSets(currentTradition);
   const loadPromises = [];
 
-  for (const [setKey, selected] of Object.entries(selectedSets)) {
-    if (!selected) continue;
-    const setInfo = currentTradition.sets[setKey];
+  for (const setKey of Object.keys(selectedSets)) {
+    const setInfo = allSets[setKey];
+    if (!setInfo) continue;
     loadPromises.push(
       fetch(setInfo.file).then(r => r.text()).then(csvText => {
-        // Strip BOM
         const clean = csvText.replace(/^\uFEFF/, '');
         const parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
         parsed.data.forEach((row, i) => {
-          // Coerce special fields
           row.include = (row.include || '').trim() === '1';
           row.multichar = (row.multichar || '').trim().toLowerCase() === 'true';
-          // Trim whitespace from all string fields
           for (const f of fields) {
-            if (row[f.key] !== undefined) {
-              row[f.key] = (row[f.key] || '').trim();
-            }
+            if (row[f.key] !== undefined) row[f.key] = (row[f.key] || '').trim();
           }
           row._setKey = setKey;
           row._index = i;
-          row._included = row.include; // user-togglable
+          row._included = row.include;
           allCards.push(row);
         });
       })
@@ -551,49 +843,44 @@ function renderFieldMapping() {
   frontFields = [...currentTradition.default_front];
   backFields = [...currentTradition.default_back];
 
-  function render() {
-    const frontDiv = document.getElementById('front-fields');
-    const backDiv = document.getElementById('back-fields');
-    frontDiv.innerHTML = '';
-    backDiv.innerHTML = '';
+  const frontDiv = document.getElementById('front-fields');
+  const backDiv = document.getElementById('back-fields');
+  frontDiv.innerHTML = '';
+  backDiv.innerHTML = '';
 
-    for (const f of fields) {
-      // Front checkbox
-      const fl = document.createElement('label');
-      const fcb = document.createElement('input');
-      fcb.type = 'checkbox';
-      fcb.checked = frontFields.includes(f.key);
-      fcb.addEventListener('change', () => {
-        if (fcb.checked) {
-          if (!frontFields.includes(f.key)) frontFields.push(f.key);
-        } else {
-          frontFields = frontFields.filter(k => k !== f.key);
-        }
-        updateSummary();
-      });
-      fl.appendChild(fcb);
-      fl.appendChild(document.createTextNode(' ' + f.label));
-      frontDiv.appendChild(fl);
+  for (const f of fields) {
+    const fl = document.createElement('label');
+    const fcb = document.createElement('input');
+    fcb.type = 'checkbox';
+    fcb.checked = frontFields.includes(f.key);
+    fcb.addEventListener('change', () => {
+      if (fcb.checked) {
+        if (!frontFields.includes(f.key)) frontFields.push(f.key);
+      } else {
+        frontFields = frontFields.filter(k => k !== f.key);
+      }
+      updateSummary();
+    });
+    fl.appendChild(fcb);
+    fl.appendChild(document.createTextNode(' ' + f.label));
+    frontDiv.appendChild(fl);
 
-      // Back checkbox
-      const bl = document.createElement('label');
-      const bcb = document.createElement('input');
-      bcb.type = 'checkbox';
-      bcb.checked = backFields.includes(f.key);
-      bcb.addEventListener('change', () => {
-        if (bcb.checked) {
-          if (!backFields.includes(f.key)) backFields.push(f.key);
-        } else {
-          backFields = backFields.filter(k => k !== f.key);
-        }
-        updateSummary();
-      });
-      bl.appendChild(bcb);
-      bl.appendChild(document.createTextNode(' ' + f.label));
-      backDiv.appendChild(bl);
-    }
+    const bl = document.createElement('label');
+    const bcb = document.createElement('input');
+    bcb.type = 'checkbox';
+    bcb.checked = backFields.includes(f.key);
+    bcb.addEventListener('change', () => {
+      if (bcb.checked) {
+        if (!backFields.includes(f.key)) backFields.push(f.key);
+      } else {
+        backFields = backFields.filter(k => k !== f.key);
+      }
+      updateSummary();
+    });
+    bl.appendChild(bcb);
+    bl.appendChild(document.createTextNode(' ' + f.label));
+    backDiv.appendChild(bl);
   }
-  render();
   updateSummary();
 }
 
@@ -601,30 +888,19 @@ function renderCardTable() {
   const fields = currentTradition.fields;
   const searchVal = (document.getElementById('card-search').value || '').toLowerCase();
 
-  // Header
   const thead = document.getElementById('card-table-head');
   thead.innerHTML = '<tr><th></th>' +
-    fields.map(f => `<th>${f.label}</th>`).join('') +
-    '</tr>';
+    fields.map(f => '<th>' + f.label + '</th>').join('') + '</tr>';
 
-  // Body
   const tbody = document.getElementById('card-table-body');
   tbody.innerHTML = '';
 
-  let shown = 0;
-  let included = 0;
-
   for (let i = 0; i < allCards.length; i++) {
     const card = allCards[i];
-
-    // Search filter
     if (searchVal) {
       const match = fields.some(f => (card[f.key] || '').toLowerCase().includes(searchVal));
       if (!match) continue;
     }
-
-    shown++;
-    if (card._included) included++;
 
     const tr = document.createElement('tr');
     if (!card._included) tr.className = 'excluded';
@@ -649,21 +925,20 @@ function renderCardTable() {
     }
     tbody.appendChild(tr);
   }
-
   updateCardCount();
 }
 
 function updateCardCount() {
   const total = allCards.length;
   const included = allCards.filter(c => c._included).length;
-  document.getElementById('card-count').textContent = `${included} of ${total} cards selected`;
+  document.getElementById('card-count').textContent = included + ' of ' + total + ' cards selected';
 }
 
 function updateSummary() {
   const included = allCards.filter(c => c._included).length;
   const pages = Math.ceil(included / 16);
   document.getElementById('summary-text').textContent =
-    `This will generate ${included} cards across ${pages} pages (double-sided, ${pages * 2} sheets).`;
+    'This will generate ' + included + ' cards across ' + pages + ' pages (double-sided, ' + (pages * 2) + ' sheets).';
 }
 
 function selectAllCards(val) {
@@ -686,7 +961,7 @@ function selectAllCards(val) {
 async function loadFontAsArrayBuffer(url) {
   if (fontDataCache[url]) return fontDataCache[url];
   const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`Font fetch failed: ${resp.status} ${resp.statusText}`);
+  if (!resp.ok) throw new Error('Font fetch failed: ' + resp.status + ' ' + resp.statusText);
   const buf = await resp.arrayBuffer();
   fontDataCache[url] = buf;
   return buf;
@@ -717,7 +992,7 @@ async function generatePDF() {
     const { jsPDF } = window.jspdf;
     const fields = currentTradition.fields;
 
-    // --- Load fonts (Noto Serif SC for Chinese, Noto Sans SC for pinyin/English) ---
+    // --- Load fonts ---
     const serifUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf';
     const sansUrl  = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf';
 
@@ -734,7 +1009,6 @@ async function generatePDF() {
 
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
 
-    // Register fonts — normal + bold variants from the same variable-weight file
     pdf.addFileToVFS('NotoSerifSC.ttf', serifB64);
     pdf.addFont('NotoSerifSC.ttf', 'NotoSerifSC', 'normal');
     pdf.addFileToVFS('NotoSerifSC-Bold.ttf', serifB64);
@@ -745,7 +1019,6 @@ async function generatePDF() {
     pdf.addFileToVFS('NotoSansSC-Bold.ttf', sansB64);
     pdf.addFont('NotoSansSC-Bold.ttf', 'NotoSansSC', 'bold');
 
-    // --- Layout constants (match flashcards-xlsx2.py) ---
     const marginX = 7.62;
     const marginY = 7.62;
     const wCard = (279.4 - 2 * marginX) / 4;
@@ -754,11 +1027,9 @@ async function generatePDF() {
     const cards = allCards.filter(c => c._included);
     const tagField = currentTradition.tag_field;
 
-    // Build ordered field lists for front and back from user selection
     const frontFieldObjs = fields.filter(f => frontFields.includes(f.key));
     const backFieldObjs  = fields.filter(f => backFields.includes(f.key));
 
-    // --- Helpers ---
     function drawGridCell(x, y) {
       pdf.setDrawColor(200, 200, 200);
       pdf.rect(x, y, wCard, hCard);
@@ -772,28 +1043,23 @@ async function generatePDF() {
       pdf.setTextColor(0, 0, 0);
     }
 
-    // Choose font family based on the field's font_category from manifest
     function fontForField(field) {
       return field.font_category === 'chinese' ? 'NotoSerifSC' : 'NotoSansSC';
     }
 
-    // Render a list of fields stacked vertically inside a card cell.
-    // Adapts font sizes based on field type and content length.
     function renderFieldsInCell(fieldObjs, card, x, y, isFront) {
       if (fieldObjs.length === 0) return;
-
-      const cx = x + wCard / 2;  // horizontal center
+      const cx = x + wCard / 2;
 
       if (fieldObjs.length === 1) {
-        // Single field: center it vertically in the card
         const f = fieldObjs[0];
         const val = (card[f.key] || '').trim();
         if (!val) return;
 
         if (f.type === 'target_lang') {
-          let sz = isFront && fieldObjs.length === 1 ? 32 : 28;
-          if (val.length >= 5) sz = isFront ? 22 : 20;
-          else if (val.length >= 3) sz = isFront ? 26 : 24;
+          let sz = 32;
+          if (val.length >= 5) sz = 22;
+          else if (val.length >= 3) sz = 26;
           pdf.setFont(fontForField(f), 'normal');
           pdf.setFontSize(sz);
           pdf.text(val, cx, y + hCard / 2 + 2, { align: 'center' });
@@ -804,66 +1070,58 @@ async function generatePDF() {
           pdf.setFontSize(sz);
           pdf.text(val, cx, y + hCard / 2 + 2, { align: 'center' });
         } else {
-          // translation or other
           pdf.setFont(fontForField(f), 'normal');
           pdf.setFontSize(11);
           const lines = pdf.splitTextToSize(val, wCard - 4);
           const blockH = lines.length * 5;
           const startY = y + (hCard - blockH) / 2 + 4;
-          lines.forEach((line, i) => pdf.text(line, cx, startY + i * 5, { align: 'center' }));
+          lines.forEach(function(line, i) { pdf.text(line, cx, startY + i * 5, { align: 'center' }); });
         }
         return;
       }
 
-      // Multiple fields: stack them with smart vertical distribution
-      // Separate target_lang (big) from others (smaller)
-      const targetIdx = fieldObjs.findIndex(f => f.type === 'target_lang');
-      const hasTarget = targetIdx !== -1;
+      var targetIdx = fieldObjs.findIndex(function(f) { return f.type === 'target_lang'; });
+      var hasTarget = targetIdx !== -1;
 
       if (hasTarget && fieldObjs.length === 2) {
-        // Two fields with target_lang (e.g. Chinese + Pinyin, or Chinese + English)
-        const targetF = fieldObjs[targetIdx];
-        const otherF  = fieldObjs[1 - targetIdx];
-        const targetVal = (card[targetF.key] || '').trim();
-        const otherVal  = (card[otherF.key] || '').trim();
+        var targetF = fieldObjs[targetIdx];
+        var otherF  = fieldObjs[1 - targetIdx];
+        var targetVal = (card[targetF.key] || '').trim();
+        var otherVal  = (card[otherF.key] || '').trim();
 
-        // Target language — upper portion
         let sz = 28;
         if (targetVal.length >= 5) sz = 20;
         else if (targetVal.length >= 3) sz = 24;
         pdf.setFont(fontForField(targetF), 'normal');
         pdf.setFontSize(sz);
-        const charY = y + (hCard / 2) - 12;
+        var charY = y + (hCard / 2) - 12;
         pdf.text(targetVal, cx, charY + 5, { align: 'center' });
 
-        // Other field — below
         if (otherF.type === 'romanization') {
-          const style = card.multichar ? 'bold' : 'normal';
+          var style = card.multichar ? 'bold' : 'normal';
           pdf.setFont(fontForField(otherF), style);
           pdf.setFontSize(14);
           pdf.text(otherVal, cx, charY + 21, { align: 'center' });
         } else {
           pdf.setFont(fontForField(otherF), 'normal');
           pdf.setFontSize(11);
-          const lines = pdf.splitTextToSize(otherVal, wCard - 4);
-          lines.forEach((line, i) => pdf.text(line, cx, charY + 20 + i * 5, { align: 'center' }));
+          var lines = pdf.splitTextToSize(otherVal, wCard - 4);
+          lines.forEach(function(line, i) { pdf.text(line, cx, charY + 20 + i * 5, { align: 'center' }); });
         }
         return;
       }
 
       if (!hasTarget && fieldObjs.length === 2) {
-        // Two non-target fields (e.g. Pinyin + English on back)
-        const f0 = fieldObjs[0];
-        const f1 = fieldObjs[1];
-        const v0 = (card[f0.key] || '').trim();
-        const v1 = (card[f1.key] || '').trim();
+        var f0 = fieldObjs[0];
+        var f1 = fieldObjs[1];
+        var v0 = (card[f0.key] || '').trim();
+        var v1 = (card[f1.key] || '').trim();
 
-        // First field near top
         if (f0.type === 'romanization') {
-          const style = card.multichar ? 'bold' : 'normal';
-          const sz = v0.length >= 18 ? 11 : 14;
-          pdf.setFont(fontForField(f0), style);
-          pdf.setFontSize(sz);
+          var st = card.multichar ? 'bold' : 'normal';
+          var sz2 = v0.length >= 18 ? 11 : 14;
+          pdf.setFont(fontForField(f0), st);
+          pdf.setFontSize(sz2);
           pdf.text(v0, cx, y + 17, { align: 'center' });
         } else {
           pdf.setFont(fontForField(f0), 'normal');
@@ -871,24 +1129,22 @@ async function generatePDF() {
           pdf.text(v0, cx, y + 17, { align: 'center' });
         }
 
-        // Horizontal separator
-        const lineY = y + 25;
+        var lineY = y + 25;
         pdf.setDrawColor(200, 200, 200);
         pdf.line(x + 10, lineY, x + wCard - 10, lineY);
 
-        // Second field below line
         pdf.setFont(fontForField(f1), 'normal');
         pdf.setFontSize(11);
-        const lines = pdf.splitTextToSize(v1, wCard - 4);
-        lines.forEach((line, i) => pdf.text(line, cx, lineY + 7 + i * 5, { align: 'center' }));
+        var lines2 = pdf.splitTextToSize(v1, wCard - 4);
+        lines2.forEach(function(line, i) { pdf.text(line, cx, lineY + 7 + i * 5, { align: 'center' }); });
         return;
       }
 
-      // 3+ fields: evenly distribute vertically
-      const slotH = hCard / (fieldObjs.length + 1);
-      fieldObjs.forEach((f, fi) => {
-        const val = (card[f.key] || '').trim();
-        const slotY = y + slotH * (fi + 1);
+      // 3+ fields
+      var slotH = hCard / (fieldObjs.length + 1);
+      fieldObjs.forEach(function(f, fi) {
+        var val = (card[f.key] || '').trim();
+        var slotY = y + slotH * (fi + 1);
 
         if (f.type === 'target_lang') {
           let sz = 24;
@@ -898,15 +1154,15 @@ async function generatePDF() {
           pdf.setFontSize(sz);
           pdf.text(val, cx, slotY, { align: 'center' });
         } else if (f.type === 'romanization') {
-          const style = card.multichar ? 'bold' : 'normal';
-          pdf.setFont(fontForField(f), style);
+          var st = card.multichar ? 'bold' : 'normal';
+          pdf.setFont(fontForField(f), st);
           pdf.setFontSize(12);
           pdf.text(val, cx, slotY, { align: 'center' });
         } else {
           pdf.setFont(fontForField(f), 'normal');
           pdf.setFontSize(10);
-          const lines = pdf.splitTextToSize(val, wCard - 4);
-          lines.forEach((line, i) => pdf.text(line, cx, slotY + i * 4.5, { align: 'center' }));
+          var lines = pdf.splitTextToSize(val, wCard - 4);
+          lines.forEach(function(line, i) { pdf.text(line, cx, slotY + i * 4.5, { align: 'center' }); });
         }
       });
     }
@@ -917,7 +1173,6 @@ async function generatePDF() {
     for (let i = 0; i < cards.length; i += 16) {
       const chunk = cards.slice(i, i + 16);
 
-      // FRONT PAGE
       if (!isFirstPage) pdf.addPage();
       isFirstPage = false;
 
@@ -927,12 +1182,10 @@ async function generatePDF() {
         const row = Math.floor(idx / 4);
         const x = marginX + col * wCard;
         const yPos = marginY + row * hCard;
-
         drawGridCell(x, yPos);
         renderFieldsInCell(frontFieldObjs, card, x, yPos, true);
       }
 
-      // BACK PAGE (columns mirrored for double-sided printing)
       pdf.addPage();
 
       for (let idx = 0; idx < chunk.length; idx++) {
@@ -941,18 +1194,22 @@ async function generatePDF() {
         const row = Math.floor(idx / 4);
         const x = marginX + col * wCard;
         const yPos = marginY + row * hCard;
-
         drawGridCell(x, yPos);
         renderFieldsInCell(backFieldObjs, card, x, yPos, false);
-        drawSourceTag(x, yPos, card[tagField] || '');
+        if (tagField) drawSourceTag(x, yPos, card[tagField] || '');
       }
     }
 
-    const setNames = Object.entries(selectedSets)
-      .filter(([k, v]) => v)
-      .map(([k]) => currentTradition.sets[k].eng_name.toLowerCase().replace(/\s+/g, '-'))
-      .join('_');
-    pdf.save(`flashcards-${setNames}.pdf`);
+    var setNames;
+    if (isUploadMode) {
+      setNames = 'custom';
+    } else {
+      var allSets = getAllSets(currentTradition);
+      setNames = Object.keys(selectedSets)
+        .map(function(k) { return allSets[k] ? allSets[k].eng_name.toLowerCase().replace(/\s+/g, '-') : k; })
+        .join('_');
+    }
+    pdf.save('flashcards-' + setNames + '.pdf');
 
   } catch (err) {
     console.error('PDF generation error:', err);
@@ -960,37 +1217,6 @@ async function generatePDF() {
   } finally {
     overlay.classList.remove('active');
   }
-}
-
-/* ============================================================
-   ANKI CSV EXPORT
-   ============================================================ */
-function exportAnkiCSV() {
-  const cards = allCards.filter(c => c._included);
-  const fields = currentTradition.fields;
-
-  // Build front/back from user's field mapping
-  const rows = cards.map(card => {
-    const frontParts = frontFields.map(k => (card[k] || '').trim()).filter(Boolean);
-    const backParts = backFields.map(k => (card[k] || '').trim()).filter(Boolean);
-    const tag = card.eng_tag || card[currentTradition.tag_field] || '';
-    return [frontParts.join(' — '), backParts.join(' — '), tag].join('\t');
-  });
-
-  const csv = rows.join('\n');
-  const blob = new Blob([csv], { type: 'text/tab-separated-values;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  const setNames = Object.entries(selectedSets)
-    .filter(([k, v]) => v)
-    .map(([k]) => currentTradition.sets[k].eng_name.toLowerCase().replace(/\s+/g, '-'))
-    .join('_');
-  a.download = `flashcards-anki-${setNames}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
 
 /* ============================================================
