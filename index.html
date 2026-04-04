@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buddhist Liturgy Flashcards</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='none' stroke='%238b1a1a' stroke-width='5'/><circle cx='50' cy='50' r='9' fill='%238b1a1a'/><line x1='50' y1='8' x2='50' y2='92' stroke='%238b1a1a' stroke-width='4'/><line x1='8' y1='50' x2='92' y2='50' stroke='%238b1a1a' stroke-width='4'/><line x1='20' y1='20' x2='80' y2='80' stroke='%238b1a1a' stroke-width='4'/><line x1='80' y1='20' x2='20' y2='80' stroke='%238b1a1a' stroke-width='4'/></svg>">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
@@ -20,8 +21,12 @@ h2 { font-size: 1.3rem; color: var(--text); font-weight: 600; margin-bottom: 12p
 h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px; }
 .screen { display: none; }
 .screen.active { display: block; }
-.landing-header { text-align: center; padding: 40px 0 24px; }
+.landing-header { text-align: center; padding: 40px 0 24px; position: relative; }
 .landing-header p { color: var(--text-muted); margin-top: 8px; max-width: 500px; margin-left: auto; margin-right: auto; }
+.version-tag { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; vertical-align: super; margin-left: 6px; }
+.known-viewer-link { position: absolute; top: 40px; right: 0; font-size: 0.85rem; color: var(--accent); cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.known-viewer-link:hover { text-decoration: underline; }
+.known-viewer-link .known-badge { background: var(--accent); color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
 
 /* Accordion */
 .accordion-section { margin-top: 16px; }
@@ -104,7 +109,7 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .card-list-controls input[type="text"]:focus { outline: none; border-color: var(--accent); }
 .card-table-wrap { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
 table.card-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-table.card-table th { position: sticky; top: 0; background: #f0ebe4; text-align: left; padding: 8px 10px; border-bottom: 1.5px solid var(--border); font-weight: 600; font-size: 0.85rem; color: var(--text-muted); }
+table.card-table th { position: sticky; top: 0; background: #e8dfd4; text-align: left; padding: 8px 10px; border-bottom: 1.5px solid var(--border); font-weight: 600; font-size: 0.85rem; color: var(--text); z-index: 1; }
 table.card-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
 table.card-table tr:last-child td { border-bottom: none; }
 table.card-table tr.excluded { opacity: 0.45; }
@@ -130,6 +135,25 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .loading-box p { margin-top: 8px; color: var(--text-muted); }
 .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 8px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Known viewer screen */
+.known-list-wrap { max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+.known-list-wrap table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.known-list-wrap th { position: sticky; top: 0; background: var(--bg-card); text-align: left; padding: 8px 12px; border-bottom: 1.5px solid var(--border); font-weight: 600; font-size: 0.85rem; color: var(--text-muted); }
+.known-list-wrap td { padding: 6px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+.known-list-wrap tr:last-child td { border-bottom: none; }
+.known-list-wrap .remove-known-btn { color: var(--accent); cursor: pointer; background: none; border: none; font-size: 0.85rem; padding: 2px 8px; border-radius: 4px; }
+.known-list-wrap .remove-known-btn:hover { background: rgba(139,26,26,0.08); }
+.known-mode-tabs { display: flex; gap: 0; margin-bottom: 16px; border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.known-mode-tab { flex: 1; padding: 8px 12px; text-align: center; cursor: pointer; background: var(--bg-card); border: none; font-size: 0.9rem; font-weight: 500; color: var(--text); }
+.known-mode-tab:hover { background: #f0ebe4; }
+.known-mode-tab.active { background: var(--accent); color: #fff; }
+.known-empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.9rem; }
+
+/* Upload delete confirmation */
+.upload-confirm { display: flex; align-items: center; gap: 12px; background: #fdf5f0; border: 1.5px solid #c4956a; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; font-size: 0.88rem; color: var(--text); }
+.upload-confirm .confirm-text { flex: 1; }
+.upload-confirm .btn { padding: 5px 12px; font-size: 0.82rem; }
 </style>
 </head>
 <body>
@@ -138,7 +162,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <!-- SCREEN 1: Landing -->
   <div id="screen-landing" class="screen active">
     <div class="landing-header">
-      <h1>Buddhist Liturgy Flashcards</h1>
+      <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
+      <a class="known-viewer-link" id="known-viewer-link" onclick="navigateTo('known')" style="display:none">
+        Known <span class="known-badge" id="known-badge-count"></span>
+      </a>
       <p>Select a liturgical tradition to browse card sets, or upload your own flashcard data.</p>
     </div>
     <h2>Browse Card Sets</h2>
@@ -190,15 +217,18 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       </button>
     </div>
 
+    <h2>Field Mapping</h2>
+    <div class="field-mapping">
+      <div class="field-group"><h3>Front</h3><div id="front-fields"></div></div>
+      <div class="field-group"><h3>Back</h3><div id="back-fields"></div></div>
+    </div>
+
     <h2>Card List</h2>
     <div id="known-bar" class="known-bar" style="display:none">
       <span id="known-count-text"></span>
-      <a id="known-toggle-link" onclick="toggleShowKnown()"></a>
     </div>
     <div class="card-list-controls">
       <input type="text" id="card-search" placeholder="Search cards..." oninput="renderCardTable()">
-      <button class="btn btn-secondary btn-sm" onclick="selectAllCards(true)">Select All</button>
-      <button class="btn btn-secondary btn-sm" onclick="selectAllCards(false)">Deselect All</button>
     </div>
     <div id="card-count" class="total-count"></div>
     <div class="card-table-wrap">
@@ -215,6 +245,20 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <button class="btn btn-primary" onclick="generatePDF()" style="margin-top:8px">Download PDF</button>
       <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Checked cards will be added to your known list.</p>
     </div>
+  </div>
+
+  <!-- SCREEN 3: Known Viewer -->
+  <div id="screen-known" class="screen">
+    <div class="nav-bar">
+      <a class="back-link" onclick="navigateTo('landing')">&larr; Back</a>
+      <span>Known Characters</span>
+    </div>
+    <div class="known-mode-tabs">
+      <button class="known-mode-tab active" data-kmode="A" onclick="switchKnownViewerMode('A')">Type A</button>
+      <button class="known-mode-tab" data-kmode="B" onclick="switchKnownViewerMode('B')">Type B</button>
+    </div>
+    <div id="known-viewer-count" style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px"></div>
+    <div id="known-viewer-body"></div>
   </div>
 
 </div>
@@ -241,6 +285,8 @@ let fontDataCache = {};
 let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
+let knownViewerMode = 'A';   // mode for known viewer screen
+var APP_VERSION = 'v1.5';
 
 /* ============================================================
    LOCALSTORAGE: KNOWN LISTS & UPLOADS
@@ -282,6 +328,7 @@ function saveUploads(uploads) {
    ============================================================ */
 async function init() {
   try {
+    document.getElementById('version-tag').textContent = APP_VERSION;
     var res = await fetch('manifest.json');
     manifest = await res.json();
     renderLanding();
@@ -314,6 +361,8 @@ function navigateTo(screen) {
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'known') renderKnownViewer();
+  if (name === 'landing') renderProgressStats();
   window.scrollTo(0, 0);
 }
 
@@ -487,10 +536,120 @@ function openSavedUpload(idx) {
 }
 
 function deleteSavedUpload(idx) {
+  // Transform the row into an inline confirmation
+  var list = document.getElementById('my-uploads-list');
+  var items = list.children;
+  if (!items[idx]) return;
+
+  var item = items[idx];
   var uploads = getSavedUploads();
+  var u = uploads[idx];
+
+  // Parse this upload's cards to find chinese values
+  var clean = u.csvText.replace(/^\uFEFF/, '');
+  var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
+  var headers = parsed.meta.fields || [];
+  var chineseCol = headers.find(function(h) { return ['chinese','hanzi','character'].indexOf(h.toLowerCase()) !== -1; });
+  var uploadChineseValues = new Set();
+  if (chineseCol) {
+    parsed.data.forEach(function(row) {
+      var v = (row[chineseCol] || '').trim();
+      if (v) uploadChineseValues.add(v);
+    });
+  }
+
+  var hasKnownCards = false;
+  if (uploadChineseValues.size > 0) {
+    var knownA = getKnownList('A');
+    var knownB = getKnownList('B');
+    uploadChineseValues.forEach(function(ch) {
+      if (knownA.has(ch) || knownB.has(ch)) hasKnownCards = true;
+    });
+  }
+
+  item.className = 'upload-confirm';
+  if (hasKnownCards) {
+    item.innerHTML = '<div class="confirm-text">Delete <strong>' + u.name + '</strong> and remove its cards from "already learned"?</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="confirmDeleteUpload(' + idx + ', true)">Yes, remove learned</button>' +
+      '<button class="btn btn-secondary btn-sm" onclick="confirmDeleteUpload(' + idx + ', false)">Keep learned</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="renderMyUploads()">Cancel</button>';
+  } else {
+    item.innerHTML = '<div class="confirm-text">Delete <strong>' + u.name + '</strong>?</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="confirmDeleteUpload(' + idx + ', false)">Delete</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="renderMyUploads()">Cancel</button>';
+  }
+}
+
+async function confirmDeleteUpload(idx, removeLearnedCards) {
+  var uploads = getSavedUploads();
+  var u = uploads[idx];
+
+  if (removeLearnedCards && u) {
+    // Parse this upload to get its chinese values
+    var clean = u.csvText.replace(/^\uFEFF/, '');
+    var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
+    var headers = parsed.meta.fields || [];
+    var chineseCol = headers.find(function(h) { return ['chinese','hanzi','character'].indexOf(h.toLowerCase()) !== -1; });
+    var uploadChars = new Set();
+    if (chineseCol) {
+      parsed.data.forEach(function(row) {
+        var v = (row[chineseCol] || '').trim();
+        if (v) uploadChars.add(v);
+      });
+    }
+
+    // Collect chinese values from ALL other sources
+    var otherChars = new Set();
+
+    // Other uploads
+    uploads.forEach(function(other, oi) {
+      if (oi === idx) return;
+      var c2 = other.csvText.replace(/^\uFEFF/, '');
+      var p2 = Papa.parse(c2, { header: true, skipEmptyLines: true });
+      var h2 = p2.meta.fields || [];
+      var cc2 = h2.find(function(h) { return ['chinese','hanzi','character'].indexOf(h.toLowerCase()) !== -1; });
+      if (cc2) { p2.data.forEach(function(row) { var v = (row[cc2] || '').trim(); if (v) otherChars.add(v); }); }
+    });
+
+    // Manifest CSVs — fetch all sets to check for shared characters
+    if (manifest) {
+      var fetches = [];
+      for (var tk in manifest.traditions) {
+        var trad = manifest.traditions[tk];
+        if (!trad.available) continue;
+        var allSets = getAllSets(trad);
+        var chKey = '';
+        for (var fi = 0; fi < (trad.fields || []).length; fi++) {
+          if (trad.fields[fi].type === 'target_lang') { chKey = trad.fields[fi].key; break; }
+        }
+        if (!chKey) continue;
+        for (var sk in allSets) {
+          (function(file, key) {
+            fetches.push(
+              fetch(file).then(function(r) { return r.text(); }).then(function(csv) {
+                var p = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+                p.data.forEach(function(row) { var v = (row[key] || '').trim(); if (v) otherChars.add(v); });
+              }).catch(function() {})
+            );
+          })(allSets[sk].file, chKey);
+        }
+      }
+      await Promise.all(fetches);
+    }
+
+    // Remove from known lists only chars exclusive to this upload
+    uploadChars.forEach(function(ch) {
+      if (!otherChars.has(ch)) {
+        removeFromKnown('A', ch);
+        removeFromKnown('B', ch);
+      }
+    });
+  }
+
   uploads.splice(idx, 1);
   saveUploads(uploads);
   renderMyUploads();
+  renderProgressStats();
 }
 
 /* ============================================================
@@ -656,17 +815,7 @@ function updateKnownBar(knownCount) {
   var bar = document.getElementById('known-bar');
   if (knownCount === 0) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
-  document.getElementById('known-count-text').textContent = knownCount + ' cards already known (Type ' + studyMode + ')';
-  document.getElementById('known-toggle-link').textContent = showKnown ? 'Hide known' : 'Show known';
-}
-
-function toggleShowKnown() {
-  showKnown = !showKnown;
-  var known = getKnownList(studyMode);
-  var knownCount = 0;
-  for (var i = 0; i < allCards.length; i++) { if (allCards[i]._chinese && known.has(allCards[i]._chinese)) knownCount++; }
-  updateKnownBar(knownCount);
-  renderCardTable();
+  document.getElementById('known-count-text').textContent = knownCount + ' cards already known (Type ' + studyMode + ') — shown unchecked below';
 }
 
 /* ============================================================
@@ -676,7 +825,6 @@ async function goToCustomize() {
   if (!currentTradition) return;
   document.getElementById('customize-title').textContent = currentTradition.display_name;
   studyMode = 'A';
-  showKnown = false;
   navigateTo('customize');
   await loadCards();
   applyKnownToCards();
@@ -771,34 +919,45 @@ function renderCardTable() {
   var searchVal = (document.getElementById('card-search').value || '').toLowerCase();
   var known = getKnownList(studyMode);
 
-  var thead = document.getElementById('card-table-head');
-  thead.innerHTML = '<tr><th></th>' + fields.map(function(f) { return '<th>' + f.label + '</th>'; }).join('') + '</tr>';
-
-  var tbody = document.getElementById('card-table-body');
-  tbody.innerHTML = '';
-
+  // Build sorted display list: unknowns first (CSV order), then knowns (CSV order)
+  var unknowns = [];
+  var knowns = [];
   for (var i = 0; i < allCards.length; i++) {
     var card = allCards[i];
     if (searchVal) {
       var match = fields.some(function(f) { return (card[f.key] || '').toLowerCase().indexOf(searchVal) !== -1; });
       if (!match) continue;
     }
-    // Hide known cards unless showKnown is true
     var isKnown = card._chinese && known.has(card._chinese);
-    if (isKnown && !showKnown && !card._included) continue;
+    if (isKnown && !card._included) { knowns.push(card); } else { unknowns.push(card); }
+  }
+  var displayCards = unknowns.concat(knowns);
 
+  var thead = document.getElementById('card-table-head');
+  var thRow = '<tr><th style="width:36px;text-align:center"><input type="checkbox" id="select-all-cb" onchange="selectAllCards(this.checked)" checked></th>' +
+    fields.map(function(f) { return '<th>' + f.label + '</th>'; }).join('') + '</tr>';
+  thead.innerHTML = thRow;
+
+  // Sync select-all checkbox state
+  var allChecked = allCards.length > 0 && allCards.every(function(c) { return c._included; });
+  document.getElementById('select-all-cb').checked = allChecked;
+
+  var tbody = document.getElementById('card-table-body');
+  tbody.innerHTML = '';
+
+  for (var di = 0; di < displayCards.length; di++) {
+    var card2 = displayCards[di];
     var tr = document.createElement('tr');
-    if (!card._included) tr.className = 'excluded';
+    if (!card2._included) tr.className = 'excluded';
 
     var tdCb = document.createElement('td');
     var cb = document.createElement('input');
     cb.type = 'checkbox';
-    cb.checked = card._included;
+    cb.checked = card2._included;
     (function(c, row, checkbox) {
       checkbox.addEventListener('change', function() {
         c._included = checkbox.checked;
         row.className = checkbox.checked ? '' : 'excluded';
-        // Update known list
         if (c._chinese) {
           if (!checkbox.checked) { addToKnown(studyMode, [c._chinese]); }
           else { removeFromKnown(studyMode, c._chinese); }
@@ -810,14 +969,17 @@ function renderCardTable() {
         var kc = 0;
         for (var j = 0; j < allCards.length; j++) { if (allCards[j]._chinese && kn.has(allCards[j]._chinese)) kc++; }
         updateKnownBar(kc);
+        // Sync select-all checkbox
+        var allCk = allCards.every(function(c2) { return c2._included; });
+        document.getElementById('select-all-cb').checked = allCk;
       });
-    })(card, tr, cb);
+    })(card2, tr, cb);
     tdCb.appendChild(cb);
     tr.appendChild(tdCb);
 
     for (var fi = 0; fi < fields.length; fi++) {
       var td = document.createElement('td');
-      td.textContent = card[fields[fi].key] || '';
+      td.textContent = card2[fields[fi].key] || '';
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -853,6 +1015,11 @@ function selectAllCards(val) {
       else removeFromKnown(studyMode, card._chinese);
     }
   }
+  // Update known bar
+  var kn = getKnownList(studyMode);
+  var kc = 0;
+  for (var j = 0; j < allCards.length; j++) { if (allCards[j]._chinese && kn.has(allCards[j]._chinese)) kc++; }
+  updateKnownBar(kc);
   renderCardTable();
   updateSummary();
 }
@@ -928,6 +1095,54 @@ function renderProgressStats() {
   if (knownB) parts.push(knownB + ' known (Type B)');
   if (uploads) parts.push(uploads + ' upload' + (uploads > 1 ? 's' : ''));
   el.textContent = parts.length ? parts.join(' · ') : 'No progress saved yet.';
+
+  // Update known viewer link in header
+  var totalKnown = knownA + knownB;
+  var link = document.getElementById('known-viewer-link');
+  if (totalKnown > 0) {
+    link.style.display = 'flex';
+    document.getElementById('known-badge-count').textContent = totalKnown;
+  } else {
+    link.style.display = 'none';
+  }
+}
+
+/* ============================================================
+   KNOWN VIEWER SCREEN
+   ============================================================ */
+function switchKnownViewerMode(mode) {
+  knownViewerMode = mode;
+  document.querySelectorAll('.known-mode-tab').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.kmode === mode);
+  });
+  renderKnownViewer();
+}
+
+function renderKnownViewer() {
+  var known = getKnownList(knownViewerMode);
+  var body = document.getElementById('known-viewer-body');
+  var countEl = document.getElementById('known-viewer-count');
+  countEl.textContent = known.size + ' characters known (Type ' + knownViewerMode + ')';
+
+  if (known.size === 0) {
+    body.innerHTML = '<div class="known-empty">No known characters yet for Type ' + knownViewerMode + '.</div>';
+    return;
+  }
+
+  var arr = Array.from(known);
+  var html = '<div class="known-list-wrap"><table><thead><tr><th>Character</th><th style="width:80px;text-align:right">Action</th></tr></thead><tbody>';
+  arr.forEach(function(ch) {
+    html += '<tr><td>' + ch + '</td><td style="text-align:right"><button class="remove-known-btn" onclick="removeFromKnownViewer(\'' +
+      ch.replace(/'/g, "\\'") + '\')">Remove</button></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
+}
+
+function removeFromKnownViewer(ch) {
+  removeFromKnown(knownViewerMode, ch);
+  renderKnownViewer();
+  renderProgressStats();
 }
 
 /* ============================================================
