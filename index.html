@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buddhist Liturgy Flashcards</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='none' stroke='%238b1a1a' stroke-width='5'/><circle cx='50' cy='50' r='9' fill='%238b1a1a'/><line x1='50' y1='8' x2='50' y2='92' stroke='%238b1a1a' stroke-width='4'/><line x1='8' y1='50' x2='92' y2='50' stroke='%238b1a1a' stroke-width='4'/><line x1='20' y1='20' x2='80' y2='80' stroke='%238b1a1a' stroke-width='4'/><line x1='80' y1='20' x2='20' y2='80' stroke='%238b1a1a' stroke-width='4'/></svg>">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -132,17 +133,31 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .card-design-toggle { font-size: 0.9rem; color: var(--accent); cursor: pointer; text-decoration: underline; display: inline-block; margin-bottom: 12px; }
 .card-design-panel { display: none; }
 .card-design-panel.open { display: block; }
-.design-row { display: grid; grid-template-columns: 80px 1fr 1fr auto auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-light); font-size: 0.85rem; }
+.design-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+.design-section h3 { font-size: 0.9rem; margin-bottom: 8px; }
+.design-row { display: grid; grid-template-columns: 80px 1fr 70px auto auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-light); font-size: 0.85rem; }
 .design-row:last-child { border-bottom: none; }
 .design-row .design-label { font-weight: 600; color: var(--text); }
-.design-row select, .design-row input[type="number"] { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-card); color: var(--text); font-size: 0.82rem; }
+.design-row select, .design-row input[type="number"], .design-row input[type="text"] { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-card); color: var(--text); font-size: 0.82rem; }
 .design-row select { min-width: 0; }
 .design-row input[type="number"] { width: 52px; }
+.design-row input[type="text"] { width: 100%; }
 .design-row label { display: flex; align-items: center; gap: 4px; font-size: 0.82rem; white-space: nowrap; }
 @media (max-width: 500px) {
-  .design-row { grid-template-columns: 60px 1fr 1fr auto auto; gap: 4px; font-size: 0.8rem; }
+  .design-row { grid-template-columns: 60px 1fr 60px auto auto; gap: 4px; font-size: 0.8rem; }
   .design-row input[type="number"] { width: 46px; }
 }
+/* Tag settings row */
+.tag-setting-row { display: flex; gap: 8px; align-items: center; padding: 4px 0; font-size: 0.85rem; flex-wrap: wrap; }
+.tag-setting-row select, .tag-setting-row input[type="text"], .tag-setting-row input[type="number"] { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-card); color: var(--text); font-size: 0.82rem; }
+.tag-setting-row input[type="text"] { flex: 1; min-width: 80px; }
+.tag-setting-row input[type="number"] { width: 52px; }
+.tag-setting-row .tag-label { font-weight: 600; min-width: 50px; }
+/* Card preview */
+.card-preview-wrap { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+.card-preview-box { width: 180px; height: 140px; border: 1.5px solid var(--border); border-radius: 6px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 8px 6px; position: relative; }
+.card-preview-box .preview-label { position: absolute; top: 4px; left: 6px; font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+.card-preview-box .preview-tag { position: absolute; bottom: 3px; right: 5px; color: #999; }
 
 /* Download & progress section */
 .download-section { margin-top: 24px; }
@@ -267,9 +282,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
     <a class="card-design-toggle" onclick="toggleCardDesign()">Card Design</a>
     <div id="card-design-panel" class="card-design-panel">
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+      <div class="design-section">
+        <h3>Font Settings</h3>
         <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
-          <span></span><span>Font</span><span>Size (pt)</span><span>Bold</span><span>Italic</span>
+          <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span>
         </div>
         <div class="design-row">
           <span class="design-label">Chinese</span>
@@ -278,8 +294,8 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
             <option value="NotoSansSC">Noto Sans SC</option>
           </select>
           <input type="number" id="design-chinese-size" min="6" max="60" onchange="updateCardDesign()">
-          <label><input type="checkbox" id="design-chinese-bold" onchange="updateCardDesign()"></label>
-          <label><input type="checkbox" id="design-chinese-italic" onchange="updateCardDesign()"></label>
+          <label><input type="checkbox" id="design-chinese-bold" onchange="updateCardDesign()"> </label>
+          <label><input type="checkbox" id="design-chinese-italic" onchange="updateCardDesign()"> </label>
         </div>
         <div class="design-row">
           <span class="design-label">Pinyin</span>
@@ -288,8 +304,8 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
             <option value="NotoSerifSC">Noto Serif SC</option>
           </select>
           <input type="number" id="design-pinyin-size" min="6" max="60" onchange="updateCardDesign()">
-          <label><input type="checkbox" id="design-pinyin-bold" onchange="updateCardDesign()"></label>
-          <label><input type="checkbox" id="design-pinyin-italic" onchange="updateCardDesign()"></label>
+          <label><input type="checkbox" id="design-pinyin-bold" onchange="updateCardDesign()"> </label>
+          <label><input type="checkbox" id="design-pinyin-italic" onchange="updateCardDesign()"> </label>
         </div>
         <div class="design-row">
           <span class="design-label">English</span>
@@ -298,12 +314,53 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
             <option value="NotoSerifSC">Noto Serif SC</option>
           </select>
           <input type="number" id="design-english-size" min="6" max="60" onchange="updateCardDesign()">
-          <label><input type="checkbox" id="design-english-bold" onchange="updateCardDesign()"></label>
-          <label><input type="checkbox" id="design-english-italic" onchange="updateCardDesign()"></label>
+          <label><input type="checkbox" id="design-english-bold" onchange="updateCardDesign()"> </label>
+          <label><input type="checkbox" id="design-english-italic" onchange="updateCardDesign()"> </label>
         </div>
-        <div style="margin-top:8px;text-align:right">
-          <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
+      </div>
+
+      <div class="design-section">
+        <h3>Source Tag (back of card)</h3>
+        <div class="tag-setting-row">
+          <span class="tag-label">Source</span>
+          <select id="design-tag-source" onchange="updateCardDesign()">
+            <option value="ch_tag">Chinese tag (ch_tag)</option>
+            <option value="eng_tag">English tag (eng_tag)</option>
+            <option value="custom">Custom text</option>
+            <option value="none">None</option>
+          </select>
         </div>
+        <div id="tag-custom-row" class="tag-setting-row" style="display:none">
+          <span class="tag-label">Text</span>
+          <input type="text" id="design-tag-custom-text" placeholder="Enter custom tag..." onchange="updateCardDesign()">
+        </div>
+        <div id="tag-per-set" class="tag-setting-row" style="display:none"></div>
+        <div class="tag-setting-row">
+          <span class="tag-label">Font</span>
+          <select id="design-tag-font" onchange="updateCardDesign()">
+            <option value="NotoSerifSC">Noto Serif SC</option>
+            <option value="NotoSansSC">Noto Sans SC</option>
+          </select>
+          <span style="margin-left:4px">Size</span>
+          <input type="number" id="design-tag-size" min="4" max="20" onchange="updateCardDesign()">
+          <label><input type="checkbox" id="design-tag-bold" onchange="updateCardDesign()"> B</label>
+        </div>
+      </div>
+
+      <div class="design-section">
+        <h3>Preview</h3>
+        <div class="card-preview-wrap">
+          <div class="card-preview-box" id="preview-front">
+            <span class="preview-label">Front</span>
+          </div>
+          <div class="card-preview-box" id="preview-back">
+            <span class="preview-label">Back</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:right">
+        <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
       </div>
     </div>
 
@@ -353,12 +410,13 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v1.7';
+var APP_VERSION = 'v1.8';
 
 var DEFAULT_CARD_DESIGN = {
   chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
   pinyin:   { font: 'NotoSansSC', size: 14, bold: false, italic: false },
-  english:  { font: 'NotoSansSC', size: 11, bold: false, italic: false }
+  english:  { font: 'NotoSansSC', size: 11, bold: false, italic: false },
+  tag:      { font: 'NotoSerifSC', size: 8, bold: false, source: 'ch_tag', customText: '', perSet: {} }
 };
 var cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
 
@@ -1226,8 +1284,15 @@ function selectAllCards(val) {
    CARD DESIGN
    ============================================================ */
 function toggleCardDesign() {
-  document.getElementById('card-design-panel').classList.toggle('open');
+  var panel = document.getElementById('card-design-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) renderCardPreview();
 }
+
+var FONT_CSS_MAP = {
+  'NotoSerifSC': "'Noto Serif SC', serif",
+  'NotoSansSC': "'Noto Sans SC', sans-serif"
+};
 
 function renderCardDesignInputs() {
   ['chinese', 'pinyin', 'english'].forEach(function(k) {
@@ -1235,6 +1300,51 @@ function renderCardDesignInputs() {
     document.getElementById('design-' + k + '-size').value = cardDesign[k].size;
     document.getElementById('design-' + k + '-bold').checked = cardDesign[k].bold;
     document.getElementById('design-' + k + '-italic').checked = cardDesign[k].italic;
+  });
+  // Tag settings
+  document.getElementById('design-tag-source').value = cardDesign.tag.source;
+  document.getElementById('design-tag-custom-text').value = cardDesign.tag.customText || '';
+  document.getElementById('design-tag-font').value = cardDesign.tag.font;
+  document.getElementById('design-tag-size').value = cardDesign.tag.size;
+  document.getElementById('design-tag-bold').checked = cardDesign.tag.bold;
+  toggleTagCustomRow();
+  renderPerSetTags();
+  renderCardPreview();
+}
+
+function toggleTagCustomRow() {
+  var src = document.getElementById('design-tag-source').value;
+  document.getElementById('tag-custom-row').style.display = src === 'custom' ? 'flex' : 'none';
+}
+
+function renderPerSetTags() {
+  var container = document.getElementById('tag-per-set');
+  container.innerHTML = '';
+  var src = cardDesign.tag.source;
+  if (src !== 'custom') { container.style.display = 'none'; return; }
+  var keys = Object.keys(selectedSets);
+  if (keys.length <= 1) { container.style.display = 'none'; return; }
+
+  container.style.display = 'block';
+  container.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:4px">Per-set custom tags:</div>';
+  var allSets = isUploadMode ? {} : getAllSets(currentTradition);
+  keys.forEach(function(sk) {
+    var name = allSets[sk] ? allSets[sk].eng_name : sk;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:4px;font-size:0.82rem;';
+    row.innerHTML = '<span style="min-width:100px;font-weight:500">' + name + '</span>';
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = (cardDesign.tag.perSet && cardDesign.tag.perSet[sk]) || '';
+    inp.placeholder = 'Use global custom text';
+    inp.style.cssText = 'flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:0.82rem;background:var(--bg-card);color:var(--text);';
+    inp.addEventListener('change', function() {
+      cardDesign.tag.perSet[sk] = inp.value;
+      saveCardDesign();
+      renderCardPreview();
+    });
+    row.appendChild(inp);
+    container.appendChild(row);
   });
 }
 
@@ -1245,13 +1355,86 @@ function updateCardDesign() {
     cardDesign[k].bold = document.getElementById('design-' + k + '-bold').checked;
     cardDesign[k].italic = document.getElementById('design-' + k + '-italic').checked;
   });
+  // Tag settings
+  cardDesign.tag.source = document.getElementById('design-tag-source').value;
+  cardDesign.tag.customText = document.getElementById('design-tag-custom-text').value;
+  cardDesign.tag.font = document.getElementById('design-tag-font').value;
+  cardDesign.tag.size = parseInt(document.getElementById('design-tag-size').value) || 8;
+  cardDesign.tag.bold = document.getElementById('design-tag-bold').checked;
+  toggleTagCustomRow();
+  renderPerSetTags();
   saveCardDesign();
+  renderCardPreview();
 }
 
 function resetCardDesign() {
   cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
   saveCardDesign();
   renderCardDesignInputs();
+}
+
+function getCardTagText(card) {
+  var src = cardDesign.tag.source;
+  if (src === 'none') return '';
+  if (src === 'custom') {
+    var perSet = cardDesign.tag.perSet && cardDesign.tag.perSet[card._setKey];
+    return perSet || cardDesign.tag.customText || '';
+  }
+  return (card[src] || '').trim();
+}
+
+function renderCardPreview() {
+  if (!allCards || allCards.length === 0 || !currentTradition) return;
+  var sample = allCards.find(function(c) { return c._included; }) || allCards[0];
+  var fields = currentTradition.fields;
+
+  var frontBox = document.getElementById('preview-front');
+  var backBox = document.getElementById('preview-back');
+  frontBox.innerHTML = '<span class="preview-label">Front</span>';
+  backBox.innerHTML = '<span class="preview-label">Back</span>';
+
+  var frontFlds = fields.filter(function(f) { return frontFields.indexOf(f.key) !== -1; });
+  var backFlds = fields.filter(function(f) { return backFields.indexOf(f.key) !== -1; });
+
+  function designKey(field) {
+    if (field.type === 'target_lang') return 'chinese';
+    if (field.type === 'romanization') return 'pinyin';
+    return 'english';
+  }
+
+  function renderFieldsTo(box, flds) {
+    flds.forEach(function(f) {
+      var d = cardDesign[designKey(f)];
+      var val = (sample[f.key] || '').trim();
+      if (!val) return;
+      var span = document.createElement('div');
+      var pxSize = Math.min(d.size * 0.85, 32);
+      if (f.type === 'target_lang' && val.length < 3) pxSize = Math.min(d.size * 1.1, 40);
+      span.style.cssText = 'font-family:' + (FONT_CSS_MAP[d.font] || 'sans-serif') +
+        ';font-size:' + pxSize + 'px' +
+        ';font-weight:' + (d.bold ? '700' : '400') +
+        ';font-style:' + (d.italic ? 'italic' : 'normal') +
+        ';text-align:center;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      span.textContent = val;
+      box.appendChild(span);
+    });
+  }
+
+  renderFieldsTo(frontBox, frontFlds);
+  renderFieldsTo(backBox, backFlds);
+
+  // Tag on back
+  var tagText = getCardTagText(sample);
+  if (tagText) {
+    var tagD = cardDesign.tag;
+    var tagSpan = document.createElement('span');
+    tagSpan.className = 'preview-tag';
+    tagSpan.style.cssText = 'font-family:' + (FONT_CSS_MAP[tagD.font] || 'serif') +
+      ';font-size:' + Math.max(tagD.size * 0.7, 6) + 'px' +
+      ';font-weight:' + (tagD.bold ? '700' : '400');
+    tagSpan.textContent = tagText;
+    backBox.appendChild(tagSpan);
+  }
 }
 
 /* ============================================================
@@ -1433,11 +1616,19 @@ async function generatePDF() {
     pdf.addFont('NotoSerifSC.ttf', 'NotoSerifSC', 'normal');
     pdf.addFileToVFS('NotoSerifSC-Bold.ttf', serifB64);
     pdf.addFont('NotoSerifSC-Bold.ttf', 'NotoSerifSC', 'bold');
+    pdf.addFileToVFS('NotoSerifSC-Italic.ttf', serifB64);
+    pdf.addFont('NotoSerifSC-Italic.ttf', 'NotoSerifSC', 'italic');
+    pdf.addFileToVFS('NotoSerifSC-BoldItalic.ttf', serifB64);
+    pdf.addFont('NotoSerifSC-BoldItalic.ttf', 'NotoSerifSC', 'bolditalic');
 
     pdf.addFileToVFS('NotoSansSC.ttf', sansB64);
     pdf.addFont('NotoSansSC.ttf', 'NotoSansSC', 'normal');
     pdf.addFileToVFS('NotoSansSC-Bold.ttf', sansB64);
     pdf.addFont('NotoSansSC-Bold.ttf', 'NotoSansSC', 'bold');
+    pdf.addFileToVFS('NotoSansSC-Italic.ttf', sansB64);
+    pdf.addFont('NotoSansSC-Italic.ttf', 'NotoSansSC', 'italic');
+    pdf.addFileToVFS('NotoSansSC-BoldItalic.ttf', sansB64);
+    pdf.addFont('NotoSansSC-BoldItalic.ttf', 'NotoSansSC', 'bolditalic');
 
     var marginX = 7.62;
     var marginY = 7.62;
@@ -1445,7 +1636,6 @@ async function generatePDF() {
     var hCard = (215.9 - 2 * marginY) / 4;
 
     var cards = allCards.filter(function(c) { return c._included; });
-    var tagField = currentTradition.tag_field;
 
     var frontFieldObjs = fields.filter(function(f) { return frontFields.includes(f.key); });
     var backFieldObjs  = fields.filter(function(f) { return backFields.includes(f.key); });
@@ -1455,11 +1645,14 @@ async function generatePDF() {
       pdf.rect(x, y, wCard, hCard);
     }
 
-    function drawSourceTag(x, y, tag) {
+    function drawSourceTag(x, y, card) {
+      var tagText = getCardTagText(card);
+      if (!tagText) return;
+      var td = cardDesign.tag;
       pdf.setTextColor(120, 120, 120);
-      pdf.setFont('NotoSerifSC', 'normal');
-      pdf.setFontSize(8);
-      pdf.text(tag || '', x + wCard - 2, y + hCard - 2, { align: 'right' });
+      pdf.setFont(td.font, td.bold ? 'bold' : 'normal');
+      pdf.setFontSize(td.size);
+      pdf.text(tagText, x + wCard - 2, y + hCard - 2, { align: 'right' });
       pdf.setTextColor(0, 0, 0);
     }
 
@@ -1471,7 +1664,10 @@ async function generatePDF() {
 
     function applyFieldFont(field) {
       var d = designForField(field);
-      var style = d.bold ? 'bold' : 'normal';
+      var style = 'normal';
+      if (d.bold && d.italic) style = 'bolditalic';
+      else if (d.bold) style = 'bold';
+      else if (d.italic) style = 'italic';
       pdf.setFont(d.font, style);
     }
 
@@ -1614,7 +1810,7 @@ async function generatePDF() {
         var yPos2 = marginY + row2 * hCard;
         drawGridCell(x2, yPos2);
         renderFieldsInCell(backFieldObjs, card2, x2, yPos2, false);
-        if (tagField) drawSourceTag(x2, yPos2, card2[tagField] || '');
+        drawSourceTag(x2, yPos2, card2);
       }
     }
 
