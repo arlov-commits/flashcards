@@ -216,8 +216,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .manage-btn:hover { color: var(--accent); border-color: var(--accent); }
 .manage-btn.manage-delete { color: #a33; }
 .manage-btn.manage-delete:hover { border-color: #a33; }
-.done-checks { display: none; gap: 4px; align-items: center; flex-shrink: 0; font-size: 0.72rem; color: var(--text-muted); }
-.manage-mode .done-checks { display: flex; }
+.done-checks { display: flex; gap: 4px; align-items: center; flex-shrink: 0; font-size: 0.72rem; color: var(--text-muted); }
 .done-checks label { display: flex; align-items: center; gap: 2px; cursor: pointer; }
 .done-checks input { accent-color: var(--accent); width: 14px; height: 14px; }
 .set-item.done-a { background: #f2efea; }
@@ -350,17 +349,20 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <div class="design-section">
         <h3>Divider</h3>
         <div class="tag-setting-row">
-          <label><input type="checkbox" id="design-divider-show" onchange="updateCardDesign()"> Show divider</label>
-          <span style="margin-left:8px">Color</span>
+          <span>Style</span>
+          <select id="design-divider-visible" onchange="updateCardDesign()">
+            <option value="visible">Visible</option>
+            <option value="invisible">Invisible</option>
+          </select>
+          <span style="margin-left:8px" id="divider-color-label">Color</span>
           <input type="color" id="design-divider-color" value="#c8c8c8" onchange="updateCardDesign()" style="width:32px;height:24px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;">
-          <span>Width</span>
+          <span id="divider-thickness-label">Width</span>
           <input type="number" id="design-divider-thickness" min="0.1" max="3" step="0.1" style="width:52px" onchange="updateCardDesign()">
         </div>
         <div class="tag-setting-row">
-          <span>Gap above</span>
-          <input type="number" id="design-divider-gap-above" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
-          <span style="margin-left:8px">Gap below</span>
-          <input type="number" id="design-divider-gap-below" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
+          <span>Spread</span>
+          <input type="number" id="design-divider-spread" min="0" max="15" step="0.5" style="width:52px" onchange="updateCardDesign()">
+          <span style="font-size:0.78rem;color:var(--text-muted);margin-left:6px">Distance from midpoint</span>
         </div>
       </div>
 
@@ -405,14 +407,18 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
       <div class="design-section">
         <h3>Preview</h3>
-        <div class="card-preview-wrap">
+        <div style="text-align:center;margin-bottom:8px">
+          <button class="btn btn-outline btn-sm" id="btn-gen-sample" onclick="generateSamplePreview()">Generate Sample Card</button>
+          <span id="sample-status" style="font-size:0.78rem;color:var(--text-muted);margin-left:8px"></span>
+        </div>
+        <div class="card-preview-wrap" id="sample-preview-wrap">
           <div class="card-preview-col">
             <div class="preview-side-label">Front</div>
-            <div class="card-preview-box" id="preview-front"></div>
+            <div class="card-preview-box" id="preview-front" style="width:200px;height:160px;padding:0;overflow:hidden"><span style="font-size:0.78rem;color:var(--text-muted)">Click "Generate Sample Card"</span></div>
           </div>
           <div class="card-preview-col">
             <div class="preview-side-label">Back</div>
-            <div class="card-preview-box" id="preview-back"></div>
+            <div class="card-preview-box" id="preview-back" style="width:200px;height:160px;padding:0;overflow:hidden"><span style="font-size:0.78rem;color:var(--text-muted)">to see exact PDF output</span></div>
           </div>
         </div>
       </div>
@@ -469,15 +475,16 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.2';
+var APP_VERSION = 'v2.3';
 let manageMode = false;
+let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 
 var DEFAULT_CARD_DESIGN = {
   chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
   pinyin:   { font: 'NotoSansSC', size: 14, bold: false, italic: false },
   english:  { font: 'NotoSansSC', size: 11, bold: false, italic: false },
   tag:      { font: 'NotoSerifSC', size: 8, bold: false, source: 'ch_tag', customText: '', perSet: {} },
-  divider:  { show: true, color: '#c8c8c8', thickness: 0.3, gapAbove: 2, gapBelow: 2 }
+  divider:  { visible: true, color: '#c8c8c8', thickness: 0.3, spread: 2 }
 };
 var cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
 
@@ -560,6 +567,17 @@ function loadCardDesign() {
       }
       // Ensure divider exists (migration from older saved designs)
       if (!cardDesign.divider) cardDesign.divider = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN.divider));
+      // Migrate old gapAbove/gapBelow to spread
+      if (cardDesign.divider.gapAbove !== undefined || cardDesign.divider.gapBelow !== undefined) {
+        cardDesign.divider.spread = cardDesign.divider.gapAbove || cardDesign.divider.gapBelow || 2;
+        delete cardDesign.divider.gapAbove;
+        delete cardDesign.divider.gapBelow;
+      }
+      // Migrate old show to visible
+      if (cardDesign.divider.show !== undefined && cardDesign.divider.visible === undefined) {
+        cardDesign.divider.visible = cardDesign.divider.show;
+        delete cardDesign.divider.show;
+      }
     }
   } catch (e) {}
 }
@@ -733,11 +751,55 @@ function deleteSubcat(subcatKey, tradKey) {
   renderLanding();
 }
 
-function toggleDone(setKey, type) {
+async function toggleDone(setKey, type) {
   var d = getMgmtDone(setKey);
-  if (type === 'A') d.A = !d.A;
-  else d.B = !d.B;
+  var newVal = type === 'A' ? !d.A : !d.B;
+  if (type === 'A') d.A = newVal;
+  else d.B = newVal;
   saveMgmtDone(setKey, d.A, d.B);
+
+  // Find the set info to get CSV file path and name
+  var si = null;
+  var tradKey = null;
+  for (var tk in manifest.traditions) {
+    var trad = manifest.traditions[tk];
+    if (!trad.available) continue;
+    var sets = getAllSets(trad);
+    if (sets[setKey]) { si = sets[setKey]; tradKey = tk; break; }
+  }
+
+  if (si && si.file) {
+    try {
+      var resp = await fetch(si.file);
+      var csvText = await resp.text();
+      var parsed = Papa.parse(csvText.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+      var trad2 = manifest.traditions[tradKey];
+      var chKey = '';
+      for (var fi = 0; fi < (trad2.fields || []).length; fi++) {
+        if (trad2.fields[fi].type === 'target_lang') { chKey = trad2.fields[fi].key; break; }
+      }
+      if (chKey) {
+        var chars = [];
+        parsed.data.forEach(function(row) {
+          var v = (row[chKey] || '').trim();
+          if (v) chars.push(v);
+        });
+        var r = getMgmtRename(setKey);
+        var deckName = r ? r.eng_name : si.eng_name;
+        if (newVal) {
+          // Checking done: add to known
+          addToKnown(type, chars, deckName);
+        } else {
+          // Unchecking done: remove entries added by this deck
+          var entries = getKnownEntries(type);
+          entries = entries.filter(function(e) { return e.deck !== deckName; });
+          saveKnownEntries(type, entries);
+        }
+        renderProgressStats();
+      }
+    } catch(e) { console.warn('Could not load CSV for done toggle:', e); }
+  }
+
   renderLanding();
 }
 
@@ -748,6 +810,9 @@ function addNewSubcat(tradKey) {
   var trad = manifest.traditions[tradKey];
   if (!trad.subcategories) trad.subcategories = {};
   trad.subcategories[key] = { display_name: name.trim(), sets: {} };
+  // Ensure the tradition and new subcat are expanded
+  accordionState['trad:' + tradKey] = true;
+  accordionState['subcat:' + key] = true;
   renderLanding();
 }
 
@@ -813,6 +878,8 @@ async function init() {
     setupUpload();
     setupImport();
     setupHistory();
+    // Compute distinct Chinese char count then update stats
+    computeDistinctChineseCount().then(function() { renderProgressStats(); });
     renderProgressStats();
   } catch (e) {
     document.getElementById('accordion-container').innerHTML =
@@ -963,7 +1030,9 @@ function renderLanding() {
   for (var tradKey in manifest.traditions) {
     var trad = manifest.traditions[tradKey];
     var tradEl = document.createElement('div');
-    tradEl.className = 'accordion-tradition' + (trad.available ? '' : ' disabled');
+    var tradStateKey = 'trad:' + tradKey;
+    var tradExpanded = accordionState[tradStateKey] || false;
+    tradEl.className = 'accordion-tradition' + (trad.available ? '' : ' disabled') + (tradExpanded ? ' expanded' : '');
 
     var allTradSets = getAllSets(trad);
     var totalCards = 0;
@@ -976,7 +1045,7 @@ function renderLanding() {
       '<span class="trad-count">' + (trad.available ? totalCards + ' cards' : '') + '</span>';
 
     if (trad.available) {
-      (function(el) { header.addEventListener('click', function() { el.classList.toggle('expanded'); }); })(tradEl);
+      (function(el, stKey) { header.addEventListener('click', function() { el.classList.toggle('expanded'); accordionState[stKey] = el.classList.contains('expanded'); }); })(tradEl, tradStateKey);
     }
     tradEl.appendChild(header);
 
@@ -987,7 +1056,9 @@ function renderLanding() {
       for (var subcatKey in trad.subcategories) {
         var subcat = trad.subcategories[subcatKey];
         var subcatEl = document.createElement('div');
-        subcatEl.className = 'accordion-subcat expanded';
+        var subcatStateKey = 'subcat:' + subcatKey;
+        var subcatExpanded = accordionState[subcatStateKey] !== undefined ? accordionState[subcatStateKey] : true; // default expanded
+        subcatEl.className = 'accordion-subcat' + (subcatExpanded ? ' expanded' : '');
 
         var subcatSets = subcat.sets || {};
         var subcatTotal = 0;
@@ -1002,7 +1073,7 @@ function renderLanding() {
             '<button class="manage-btn" onclick="event.stopPropagation();renameSubcat(\'' + subcatKey + '\',\'' + tradKey + '\')" title="Rename">&#9998;</button>' +
             '<button class="manage-btn manage-delete" onclick="event.stopPropagation();deleteSubcat(\'' + subcatKey + '\',\'' + tradKey + '\')" title="Delete">&#10005;</button>' +
           '</span>';
-        (function(el) { subcatHeader.addEventListener('click', function(e) { if (e.target.closest('.subcat-manage')) return; e.stopPropagation(); el.classList.toggle('expanded'); }); })(subcatEl);
+        (function(el, stKey) { subcatHeader.addEventListener('click', function(e) { if (e.target.closest('.subcat-manage')) return; e.stopPropagation(); el.classList.toggle('expanded'); accordionState[stKey] = el.classList.contains('expanded'); }); })(subcatEl, subcatStateKey);
         subcatEl.appendChild(subcatHeader);
 
         var subcatBody = document.createElement('div');
@@ -1025,7 +1096,7 @@ function renderLanding() {
           var engName = r ? r.eng_name : si.eng_name;
           var dispTag = r ? r.display_tag : si.display_tag;
           var done = getMgmtDone(setKey);
-          var doneClass = (done.A && done.B) ? ' done-both' : done.A ? ' done-a' : '';
+          var doneClass = (done.A && done.B) ? ' done-both' : (done.A || done.B) ? ' done-a' : '';
 
           var item = document.createElement('div');
           item.className = 'set-item' + doneClass;
@@ -1074,11 +1145,11 @@ function renderLanding() {
             });
           })(tradKey, setKey, item, cb);
 
-          // Drag and drop
+          // Drag and drop (supports cross-category moves)
           if (manageMode) {
-            (function(el, sKey, listEl) {
+            (function(el, sKey, srcTradKey, srcSubcatKey) {
               el.addEventListener('dragstart', function(e) {
-                e.dataTransfer.setData('text/plain', sKey);
+                e.dataTransfer.setData('text/plain', srcTradKey + ':' + srcSubcatKey + ':' + sKey);
                 el.classList.add('dragging');
               });
               el.addEventListener('dragend', function() { el.classList.remove('dragging'); });
@@ -1087,26 +1158,74 @@ function renderLanding() {
               el.addEventListener('drop', function(e) {
                 e.preventDefault();
                 el.classList.remove('drag-over');
-                var draggedKey = e.dataTransfer.getData('text/plain');
-                if (draggedKey === sKey) return;
-                var tk2 = listEl.dataset.tradKey;
-                var sk2 = listEl.dataset.subcatKey;
-                var curOrder = getMgmtSetOrder(tk2, sk2) || Object.keys(manifest.traditions[tk2].subcategories[sk2].sets || {});
-                // Ensure both keys exist
-                if (curOrder.indexOf(draggedKey) === -1 || curOrder.indexOf(sKey) === -1) return;
-                // Remove dragged from current position
-                curOrder = curOrder.filter(function(k) { return k !== draggedKey; });
-                // Insert before drop target
-                var dropIdx = curOrder.indexOf(sKey);
-                curOrder.splice(dropIdx, 0, draggedKey);
-                saveMgmtSetOrder(tk2, sk2, curOrder);
+                var parts = e.dataTransfer.getData('text/plain').split(':');
+                if (parts.length < 3) return;
+                var dragTradKey = parts[0], dragSubcatKey = parts[1], draggedKey = parts.slice(2).join(':');
+                if (draggedKey === sKey && dragSubcatKey === srcSubcatKey) return;
+                // Only allow within same tradition
+                if (dragTradKey !== srcTradKey) return;
+
+                var srcSubcat = manifest.traditions[dragTradKey].subcategories[dragSubcatKey];
+                var dstSubcat = manifest.traditions[srcTradKey].subcategories[srcSubcatKey];
+                if (!srcSubcat || !dstSubcat) return;
+
+                if (dragSubcatKey !== srcSubcatKey) {
+                  // Cross-category move: transfer set data
+                  var setData = srcSubcat.sets[draggedKey];
+                  if (!setData) return;
+                  dstSubcat.sets[draggedKey] = setData;
+                  delete srcSubcat.sets[draggedKey];
+                  // Remove from source ordering
+                  var srcOrder = getMgmtSetOrder(dragTradKey, dragSubcatKey) || Object.keys(srcSubcat.sets || {});
+                  srcOrder = srcOrder.filter(function(k) { return k !== draggedKey; });
+                  saveMgmtSetOrder(dragTradKey, dragSubcatKey, srcOrder);
+                }
+
+                // Insert into destination ordering
+                var dstOrder = getMgmtSetOrder(srcTradKey, srcSubcatKey) || Object.keys(dstSubcat.sets || {});
+                dstOrder = dstOrder.filter(function(k) { return k !== draggedKey; });
+                var dropIdx = dstOrder.indexOf(sKey);
+                dstOrder.splice(dropIdx, 0, draggedKey);
+                saveMgmtSetOrder(srcTradKey, srcSubcatKey, dstOrder);
                 renderLanding();
               });
-            })(item, setKey, setList);
+            })(item, setKey, tradKey, subcatKey);
           }
 
           setList.appendChild(item);
         });
+
+        // Allow dropping into empty set-lists or at end of list
+        if (manageMode) {
+          (function(listEl, tk, sk) {
+            listEl.addEventListener('dragover', function(e) { e.preventDefault(); });
+            listEl.addEventListener('drop', function(e) {
+              if (e.target !== listEl) return; // only handle drops on the list itself, not on items
+              e.preventDefault();
+              var parts = e.dataTransfer.getData('text/plain').split(':');
+              if (parts.length < 3) return;
+              var dragTradKey = parts[0], dragSubcatKey = parts[1], draggedKey = parts.slice(2).join(':');
+              if (dragTradKey !== tk) return;
+              var srcSubcat = manifest.traditions[dragTradKey].subcategories[dragSubcatKey];
+              var dstSubcat = manifest.traditions[tk].subcategories[sk];
+              if (!srcSubcat || !dstSubcat) return;
+              if (dragSubcatKey !== sk) {
+                var setData = srcSubcat.sets[draggedKey];
+                if (!setData) return;
+                dstSubcat.sets[draggedKey] = setData;
+                delete srcSubcat.sets[draggedKey];
+                var srcOrder = getMgmtSetOrder(dragTradKey, dragSubcatKey) || Object.keys(srcSubcat.sets || {});
+                srcOrder = srcOrder.filter(function(k) { return k !== draggedKey; });
+                saveMgmtSetOrder(dragTradKey, dragSubcatKey, srcOrder);
+              }
+              var dstOrder = getMgmtSetOrder(tk, sk) || Object.keys(dstSubcat.sets || {});
+              dstOrder = dstOrder.filter(function(k) { return k !== draggedKey; });
+              dstOrder.push(draggedKey); // append at end
+              saveMgmtSetOrder(tk, sk, dstOrder);
+              renderLanding();
+            });
+          })(setList, tradKey, subcatKey);
+        }
 
         subcatBody.appendChild(setList);
         subcatEl.appendChild(subcatBody);
@@ -1792,11 +1911,16 @@ function renderCardDesignInputs() {
 
   // Divider settings
   if (!cardDesign.divider) cardDesign.divider = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN.divider));
-  document.getElementById('design-divider-show').checked = cardDesign.divider.show;
+  document.getElementById('design-divider-visible').value = cardDesign.divider.visible ? 'visible' : 'invisible';
   document.getElementById('design-divider-color').value = cardDesign.divider.color;
   document.getElementById('design-divider-thickness').value = cardDesign.divider.thickness;
-  document.getElementById('design-divider-gap-above').value = cardDesign.divider.gapAbove;
-  document.getElementById('design-divider-gap-below').value = cardDesign.divider.gapBelow;
+  document.getElementById('design-divider-spread').value = cardDesign.divider.spread;
+  // Show/hide color and thickness when invisible
+  var isVis = cardDesign.divider.visible;
+  document.getElementById('design-divider-color').style.display = isVis ? '' : 'none';
+  document.getElementById('divider-color-label').style.display = isVis ? '' : 'none';
+  document.getElementById('design-divider-thickness').style.display = isVis ? '' : 'none';
+  document.getElementById('divider-thickness-label').style.display = isVis ? '' : 'none';
 
   // Tag settings
   document.getElementById('design-tag-source').value = cardDesign.tag.source;
@@ -1869,11 +1993,16 @@ function renderPerSetTags() {
 function updateCardDesign() {
   // Divider settings
   if (!cardDesign.divider) cardDesign.divider = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN.divider));
-  cardDesign.divider.show = document.getElementById('design-divider-show').checked;
+  cardDesign.divider.visible = document.getElementById('design-divider-visible').value === 'visible';
   cardDesign.divider.color = document.getElementById('design-divider-color').value;
   cardDesign.divider.thickness = parseFloat(document.getElementById('design-divider-thickness').value) || 0.3;
-  cardDesign.divider.gapAbove = parseFloat(document.getElementById('design-divider-gap-above').value) || 2;
-  cardDesign.divider.gapBelow = parseFloat(document.getElementById('design-divider-gap-below').value) || 2;
+  cardDesign.divider.spread = parseFloat(document.getElementById('design-divider-spread').value) || 2;
+  // Show/hide color and thickness fields
+  var isVis = cardDesign.divider.visible;
+  document.getElementById('design-divider-color').style.display = isVis ? '' : 'none';
+  document.getElementById('divider-color-label').style.display = isVis ? '' : 'none';
+  document.getElementById('design-divider-thickness').style.display = isVis ? '' : 'none';
+  document.getElementById('divider-thickness-label').style.display = isVis ? '' : 'none';
   // Tag settings
   cardDesign.tag.source = document.getElementById('design-tag-source').value;
   cardDesign.tag.customText = document.getElementById('design-tag-custom-text').value;
@@ -1924,64 +2053,238 @@ function getCardTagText(card) {
 }
 
 function renderCardPreview() {
+  // Preview is now generated on demand via generateSamplePreview()
+  // Just reset the preview boxes to prompt the user
+  var frontBox = document.getElementById('preview-front');
+  var backBox = document.getElementById('preview-back');
+  if (!frontBox || !backBox) return;
+  // Only reset if not showing a generated preview image
+  if (!frontBox.querySelector('img')) {
+    frontBox.innerHTML = '<span style="font-size:0.78rem;color:var(--text-muted)">Click "Generate Sample Card"</span>';
+    backBox.innerHTML = '<span style="font-size:0.78rem;color:var(--text-muted)">to see exact PDF output</span>';
+  } else {
+    // Mark as stale
+    frontBox.style.opacity = '0.5';
+    backBox.style.opacity = '0.5';
+    var statusEl = document.getElementById('sample-status');
+    if (statusEl) statusEl.textContent = 'Settings changed — regenerate to update';
+  }
+}
+
+async function generateSamplePreview() {
   if (!allCards || allCards.length === 0 || !currentTradition) return;
   var sample = allCards.find(function(c) { return c._included; }) || allCards[0];
   var fields = currentTradition.fields;
+  var statusEl = document.getElementById('sample-status');
+  statusEl.textContent = 'Generating...';
 
-  var frontBox = document.getElementById('preview-front');
-  var backBox = document.getElementById('preview-back');
-  frontBox.innerHTML = '';
-  backBox.innerHTML = '';
+  try {
+    var jsPDF = window.jspdf.jsPDF;
 
-  var frontFlds = fields.filter(function(f) { return frontFields.indexOf(f.key) !== -1; });
-  frontFlds.sort(function(a, b) { return frontFields.indexOf(a.key) - frontFields.indexOf(b.key); });
-  var backFlds = fields.filter(function(f) { return backFields.indexOf(f.key) !== -1; });
-  backFlds.sort(function(a, b) { return backFields.indexOf(a.key) - backFields.indexOf(b.key); });
+    // Font registry (same as generatePDF)
+    var FONT_URLS = {
+      NotoSerifSC: 'https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf',
+      NotoSansSC: 'https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf',
+      Lora: 'https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora%5Bwght%5D.ttf',
+      Cinzel: 'https://raw.githubusercontent.com/google/fonts/main/ofl/cinzel/Cinzel%5Bwght%5D.ttf',
+      TimesNewRoman: null
+    };
+    var STYLES = ['normal', 'bold', 'italic', 'bolditalic'];
 
-  var div = cardDesign.divider || DEFAULT_CARD_DESIGN.divider;
+    var neededFonts = new Set();
+    [cardDesign.chinese, cardDesign.pinyin, cardDesign.english].forEach(function(d) { neededFonts.add(d.font); });
+    neededFonts.add(cardDesign.tag.font);
 
-  function renderFieldsTo(box, flds) {
-    flds.forEach(function(f, fi) {
-      // Divider between fields (not before first)
-      if (fi > 0 && div.show) {
-        var divEl = document.createElement('div');
-        divEl.className = 'preview-divider';
-        divEl.style.cssText = 'border-top-color:' + div.color +
-          ';border-top-width:' + Math.max(div.thickness * 2, 1) + 'px' +
-          ';margin-top:' + (div.gapAbove * 1.5) + 'px' +
-          ';margin-bottom:' + (div.gapBelow * 1.5) + 'px';
-        box.appendChild(divEl);
-      }
-      var d = cardDesign[fieldDesignKey(f)];
-      var val = (sample[f.key] || '').trim();
-      if (!val) return;
-      var span = document.createElement('div');
-      var pxSize = Math.min(d.size * 0.85, 32);
-      if (f.type === 'target_lang' && val.length < 3) pxSize = Math.min(d.size * 1.1, 40);
-      span.style.cssText = 'font-family:' + (FONT_CSS_MAP[d.font] || 'sans-serif') +
-        ';font-size:' + pxSize + 'px' +
-        ';font-weight:' + (d.bold ? '700' : '400') +
-        ';font-style:' + (d.italic ? 'italic' : 'normal') +
-        ';text-align:center;line-height:1.3;max-width:100%;overflow:hidden;word-break:break-word;';
-      span.textContent = val;
-      box.appendChild(span);
+    var fontB64 = {};
+    var fontKeys = Array.from(neededFonts).filter(function(k) { return FONT_URLS[k]; });
+    for (var fi = 0; fi < fontKeys.length; fi++) {
+      statusEl.textContent = 'Loading font ' + (fi + 1) + '/' + fontKeys.length + '...';
+      var buf = await loadFontAsArrayBuffer(FONT_URLS[fontKeys[fi]]);
+      fontB64[fontKeys[fi]] = arrayBufferToBase64(buf);
+    }
+
+    statusEl.textContent = 'Rendering...';
+
+    // Create a small PDF with just one card cell for front and one for back
+    var wCard = (279.4 - 15.24) / 4;
+    var hCard = (215.9 - 15.24) / 4;
+
+    var PDF_FONT_NAME = { TimesNewRoman: 'times' };
+
+    // Generate front card
+    var pdfFront = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [wCard + 2, hCard + 2] });
+    fontKeys.forEach(function(fk) {
+      STYLES.forEach(function(style) {
+        var vfsName = fk + '-' + style + '.ttf';
+        pdfFront.addFileToVFS(vfsName, fontB64[fk]);
+        pdfFront.addFont(vfsName, fk, style);
+      });
     });
-  }
 
-  renderFieldsTo(frontBox, frontFlds);
-  renderFieldsTo(backBox, backFlds);
+    var pdfBack = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [wCard + 2, hCard + 2] });
+    fontKeys.forEach(function(fk) {
+      STYLES.forEach(function(style) {
+        var vfsName = fk + '-' + style + '.ttf';
+        pdfBack.addFileToVFS(vfsName, fontB64[fk]);
+        pdfBack.addFont(vfsName, fk, style);
+      });
+    });
 
-  // Tag on back
-  var tagText = getCardTagText(sample);
-  if (tagText) {
-    var tagD = cardDesign.tag;
-    var tagSpan = document.createElement('span');
-    tagSpan.className = 'preview-tag';
-    tagSpan.style.cssText = 'font-family:' + (FONT_CSS_MAP[tagD.font] || 'serif') +
-      ';font-size:' + Math.max(tagD.size * 0.7, 6) + 'px' +
-      ';font-weight:' + (tagD.bold ? '700' : '400');
-    tagSpan.textContent = tagText;
-    backBox.appendChild(tagSpan);
+    var dividerCfg = cardDesign.divider || { visible: true, color: '#c8c8c8', thickness: 0.3, spread: 2 };
+    if (dividerCfg.gapAbove !== undefined) { dividerCfg.spread = dividerCfg.gapAbove || 2; }
+
+    function renderPreviewCell(pdf, fieldObjs, card, x, y, isBack) {
+      var cx = x + wCard / 2;
+      var contentW = wCard - 4;
+      var tagReserve = 4;
+
+      function designForField(field) {
+        if (field.type === 'target_lang') return cardDesign.chinese;
+        if (field.type === 'romanization') return cardDesign.pinyin;
+        return cardDesign.english;
+      }
+      function applyFieldFont(field) {
+        var d = designForField(field);
+        var style = 'normal';
+        if (d.bold && d.italic) style = 'bolditalic';
+        else if (d.bold) style = 'bold';
+        else if (d.italic) style = 'italic';
+        pdf.setFont(PDF_FONT_NAME[d.font] || d.font, style);
+      }
+      function fitTextP(field, val, maxSize, maxW, maxH, minSize) {
+        minSize = minSize || 6;
+        applyFieldFont(field);
+        for (var sz = maxSize; sz >= minSize; sz--) {
+          pdf.setFontSize(sz);
+          var lines = pdf.splitTextToSize(val, maxW);
+          var lineH = sz * 0.45;
+          var totalH = lines.length * lineH;
+          if (totalH <= maxH) return { lines: lines, fontSize: sz, lineH: lineH, totalH: totalH };
+        }
+        pdf.setFontSize(minSize);
+        var linesMin = pdf.splitTextToSize(val, maxW);
+        var lhMin = minSize * 0.45;
+        return { lines: linesMin, fontSize: minSize, lineH: lhMin, totalH: linesMin.length * lhMin };
+      }
+      function drawFittedTextP(fit, cx2, startY, fakeBold) {
+        pdf.setFontSize(fit.fontSize);
+        fit.lines.forEach(function(line, li) {
+          var ty = startY + li * fit.lineH;
+          pdf.text(line, cx2, ty, { align: 'center' });
+          if (fakeBold) pdf.text(line, cx2 + 0.15, ty, { align: 'center' });
+        });
+      }
+      function hexToRgb(hex) {
+        hex = hex.replace('#', '');
+        return { r: parseInt(hex.substr(0,2),16), g: parseInt(hex.substr(2,2),16), b: parseInt(hex.substr(4,2),16) };
+      }
+      function drawDividerP(x2, lineY) {
+        if (!dividerCfg.visible) return;
+        var rgb = hexToRgb(dividerCfg.color);
+        pdf.setDrawColor(rgb.r, rgb.g, rgb.b);
+        pdf.setLineWidth(dividerCfg.thickness);
+        pdf.line(x2 + 8, lineY, x2 + wCard - 8, lineY);
+        pdf.setLineWidth(0.2);
+      }
+
+      // Draw cell border
+      pdf.setDrawColor(200, 200, 200);
+      pdf.rect(x, y, wCard, hCard);
+
+      if (fieldObjs.length === 0) return;
+
+      if (fieldObjs.length === 1) {
+        var f = fieldObjs[0];
+        var val = (card[f.key] || '').trim();
+        if (!val) return;
+        var d = designForField(f);
+        var maxH = hCard - tagReserve - 4;
+        var fit = fitTextP(f, val, d.size, contentW, maxH);
+        applyFieldFont(f);
+        pdf.setTextColor(0, 0, 0);
+        var startY = y + (hCard - tagReserve - fit.totalH) / 2 + fit.lineH;
+        drawFittedTextP(fit, cx, startY, d.bold && f.type === 'target_lang');
+      } else {
+        var spreadVal = dividerCfg.spread || 2;
+        var divThick = dividerCfg.visible ? dividerCfg.thickness : 0;
+        var divSpace = (fieldObjs.length - 1) * (spreadVal * 2 + divThick);
+        var usableH = hCard - tagReserve - 4 - divSpace;
+        var totalWeight = 0;
+        fieldObjs.forEach(function(f) { totalWeight += (f.type === 'target_lang' ? 2 : 1); });
+        var curY = y + 2;
+        pdf.setTextColor(0, 0, 0);
+        fieldObjs.forEach(function(f, fi) {
+          if (fi > 0) {
+            curY += spreadVal;
+            drawDividerP(x, curY);
+            curY += divThick + spreadVal;
+          }
+          var weight = (f.type === 'target_lang' ? 2 : 1);
+          var slotH = usableH * (weight / totalWeight);
+          var val = (card[f.key] || '').trim();
+          if (!val) { curY += slotH; return; }
+          var df = designForField(f);
+          var fit = fitTextP(f, val, df.size, contentW, slotH);
+          applyFieldFont(f);
+          var fStartY = curY + (slotH - fit.totalH) / 2 + fit.lineH;
+          drawFittedTextP(fit, cx, fStartY, df.bold && f.type === 'target_lang');
+          curY += slotH;
+        });
+      }
+
+      // Tag on back
+      if (isBack) {
+        var tagText = getCardTagText(card);
+        if (tagText) {
+          var td = cardDesign.tag;
+          pdf.setTextColor(120, 120, 120);
+          pdf.setFont(PDF_FONT_NAME[td.font] || td.font, td.bold ? 'bold' : 'normal');
+          pdf.setFontSize(td.size);
+          pdf.text(tagText, x + wCard - 2, y + hCard - 2, { align: 'right' });
+          pdf.setTextColor(0, 0, 0);
+        }
+      }
+    }
+
+    var frontFieldObjs = fields.filter(function(f) { return frontFields.includes(f.key); });
+    frontFieldObjs.sort(function(a, b) { return frontFields.indexOf(a.key) - frontFields.indexOf(b.key); });
+    var backFieldObjs = fields.filter(function(f) { return backFields.includes(f.key); });
+    backFieldObjs.sort(function(a, b) { return backFields.indexOf(a.key) - backFields.indexOf(b.key); });
+
+    renderPreviewCell(pdfFront, frontFieldObjs, sample, 1, 1, false);
+    renderPreviewCell(pdfBack, backFieldObjs, sample, 1, 1, true);
+
+    // Convert to images
+    var frontDataUrl = pdfFront.output('datauristring');
+    var backDataUrl = pdfBack.output('datauristring');
+
+    // Use iframe-based rendering for PDF or convert via canvas
+    // Actually, let's use the jsPDF canvas output
+    var frontBox = document.getElementById('preview-front');
+    var backBox = document.getElementById('preview-back');
+
+    frontBox.innerHTML = '';
+    backBox.innerHTML = '';
+    frontBox.style.opacity = '1';
+    backBox.style.opacity = '1';
+
+    // Embed as object/iframe showing PDF
+    var frontEmbed = document.createElement('iframe');
+    frontEmbed.src = frontDataUrl;
+    frontEmbed.style.cssText = 'width:100%;height:100%;border:none;';
+    frontBox.appendChild(frontEmbed);
+
+    var backEmbed = document.createElement('iframe');
+    backEmbed.src = backDataUrl;
+    backEmbed.style.cssText = 'width:100%;height:100%;border:none;';
+    backBox.appendChild(backEmbed);
+
+    statusEl.textContent = 'Preview updated';
+    setTimeout(function() { if (statusEl.textContent === 'Preview updated') statusEl.textContent = ''; }, 2000);
+
+  } catch (err) {
+    statusEl.textContent = 'Error: ' + err.message;
+    console.error('Preview generation error:', err);
   }
 }
 
@@ -2053,16 +2356,42 @@ function setupImport() {
   });
 }
 
-function getTotalCardCount() {
-  var total = 0;
+var _distinctChineseCount = null;
+
+async function computeDistinctChineseCount() {
   if (!manifest) return 0;
+  var allChars = new Set();
+  var fetches = [];
   for (var tk in manifest.traditions) {
     var trad = manifest.traditions[tk];
     if (!trad.available) continue;
+    var chKey = '';
+    for (var fi = 0; fi < (trad.fields || []).length; fi++) {
+      if (trad.fields[fi].type === 'target_lang') { chKey = trad.fields[fi].key; break; }
+    }
+    if (!chKey) continue;
     var sets = getAllSets(trad);
-    for (var sk in sets) total += (sets[sk].total_cards || 0);
+    for (var sk in sets) {
+      (function(file, key) {
+        fetches.push(
+          fetch(file).then(function(r) { return r.text(); }).then(function(csv) {
+            var parsed = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+            parsed.data.forEach(function(row) {
+              var v = (row[key] || '').trim();
+              if (v) allChars.add(v);
+            });
+          }).catch(function() {})
+        );
+      })(sets[sk].file, chKey);
+    }
   }
-  return total;
+  await Promise.all(fetches);
+  _distinctChineseCount = allChars.size;
+  return _distinctChineseCount;
+}
+
+function getTotalCardCount() {
+  return _distinctChineseCount || 0;
 }
 
 function renderProgressStats() {
@@ -2333,10 +2662,12 @@ async function generatePDF() {
       return d.bold && field.type === 'target_lang';
     }
 
-    var dividerCfg = cardDesign.divider || { show: true, color: '#c8c8c8', thickness: 0.3, gapAbove: 2, gapBelow: 2 };
+    var dividerCfg = cardDesign.divider || { visible: true, color: '#c8c8c8', thickness: 0.3, spread: 2 };
+    // Migrate old format if present
+    if (dividerCfg.gapAbove !== undefined) { dividerCfg.spread = dividerCfg.gapAbove || 2; }
 
     function drawDivider(x, lineY) {
-      if (!dividerCfg.show) return;
+      if (!dividerCfg.visible) return; // invisible divider: still takes up space, just not drawn
       var rgb = hexToRgb(dividerCfg.color);
       pdf.setDrawColor(rgb.r, rgb.g, rgb.b);
       pdf.setLineWidth(dividerCfg.thickness);
@@ -2368,10 +2699,10 @@ async function generatePDF() {
         return;
       }
 
-      // Multi-field: compute layout with dividers
-      var gapA = dividerCfg.show ? dividerCfg.gapAbove : 1;
-      var gapB = dividerCfg.show ? dividerCfg.gapBelow : 1;
-      var divSpace = (fieldObjs.length - 1) * (gapA + gapB + (dividerCfg.show ? dividerCfg.thickness : 0));
+      // Multi-field: compute layout with spread (distance from midpoint for each divider gap)
+      var spreadVal = dividerCfg.spread || 2;
+      var divThick = dividerCfg.visible ? dividerCfg.thickness : 0;
+      var divSpace = (fieldObjs.length - 1) * (spreadVal * 2 + divThick);
       var usableH = hCard - tagReserve - 4 - divSpace;
 
       // Give target_lang fields 2x weight
@@ -2381,9 +2712,9 @@ async function generatePDF() {
       var curY = y + 2;
       fieldObjs.forEach(function(f, fi) {
         if (fi > 0) {
-          curY += gapA;
+          curY += spreadVal;
           drawDivider(x, curY);
-          curY += (dividerCfg.show ? dividerCfg.thickness : 0) + gapB;
+          curY += divThick + spreadVal;
         }
 
         var weight = (f.type === 'target_lang' ? 2 : 1);
