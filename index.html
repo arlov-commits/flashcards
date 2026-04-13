@@ -135,7 +135,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .card-design-panel.open { display: block; }
 .design-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
 .design-section h3 { font-size: 0.9rem; margin-bottom: 8px; }
-.design-row { display: grid; grid-template-columns: 80px 1fr 70px auto auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-light); font-size: 0.85rem; }
+.design-row { display: grid; grid-template-columns: 80px 1fr 70px auto auto 40px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-light); font-size: 0.85rem; }
 .design-row:last-child { border-bottom: none; }
 .design-row .design-label { font-weight: 600; color: var(--text); }
 .design-row select, .design-row input[type="number"], .design-row input[type="text"] { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-card); color: var(--text); font-size: 0.82rem; }
@@ -144,7 +144,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .design-row input[type="text"] { width: 100%; }
 .design-row label { display: flex; align-items: center; gap: 4px; font-size: 0.82rem; white-space: nowrap; }
 @media (max-width: 500px) {
-  .design-row { grid-template-columns: 60px 1fr 60px auto auto; gap: 4px; font-size: 0.8rem; }
+  .design-row { grid-template-columns: 60px 1fr 60px auto auto 36px; gap: 4px; font-size: 0.8rem; }
   .design-row input[type="number"] { width: 46px; }
 }
 /* Tag settings row */
@@ -156,8 +156,13 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 /* Card preview */
 .card-preview-wrap { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
 .card-preview-box { width: 180px; height: 140px; border: 1.5px solid var(--border); border-radius: 6px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 8px 6px; position: relative; }
-.card-preview-box .preview-label { position: absolute; top: 4px; left: 6px; font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+.card-preview-col { display: flex; flex-direction: column; align-items: center; }
+.preview-side-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
 .card-preview-box .preview-tag { position: absolute; bottom: 3px; right: 5px; color: #999; }
+.card-preview-box .preview-divider { width: 80%; height: 0; border-top: 1px solid #c8c8c8; margin: 2px 0; }
+.design-reorder { display: flex; flex-direction: column; gap: 0; }
+.design-reorder button { background: none; border: none; cursor: pointer; font-size: 0.7rem; color: var(--text-muted); padding: 0 4px; line-height: 1; }
+.design-reorder button:hover { color: var(--accent); }
 
 /* Download & progress section */
 .download-section { margin-top: 24px; }
@@ -192,7 +197,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .known-group-header .group-info { flex: 1; min-width: 0; }
 .known-group-header .group-deck { font-weight: 600; font-size: 0.9rem; color: var(--text); }
 .known-group-header .group-meta { font-size: 0.78rem; color: var(--text-muted); }
-.known-group-body { max-height: 200px; overflow-y: auto; }
+.known-group-body { }
 .known-group-body table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .known-group-body td { padding: 4px 12px; border-bottom: 1px solid var(--border-light); }
 .known-group-body tr:last-child td { border-bottom: none; }
@@ -211,7 +216,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     <div class="landing-header">
       <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
       <a class="known-viewer-link" id="known-viewer-link" onclick="navigateTo('known')" style="display:none">
-        Known <span class="known-badge" id="known-badge-count"></span>
+        Known <span class="known-badge" id="known-badge-a"></span> <span class="known-badge" id="known-badge-b" style="display:none"></span>
       </a>
       <p>Select a liturgical tradition to browse card sets, or upload your own flashcard data.</p>
     </div>
@@ -294,44 +299,36 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     <a class="card-design-toggle" onclick="toggleCardDesign()">Card Design</a>
     <div id="card-design-panel" class="card-design-panel">
       <div class="design-section">
-        <h3>Font Settings</h3>
+        <h3>Front</h3>
         <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
-          <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span>
+          <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span><span></span>
         </div>
-        <div class="design-row">
-          <span class="design-label">Chinese</span>
-          <select id="design-chinese-font" onchange="updateCardDesign()">
-            <option value="NotoSerifSC">Noto Serif SC</option>
-            <option value="NotoSansSC">Noto Sans SC</option>
-          </select>
-          <input type="number" id="design-chinese-size" min="6" max="60" onchange="updateCardDesign()">
-          <label><input type="checkbox" id="design-chinese-bold" onchange="updateCardDesign()"> </label>
-          <label><input type="checkbox" id="design-chinese-italic" onchange="updateCardDesign()"> </label>
+        <div id="design-front-fields"></div>
+      </div>
+
+      <div class="design-section">
+        <h3>Divider</h3>
+        <div class="tag-setting-row">
+          <label><input type="checkbox" id="design-divider-show" onchange="updateCardDesign()"> Show divider</label>
+          <span style="margin-left:8px">Color</span>
+          <input type="color" id="design-divider-color" value="#c8c8c8" onchange="updateCardDesign()" style="width:32px;height:24px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;">
+          <span>Width</span>
+          <input type="number" id="design-divider-thickness" min="0.1" max="3" step="0.1" style="width:52px" onchange="updateCardDesign()">
         </div>
-        <div class="design-row">
-          <span class="design-label">Pinyin</span>
-          <select id="design-pinyin-font" onchange="updateCardDesign()">
-            <option value="NotoSansSC">Noto Sans SC</option>
-            <option value="NotoSerifSC">Noto Serif SC</option>
-            <option value="Lora">Lora</option>
-          </select>
-          <input type="number" id="design-pinyin-size" min="6" max="60" onchange="updateCardDesign()">
-          <label><input type="checkbox" id="design-pinyin-bold" onchange="updateCardDesign()"> </label>
-          <label><input type="checkbox" id="design-pinyin-italic" onchange="updateCardDesign()"> </label>
+        <div class="tag-setting-row">
+          <span>Gap above</span>
+          <input type="number" id="design-divider-gap-above" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
+          <span style="margin-left:8px">Gap below</span>
+          <input type="number" id="design-divider-gap-below" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
         </div>
-        <div class="design-row">
-          <span class="design-label">English</span>
-          <select id="design-english-font" onchange="updateCardDesign()">
-            <option value="NotoSansSC">Noto Sans SC</option>
-            <option value="NotoSerifSC">Noto Serif SC</option>
-            <option value="Lora">Lora</option>
-            <option value="Cinzel">Cinzel</option>
-            <option value="TimesNewRoman">Times New Roman</option>
-          </select>
-          <input type="number" id="design-english-size" min="6" max="60" onchange="updateCardDesign()">
-          <label><input type="checkbox" id="design-english-bold" onchange="updateCardDesign()"> </label>
-          <label><input type="checkbox" id="design-english-italic" onchange="updateCardDesign()"> </label>
+      </div>
+
+      <div class="design-section">
+        <h3>Back</h3>
+        <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
+          <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span><span></span>
         </div>
+        <div id="design-back-fields"></div>
       </div>
 
       <div class="design-section">
@@ -368,11 +365,13 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <div class="design-section">
         <h3>Preview</h3>
         <div class="card-preview-wrap">
-          <div class="card-preview-box" id="preview-front">
-            <span class="preview-label">Front</span>
+          <div class="card-preview-col">
+            <div class="preview-side-label">Front</div>
+            <div class="card-preview-box" id="preview-front"></div>
           </div>
-          <div class="card-preview-box" id="preview-back">
-            <span class="preview-label">Back</span>
+          <div class="card-preview-col">
+            <div class="preview-side-label">Back</div>
+            <div class="card-preview-box" id="preview-back"></div>
           </div>
         </div>
       </div>
@@ -429,13 +428,14 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.0';
+var APP_VERSION = 'v2.1';
 
 var DEFAULT_CARD_DESIGN = {
   chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
   pinyin:   { font: 'NotoSansSC', size: 14, bold: false, italic: false },
   english:  { font: 'NotoSansSC', size: 11, bold: false, italic: false },
-  tag:      { font: 'NotoSerifSC', size: 8, bold: false, source: 'ch_tag', customText: '', perSet: {} }
+  tag:      { font: 'NotoSerifSC', size: 8, bold: false, source: 'ch_tag', customText: '', perSet: {} },
+  divider:  { show: true, color: '#c8c8c8', thickness: 0.3, gapAbove: 2, gapBelow: 2 }
 };
 var cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
 
@@ -491,13 +491,6 @@ function removeKnownGroup(mode, groupKey) {
   saveKnownEntries(mode, entries);
 }
 
-function getActiveDeckLabel() {
-  if (isUploadMode) return currentTradition ? currentTradition.display_name : 'Upload';
-  var allSets = currentTradition ? getAllSets(currentTradition) : {};
-  var names = Object.keys(selectedSets).map(function(k) { return allSets[k] ? allSets[k].eng_name : k; });
-  return names.join(', ') || 'Unknown';
-}
-
 function getDeckLabelForCard(card) {
   if (isUploadMode) return currentTradition ? currentTradition.display_name : 'Upload';
   if (!currentTradition) return 'Unknown';
@@ -523,6 +516,8 @@ function loadCardDesign() {
       for (var k in DEFAULT_CARD_DESIGN) {
         if (saved[k]) { for (var p in DEFAULT_CARD_DESIGN[k]) { if (saved[k][p] !== undefined) cardDesign[k][p] = saved[k][p]; } }
       }
+      // Ensure divider exists (migration from older saved designs)
+      if (!cardDesign.divider) cardDesign.divider = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN.divider));
     }
   } catch (e) {}
 }
@@ -1313,8 +1308,16 @@ function updateCardCount() {
 function updateSummary() {
   var included = allCards.filter(function(c) { return c._included; }).length;
   var pages = Math.ceil(included / 16);
-  document.getElementById('summary-text').textContent =
-    'This will generate ' + included + ' cards across ' + pages + ' pages (double-sided, ' + (pages * 2) + ' sheets).';
+  var fullPages = Math.floor(included / 16);
+  var extraCards = included % 16;
+  var sheets = pages * 2;
+  var text = 'This will generate ' + included + ' cards across ' + pages + ' page' + (pages !== 1 ? 's' : '') + ' (double-sided, ' + sheets + ' sheets';
+  // Show overflow indicator when 1-8 cards spill onto an extra page (up to 50% of page)
+  if (extraCards > 0 && extraCards <= 8 && fullPages > 0) {
+    text += ' [' + fullPages + ' full page' + (fullPages !== 1 ? 's' : '') + ' + ' + extraCards + ' card' + (extraCards !== 1 ? 's' : '') + ']';
+  }
+  text += ').';
+  document.getElementById('summary-text').textContent = text;
 }
 
 function selectAllCards(val) {
@@ -1358,13 +1361,69 @@ var FONT_CSS_MAP = {
   'TimesNewRoman': "'Times New Roman', 'Times', serif"
 };
 
+function fieldDesignKey(field) {
+  if (field.type === 'target_lang') return 'chinese';
+  if (field.type === 'romanization') return 'pinyin';
+  return 'english';
+}
+
+function getFontOptions(field) {
+  var dk = fieldDesignKey(field);
+  if (dk === 'chinese') return [['NotoSerifSC','Noto Serif SC'],['NotoSansSC','Noto Sans SC']];
+  if (dk === 'pinyin') return [['NotoSansSC','Noto Sans SC'],['NotoSerifSC','Noto Serif SC'],['Lora','Lora']];
+  return [['NotoSansSC','Noto Sans SC'],['NotoSerifSC','Noto Serif SC'],['Lora','Lora'],['Cinzel','Cinzel'],['TimesNewRoman','Times New Roman']];
+}
+
+function renderDesignFieldRow(field, side, idx, total) {
+  var dk = fieldDesignKey(field);
+  var d = cardDesign[dk];
+  var opts = getFontOptions(field);
+  var selectHtml = '<select data-dk="' + dk + '" data-prop="font" onchange="updateCardDesignFromRow(this)">';
+  opts.forEach(function(o) { selectHtml += '<option value="' + o[0] + '"' + (d.font === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; });
+  selectHtml += '</select>';
+
+  var arrows = '<div class="design-reorder">';
+  arrows += '<button onclick="moveField(\'' + side + '\',' + idx + ',-1)" title="Move up"' + (idx === 0 ? ' disabled style="opacity:0.3"' : '') + '>&#9650;</button>';
+  arrows += '<button onclick="moveField(\'' + side + '\',' + idx + ',1)" title="Move down"' + (idx >= total - 1 ? ' disabled style="opacity:0.3"' : '') + '>&#9660;</button>';
+  arrows += '</div>';
+
+  return '<div class="design-row">' +
+    '<span class="design-label">' + field.label + '</span>' +
+    selectHtml +
+    '<input type="number" data-dk="' + dk + '" data-prop="size" min="6" max="60" value="' + d.size + '" onchange="updateCardDesignFromRow(this)">' +
+    '<label><input type="checkbox" data-dk="' + dk + '" data-prop="bold"' + (d.bold ? ' checked' : '') + ' onchange="updateCardDesignFromRow(this)"> </label>' +
+    '<label><input type="checkbox" data-dk="' + dk + '" data-prop="italic"' + (d.italic ? ' checked' : '') + ' onchange="updateCardDesignFromRow(this)"> </label>' +
+    arrows +
+    '</div>';
+}
+
 function renderCardDesignInputs() {
-  ['chinese', 'pinyin', 'english'].forEach(function(k) {
-    document.getElementById('design-' + k + '-font').value = cardDesign[k].font;
-    document.getElementById('design-' + k + '-size').value = cardDesign[k].size;
-    document.getElementById('design-' + k + '-bold').checked = cardDesign[k].bold;
-    document.getElementById('design-' + k + '-italic').checked = cardDesign[k].italic;
-  });
+  if (!currentTradition) return;
+  var fields = currentTradition.fields;
+
+  var frontFlds = fields.filter(function(f) { return frontFields.indexOf(f.key) !== -1; });
+  // Sort by frontFields order
+  frontFlds.sort(function(a, b) { return frontFields.indexOf(a.key) - frontFields.indexOf(b.key); });
+  var backFlds = fields.filter(function(f) { return backFields.indexOf(f.key) !== -1; });
+  backFlds.sort(function(a, b) { return backFields.indexOf(a.key) - backFields.indexOf(b.key); });
+
+  var frontDiv = document.getElementById('design-front-fields');
+  var backDiv = document.getElementById('design-back-fields');
+  var html = '';
+  frontFlds.forEach(function(f, i) { html += renderDesignFieldRow(f, 'front', i, frontFlds.length); });
+  frontDiv.innerHTML = html;
+  html = '';
+  backFlds.forEach(function(f, i) { html += renderDesignFieldRow(f, 'back', i, backFlds.length); });
+  backDiv.innerHTML = html;
+
+  // Divider settings
+  if (!cardDesign.divider) cardDesign.divider = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN.divider));
+  document.getElementById('design-divider-show').checked = cardDesign.divider.show;
+  document.getElementById('design-divider-color').value = cardDesign.divider.color;
+  document.getElementById('design-divider-thickness').value = cardDesign.divider.thickness;
+  document.getElementById('design-divider-gap-above').value = cardDesign.divider.gapAbove;
+  document.getElementById('design-divider-gap-below').value = cardDesign.divider.gapBelow;
+
   // Tag settings
   document.getElementById('design-tag-source').value = cardDesign.tag.source;
   document.getElementById('design-tag-custom-text').value = cardDesign.tag.customText || '';
@@ -1374,6 +1433,27 @@ function renderCardDesignInputs() {
   toggleTagCustomRow();
   renderPerSetTags();
   renderCardPreview();
+}
+
+function updateCardDesignFromRow(el) {
+  var dk = el.dataset.dk;
+  var prop = el.dataset.prop;
+  if (prop === 'font') cardDesign[dk].font = el.value;
+  else if (prop === 'size') cardDesign[dk].size = parseInt(el.value) || DEFAULT_CARD_DESIGN[dk].size;
+  else if (prop === 'bold') cardDesign[dk].bold = el.checked;
+  else if (prop === 'italic') cardDesign[dk].italic = el.checked;
+  saveCardDesign();
+  renderCardPreview();
+}
+
+function moveField(side, idx, dir) {
+  var arr = side === 'front' ? frontFields : backFields;
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= arr.length) return;
+  var tmp = arr[idx];
+  arr[idx] = arr[newIdx];
+  arr[newIdx] = tmp;
+  renderCardDesignInputs();
 }
 
 function toggleTagCustomRow() {
@@ -1413,12 +1493,13 @@ function renderPerSetTags() {
 }
 
 function updateCardDesign() {
-  ['chinese', 'pinyin', 'english'].forEach(function(k) {
-    cardDesign[k].font = document.getElementById('design-' + k + '-font').value;
-    cardDesign[k].size = parseInt(document.getElementById('design-' + k + '-size').value) || DEFAULT_CARD_DESIGN[k].size;
-    cardDesign[k].bold = document.getElementById('design-' + k + '-bold').checked;
-    cardDesign[k].italic = document.getElementById('design-' + k + '-italic').checked;
-  });
+  // Divider settings
+  if (!cardDesign.divider) cardDesign.divider = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN.divider));
+  cardDesign.divider.show = document.getElementById('design-divider-show').checked;
+  cardDesign.divider.color = document.getElementById('design-divider-color').value;
+  cardDesign.divider.thickness = parseFloat(document.getElementById('design-divider-thickness').value) || 0.3;
+  cardDesign.divider.gapAbove = parseFloat(document.getElementById('design-divider-gap-above').value) || 2;
+  cardDesign.divider.gapBelow = parseFloat(document.getElementById('design-divider-gap-below').value) || 2;
   // Tag settings
   cardDesign.tag.source = document.getElementById('design-tag-source').value;
   cardDesign.tag.customText = document.getElementById('design-tag-custom-text').value;
@@ -1475,21 +1556,29 @@ function renderCardPreview() {
 
   var frontBox = document.getElementById('preview-front');
   var backBox = document.getElementById('preview-back');
-  frontBox.innerHTML = '<span class="preview-label">Front</span>';
-  backBox.innerHTML = '<span class="preview-label">Back</span>';
+  frontBox.innerHTML = '';
+  backBox.innerHTML = '';
 
   var frontFlds = fields.filter(function(f) { return frontFields.indexOf(f.key) !== -1; });
+  frontFlds.sort(function(a, b) { return frontFields.indexOf(a.key) - frontFields.indexOf(b.key); });
   var backFlds = fields.filter(function(f) { return backFields.indexOf(f.key) !== -1; });
+  backFlds.sort(function(a, b) { return backFields.indexOf(a.key) - backFields.indexOf(b.key); });
 
-  function designKey(field) {
-    if (field.type === 'target_lang') return 'chinese';
-    if (field.type === 'romanization') return 'pinyin';
-    return 'english';
-  }
+  var div = cardDesign.divider || DEFAULT_CARD_DESIGN.divider;
 
   function renderFieldsTo(box, flds) {
-    flds.forEach(function(f) {
-      var d = cardDesign[designKey(f)];
+    flds.forEach(function(f, fi) {
+      // Divider between fields (not before first)
+      if (fi > 0 && div.show) {
+        var divEl = document.createElement('div');
+        divEl.className = 'preview-divider';
+        divEl.style.cssText = 'border-top-color:' + div.color +
+          ';border-top-width:' + Math.max(div.thickness * 2, 1) + 'px' +
+          ';margin-top:' + (div.gapAbove * 1.5) + 'px' +
+          ';margin-bottom:' + (div.gapBelow * 1.5) + 'px';
+        box.appendChild(divEl);
+      }
+      var d = cardDesign[fieldDesignKey(f)];
       var val = (sample[f.key] || '').trim();
       if (!val) return;
       var span = document.createElement('div');
@@ -1606,7 +1695,19 @@ function renderProgressStats() {
   var link = document.getElementById('known-viewer-link');
   if (totalKnown > 0) {
     link.style.display = 'flex';
-    document.getElementById('known-badge-count').textContent = totalKnown;
+    var badgeA = document.getElementById('known-badge-a');
+    var badgeB = document.getElementById('known-badge-b');
+    if (knownA && knownB) {
+      badgeA.textContent = 'A:' + knownA;
+      badgeB.textContent = 'B:' + knownB;
+      badgeB.style.display = '';
+    } else if (knownA) {
+      badgeA.textContent = knownA;
+      badgeB.style.display = 'none';
+    } else {
+      badgeA.textContent = knownB;
+      badgeB.style.display = 'none';
+    }
   } else {
     link.style.display = 'none';
   }
@@ -1778,7 +1879,9 @@ async function generatePDF() {
     var cards = allCards.filter(function(c) { return c._included; });
 
     var frontFieldObjs = fields.filter(function(f) { return frontFields.includes(f.key); });
+    frontFieldObjs.sort(function(a, b) { return frontFields.indexOf(a.key) - frontFields.indexOf(b.key); });
     var backFieldObjs  = fields.filter(function(f) { return backFields.includes(f.key); });
+    backFieldObjs.sort(function(a, b) { return backFields.indexOf(a.key) - backFields.indexOf(b.key); });
 
     function drawGridCell(x, y) {
       pdf.setDrawColor(200, 200, 200);
@@ -1830,11 +1933,37 @@ async function generatePDF() {
       return { lines: linesMin, fontSize: minSize, lineH: lhMin, totalH: linesMin.length * lhMin };
     }
 
-    function drawFittedText(fit, cx, startY) {
+    function drawFittedText(fit, cx, startY, fakeBold) {
       pdf.setFontSize(fit.fontSize);
       fit.lines.forEach(function(line, li) {
-        pdf.text(line, cx, startY + li * fit.lineH, { align: 'center' });
+        var ty = startY + li * fit.lineH;
+        pdf.text(line, cx, ty, { align: 'center' });
+        // Fake bold: draw again with tiny x-offset for CJK fonts that don't support weight axis
+        if (fakeBold) {
+          pdf.text(line, cx + 0.15, ty, { align: 'center' });
+        }
       });
+    }
+
+    function needsFakeBold(field) {
+      var d = designForField(field);
+      return d.bold && field.type === 'target_lang';
+    }
+
+    var dividerCfg = cardDesign.divider || { show: true, color: '#c8c8c8', thickness: 0.3, gapAbove: 2, gapBelow: 2 };
+
+    function drawDivider(x, lineY) {
+      if (!dividerCfg.show) return;
+      var rgb = hexToRgb(dividerCfg.color);
+      pdf.setDrawColor(rgb.r, rgb.g, rgb.b);
+      pdf.setLineWidth(dividerCfg.thickness);
+      pdf.line(x + 8, lineY, x + wCard - 8, lineY);
+      pdf.setLineWidth(0.2); // reset
+    }
+
+    function hexToRgb(hex) {
+      hex = hex.replace('#', '');
+      return { r: parseInt(hex.substr(0,2),16), g: parseInt(hex.substr(2,2),16), b: parseInt(hex.substr(4,2),16) };
     }
 
     function renderFieldsInCell(fieldObjs, card, x, y, isFront) {
@@ -1852,73 +1981,39 @@ async function generatePDF() {
         var fit = fitText(f, val, d.size, contentW, maxH);
         applyFieldFont(f);
         var startY = y + (hCard - tagReserve - fit.totalH) / 2 + fit.lineH;
-        drawFittedText(fit, cx, startY);
+        drawFittedText(fit, cx, startY, needsFakeBold(f));
         return;
       }
 
-      var targetIdx = fieldObjs.findIndex(function(f2) { return f2.type === 'target_lang'; });
-      var hasTarget = targetIdx !== -1;
+      // Multi-field: compute layout with dividers
+      var gapA = dividerCfg.show ? dividerCfg.gapAbove : 1;
+      var gapB = dividerCfg.show ? dividerCfg.gapBelow : 1;
+      var divSpace = (fieldObjs.length - 1) * (gapA + gapB + (dividerCfg.show ? dividerCfg.thickness : 0));
+      var usableH = hCard - tagReserve - 4 - divSpace;
 
-      if (hasTarget && fieldObjs.length === 2) {
-        var targetF = fieldObjs[targetIdx];
-        var otherF  = fieldObjs[1 - targetIdx];
-        var targetVal = (card[targetF.key] || '').trim();
-        var otherVal  = (card[otherF.key] || '').trim();
-        var dT = designForField(targetF);
-        var dO = designForField(otherF);
+      // Give target_lang fields 2x weight
+      var totalWeight = 0;
+      fieldObjs.forEach(function(f) { totalWeight += (f.type === 'target_lang' ? 2 : 1); });
 
-        // Target gets ~55% of cell, other gets ~35%, rest is padding
-        var tMaxH = hCard * 0.50;
-        var oMaxH = hCard * 0.30;
+      var curY = y + 2;
+      fieldObjs.forEach(function(f, fi) {
+        if (fi > 0) {
+          curY += gapA;
+          drawDivider(x, curY);
+          curY += (dividerCfg.show ? dividerCfg.thickness : 0) + gapB;
+        }
 
-        var fitT = fitText(targetF, targetVal, dT.size, contentW, tMaxH);
-        applyFieldFont(targetF);
-        var tStartY = y + (hCard * 0.05) + fitT.lineH;
-        drawFittedText(fitT, cx, tStartY);
+        var weight = (f.type === 'target_lang' ? 2 : 1);
+        var slotH = usableH * (weight / totalWeight);
 
-        var fitO = fitText(otherF, otherVal, dO.size, contentW, oMaxH);
-        applyFieldFont(otherF);
-        var oStartY = y + hCard * 0.55 + (hCard * 0.35 - tagReserve - fitO.totalH) / 2 + fitO.lineH;
-        drawFittedText(fitO, cx, oStartY);
-        return;
-      }
-
-      if (!hasTarget && fieldObjs.length === 2) {
-        var f0 = fieldObjs[0];
-        var f1 = fieldObjs[1];
-        var v0 = (card[f0.key] || '').trim();
-        var v1 = (card[f1.key] || '').trim();
-        var d0 = designForField(f0);
-        var d1 = designForField(f1);
-
-        var halfH = (hCard - tagReserve - 6) / 2;
-        var fit0 = fitText(f0, v0, d0.size, contentW, halfH);
-        applyFieldFont(f0);
-        var s0Y = y + (halfH - fit0.totalH) / 2 + fit0.lineH + 2;
-        drawFittedText(fit0, cx, s0Y);
-
-        var lineY = y + halfH + 4;
-        pdf.setDrawColor(200, 200, 200);
-        pdf.line(x + 10, lineY, x + wCard - 10, lineY);
-
-        var fit1 = fitText(f1, v1, d1.size, contentW, halfH);
-        applyFieldFont(f1);
-        var s1Y = lineY + 2 + (halfH - fit1.totalH) / 2 + fit1.lineH;
-        drawFittedText(fit1, cx, s1Y);
-        return;
-      }
-
-      // 3+ fields: divide vertically
-      var slotH = (hCard - tagReserve) / fieldObjs.length;
-      fieldObjs.forEach(function(f3, fi) {
-        var val3 = (card[f3.key] || '').trim();
-        if (!val3) return;
-        var df = designForField(f3);
-        var fit3 = fitText(f3, val3, df.size, contentW, slotH - 2);
-        applyFieldFont(f3);
-        var slotTop = y + slotH * fi;
-        var s3Y = slotTop + (slotH - fit3.totalH) / 2 + fit3.lineH;
-        drawFittedText(fit3, cx, s3Y);
+        var val = (card[f.key] || '').trim();
+        if (!val) { curY += slotH; return; }
+        var df = designForField(f);
+        var fit = fitText(f, val, df.size, contentW, slotH);
+        applyFieldFont(f);
+        var fStartY = curY + (slotH - fit.totalH) / 2 + fit.lineH;
+        drawFittedText(fit, cx, fStartY, needsFakeBold(f));
+        curY += slotH;
       });
     }
 
@@ -1931,10 +2026,11 @@ async function generatePDF() {
       if (!isFirstPage) pdf.addPage();
       isFirstPage = false;
 
+      // Column-first order for cutting stack: col0 top-to-bottom, then col1, etc.
       for (var idx = 0; idx < chunk.length; idx++) {
         var card = chunk[idx];
-        var col = idx % 4;
-        var row = Math.floor(idx / 4);
+        var col = Math.floor(idx / 4);
+        var row = idx % 4;
         var x = marginX + col * wCard;
         var yPos = marginY + row * hCard;
         drawGridCell(x, yPos);
@@ -1945,8 +2041,8 @@ async function generatePDF() {
 
       for (var idx2 = 0; idx2 < chunk.length; idx2++) {
         var card2 = chunk[idx2];
-        var col2 = 3 - (idx2 % 4);
-        var row2 = Math.floor(idx2 / 4);
+        var col2 = 3 - Math.floor(idx2 / 4);
+        var row2 = idx2 % 4;
         var x2 = marginX + col2 * wCard;
         var yPos2 = marginY + row2 * hCard;
         drawGridCell(x2, yPos2);
@@ -1967,11 +2063,20 @@ async function generatePDF() {
     pdf.save('flashcards-' + setNames + '.pdf');
 
     // Add all printed cards to known list for current study mode
-    var chineseValues = cards.map(function(c) { return c._chinese; }).filter(Boolean);
-    if (chineseValues.length) {
-      addToKnown(studyMode, chineseValues, getActiveDeckLabel());
-      renderProgressStats();
+    // Group by deck so each card is attributed to its own deck
+    var cardsByDeck = {};
+    cards.forEach(function(c) {
+      if (!c._chinese) return;
+      var deck = getDeckLabelForCard(c);
+      if (!cardsByDeck[deck]) cardsByDeck[deck] = [];
+      cardsByDeck[deck].push(c._chinese);
+    });
+    var addedAny = false;
+    for (var deckName in cardsByDeck) {
+      addToKnown(studyMode, cardsByDeck[deckName], deckName);
+      addedAny = true;
     }
+    if (addedAny) renderProgressStats();
 
   } catch (err) {
     console.error('PDF generation error:', err);
