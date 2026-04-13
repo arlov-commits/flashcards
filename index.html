@@ -186,6 +186,17 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .known-mode-tab.active { background: var(--accent); color: #fff; }
 .known-empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.9rem; }
 
+/* Known groups */
+.known-group { margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.known-group-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f0ebe4; border-bottom: 1px solid var(--border-light); gap: 8px; flex-wrap: wrap; }
+.known-group-header .group-info { flex: 1; min-width: 0; }
+.known-group-header .group-deck { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+.known-group-header .group-meta { font-size: 0.78rem; color: var(--text-muted); }
+.known-group-body { max-height: 200px; overflow-y: auto; }
+.known-group-body table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.known-group-body td { padding: 4px 12px; border-bottom: 1px solid var(--border-light); }
+.known-group-body tr:last-child td { border-bottom: none; }
+
 /* Upload delete confirmation */
 .upload-confirm { display: flex; align-items: center; gap: 12px; background: #fdf5f0; border: 1.5px solid #c4956a; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; font-size: 0.88rem; color: var(--text); }
 .upload-confirm .confirm-text { flex: 1; }
@@ -418,7 +429,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v1.9';
+var APP_VERSION = 'v2.0';
 
 var DEFAULT_CARD_DESIGN = {
   chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
@@ -431,26 +442,68 @@ var cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
 /* ============================================================
    LOCALSTORAGE: KNOWN LISTS & UPLOADS
    ============================================================ */
-function getKnownList(mode) {
+function getKnownEntries(mode) {
   try {
-    return new Set(JSON.parse(localStorage.getItem('known_type' + mode) || '[]'));
-  } catch (e) { return new Set(); }
+    var raw = JSON.parse(localStorage.getItem('known_type' + mode) || '[]');
+    if (!Array.isArray(raw)) return [];
+    // Migrate: old format was flat string array
+    if (raw.length > 0 && typeof raw[0] === 'string') {
+      var migrated = raw.map(function(ch) { return { ch: ch, ts: new Date(0).toISOString(), deck: 'Legacy' }; });
+      localStorage.setItem('known_type' + mode, JSON.stringify(migrated));
+      return migrated;
+    }
+    return raw;
+  } catch (e) { return []; }
 }
 
-function saveKnownList(mode, knownSet) {
-  localStorage.setItem('known_type' + mode, JSON.stringify([...knownSet]));
+function getKnownList(mode) {
+  var entries = getKnownEntries(mode);
+  return new Set(entries.map(function(e) { return e.ch; }));
 }
 
-function addToKnown(mode, chineseValues) {
-  var known = getKnownList(mode);
-  chineseValues.forEach(function(v) { known.add(v); });
-  saveKnownList(mode, known);
+function saveKnownEntries(mode, entries) {
+  localStorage.setItem('known_type' + mode, JSON.stringify(entries));
+}
+
+function addToKnown(mode, chineseValues, deckName) {
+  var entries = getKnownEntries(mode);
+  var existing = new Set(entries.map(function(e) { return e.ch; }));
+  var ts = new Date().toISOString();
+  var deck = deckName || 'Unknown';
+  chineseValues.forEach(function(v) {
+    if (!existing.has(v)) {
+      entries.push({ ch: v, ts: ts, deck: deck });
+      existing.add(v);
+    }
+  });
+  saveKnownEntries(mode, entries);
 }
 
 function removeFromKnown(mode, chineseValue) {
-  var known = getKnownList(mode);
-  known.delete(chineseValue);
-  saveKnownList(mode, known);
+  var entries = getKnownEntries(mode);
+  entries = entries.filter(function(e) { return e.ch !== chineseValue; });
+  saveKnownEntries(mode, entries);
+}
+
+function removeKnownGroup(mode, groupKey) {
+  var entries = getKnownEntries(mode);
+  entries = entries.filter(function(e) { return (e.ts + '|' + e.deck) !== groupKey; });
+  saveKnownEntries(mode, entries);
+}
+
+function getActiveDeckLabel() {
+  if (isUploadMode) return currentTradition ? currentTradition.display_name : 'Upload';
+  var allSets = currentTradition ? getAllSets(currentTradition) : {};
+  var names = Object.keys(selectedSets).map(function(k) { return allSets[k] ? allSets[k].eng_name : k; });
+  return names.join(', ') || 'Unknown';
+}
+
+function getDeckLabelForCard(card) {
+  if (isUploadMode) return currentTradition ? currentTradition.display_name : 'Upload';
+  if (!currentTradition) return 'Unknown';
+  var allSets = getAllSets(currentTradition);
+  var si = allSets[card._setKey];
+  return si ? si.eng_name : card._setKey || 'Unknown';
 }
 
 function getSavedUploads() {
@@ -1222,7 +1275,7 @@ function renderCardTable() {
         c._included = checkbox.checked;
         row.className = checkbox.checked ? '' : 'excluded';
         if (c._chinese) {
-          if (!checkbox.checked) { addToKnown(studyMode, [c._chinese]); }
+          if (!checkbox.checked) { addToKnown(studyMode, [c._chinese], getDeckLabelForCard(c)); }
           else { removeFromKnown(studyMode, c._chinese); }
         }
         updateCardCount();
@@ -1275,7 +1328,7 @@ function selectAllCards(val) {
     }
     card._included = val;
     if (card._chinese) {
-      if (!val) addToKnown(studyMode, [card._chinese]);
+      if (!val) addToKnown(studyMode, [card._chinese], getDeckLabelForCard(card));
       else removeFromKnown(studyMode, card._chinese);
     }
   }
@@ -1446,7 +1499,7 @@ function renderCardPreview() {
         ';font-size:' + pxSize + 'px' +
         ';font-weight:' + (d.bold ? '700' : '400') +
         ';font-style:' + (d.italic ? 'italic' : 'normal') +
-        ';text-align:center;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        ';text-align:center;line-height:1.3;max-width:100%;overflow:hidden;word-break:break-word;';
       span.textContent = val;
       box.appendChild(span);
     });
@@ -1499,16 +1552,23 @@ function setupImport() {
       try {
         var data = JSON.parse(ev.target.result);
         // Merge known lists (union)
-        if (data.known_typeA) {
-          var existing = getKnownList('A');
-          data.known_typeA.forEach(function(v) { existing.add(v); });
-          saveKnownList('A', existing);
+        function mergeKnownImport(mode, imported) {
+          if (!imported || !imported.length) return;
+          var entries = getKnownEntries(mode);
+          var existing = new Set(entries.map(function(e) { return e.ch; }));
+          var ts = new Date().toISOString();
+          imported.forEach(function(v) {
+            // Support old format (strings) and new format (objects)
+            var ch = typeof v === 'string' ? v : v.ch;
+            if (ch && !existing.has(ch)) {
+              entries.push({ ch: ch, ts: typeof v === 'object' && v.ts ? v.ts : ts, deck: typeof v === 'object' && v.deck ? v.deck : 'Imported' });
+              existing.add(ch);
+            }
+          });
+          saveKnownEntries(mode, entries);
         }
-        if (data.known_typeB) {
-          var existingB = getKnownList('B');
-          data.known_typeB.forEach(function(v) { existingB.add(v); });
-          saveKnownList('B', existingB);
-        }
+        mergeKnownImport('A', data.known_typeA);
+        mergeKnownImport('B', data.known_typeB);
         // Restore uploads (add new ones, skip duplicates by name)
         if (data.uploads && data.uploads.length) {
           var current = getSavedUploads();
@@ -1564,30 +1624,73 @@ function switchKnownViewerMode(mode) {
 }
 
 function renderKnownViewer() {
-  var known = getKnownList(knownViewerMode);
+  var entries = getKnownEntries(knownViewerMode);
   var body = document.getElementById('known-viewer-body');
   var countEl = document.getElementById('known-viewer-count');
-  countEl.textContent = known.size + ' characters known (Type ' + knownViewerMode + ')';
+  countEl.textContent = entries.length + ' characters known (Type ' + knownViewerMode + ')';
 
-  if (known.size === 0) {
+  if (entries.length === 0) {
     body.innerHTML = '<div class="known-empty">No known characters yet for Type ' + knownViewerMode + '.</div>';
     return;
   }
 
-  var arr = Array.from(known);
-  var html = '<div class="known-list-wrap"><table><thead><tr><th>Character</th><th style="width:80px;text-align:right">Action</th></tr></thead><tbody>';
-  arr.forEach(function(ch) {
-    html += '<tr><td>' + ch + '</td><td style="text-align:right"><button class="remove-known-btn" onclick="removeFromKnownViewer(\'' +
-      ch.replace(/'/g, "\\'") + '\')">Remove</button></td></tr>';
+  // Group by timestamp+deck
+  var groups = {};
+  var groupOrder = [];
+  entries.forEach(function(e) {
+    var key = e.ts + '|' + e.deck;
+    if (!groups[key]) {
+      groups[key] = { deck: e.deck, ts: e.ts, chars: [] };
+      groupOrder.push(key);
+    }
+    groups[key].chars.push(e.ch);
   });
-  html += '</tbody></table></div>';
+
+  // Sort groups newest first
+  groupOrder.sort(function(a, b) { return groups[b].ts.localeCompare(groups[a].ts); });
+
+  var html = '';
+  groupOrder.forEach(function(key) {
+    var g = groups[key];
+    var date = g.ts === new Date(0).toISOString() ? 'Before tracking' : formatGroupDate(g.ts);
+    var escapedKey = key.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    html += '<div class="known-group">';
+    html += '<div class="known-group-header">';
+    html += '<div class="group-info"><div class="group-deck">' + escapeHtml(g.deck) + '</div>';
+    html += '<div class="group-meta">' + date + ' · ' + g.chars.length + ' character' + (g.chars.length !== 1 ? 's' : '') + '</div></div>';
+    html += '<button class="btn btn-danger btn-sm" onclick="confirmRemoveGroup(\'' + escapedKey + '\')">Remove group</button>';
+    html += '</div>';
+    html += '<div class="known-group-body"><table><tbody>';
+    g.chars.forEach(function(ch) {
+      html += '<tr><td>' + escapeHtml(ch) + '</td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+  });
   body.innerHTML = html;
 }
 
-function removeFromKnownViewer(ch) {
-  removeFromKnown(knownViewerMode, ch);
-  renderKnownViewer();
-  renderProgressStats();
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatGroupDate(isoStr) {
+  try {
+    var d = new Date(isoStr);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) +
+      ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return isoStr; }
+}
+
+function confirmRemoveGroup(groupKey) {
+  var entries = getKnownEntries(knownViewerMode);
+  var count = entries.filter(function(e) { return (e.ts + '|' + e.deck) === groupKey; }).length;
+  if (confirm('Remove this group of ' + count + ' character' + (count !== 1 ? 's' : '') + ' from known list?')) {
+    removeKnownGroup(knownViewerMode, groupKey);
+    renderKnownViewer();
+    renderProgressStats();
+  }
 }
 
 /* ============================================================
@@ -1708,35 +1811,52 @@ async function generatePDF() {
       pdf.setFont(PDF_FONT_NAME[d.font] || d.font, style);
     }
 
+    // Fit text into a box: wraps at maxW, auto-shrinks from maxSize down to minSize
+    // Returns { lines, fontSize } for caller to position
+    function fitText(field, val, maxSize, maxW, maxH, minSize) {
+      minSize = minSize || 6;
+      applyFieldFont(field);
+      for (var sz = maxSize; sz >= minSize; sz--) {
+        pdf.setFontSize(sz);
+        var lines = pdf.splitTextToSize(val, maxW);
+        var lineH = sz * 0.45;
+        var totalH = lines.length * lineH;
+        if (totalH <= maxH) return { lines: lines, fontSize: sz, lineH: lineH, totalH: totalH };
+      }
+      // At minimum size, still wrap
+      pdf.setFontSize(minSize);
+      var linesMin = pdf.splitTextToSize(val, maxW);
+      var lhMin = minSize * 0.45;
+      return { lines: linesMin, fontSize: minSize, lineH: lhMin, totalH: linesMin.length * lhMin };
+    }
+
+    function drawFittedText(fit, cx, startY) {
+      pdf.setFontSize(fit.fontSize);
+      fit.lines.forEach(function(line, li) {
+        pdf.text(line, cx, startY + li * fit.lineH, { align: 'center' });
+      });
+    }
+
     function renderFieldsInCell(fieldObjs, card, x, y, isFront) {
       if (fieldObjs.length === 0) return;
       var cx = x + wCard / 2;
+      var contentW = wCard - 4;
+      var tagReserve = 4; // mm reserved for tag at bottom
 
       if (fieldObjs.length === 1) {
         var f = fieldObjs[0];
         var val = (card[f.key] || '').trim();
         if (!val) return;
         var d = designForField(f);
-
-        if (f.type === 'target_lang') {
-          var sz = d.size;
-          if (val.length >= 5) sz = Math.round(sz * 0.71);
-          else if (val.length >= 3) sz = Math.round(sz * 0.86);
-          applyFieldFont(f);
-          pdf.setFontSize(sz);
-          pdf.text(val, cx, y + hCard / 2 + 2, { align: 'center' });
-        } else {
-          applyFieldFont(f);
-          pdf.setFontSize(d.size);
-          var lines = pdf.splitTextToSize(val, wCard - 4);
-          var blockH = lines.length * (d.size * 0.45);
-          var startY = y + (hCard - blockH) / 2 + 4;
-          lines.forEach(function(line, li) { pdf.text(line, cx, startY + li * (d.size * 0.45), { align: 'center' }); });
-        }
+        var maxH = hCard - tagReserve - 4;
+        var fit = fitText(f, val, d.size, contentW, maxH);
+        applyFieldFont(f);
+        var startY = y + (hCard - tagReserve - fit.totalH) / 2 + fit.lineH;
+        drawFittedText(fit, cx, startY);
         return;
       }
 
-      var targetIdx = fieldObjs.findIndex(function(f) { return f.type === 'target_lang'; });
+      var targetIdx = fieldObjs.findIndex(function(f2) { return f2.type === 'target_lang'; });
       var hasTarget = targetIdx !== -1;
 
       if (hasTarget && fieldObjs.length === 2) {
@@ -1747,22 +1867,19 @@ async function generatePDF() {
         var dT = designForField(targetF);
         var dO = designForField(otherF);
 
-        var sz2 = dT.size;
-        if (targetVal.length >= 5) sz2 = Math.round(sz2 * 0.71);
-        else if (targetVal.length >= 3) sz2 = Math.round(sz2 * 0.86);
-        applyFieldFont(targetF);
-        pdf.setFontSize(sz2);
-        var charY = y + (hCard / 2) - 12;
-        pdf.text(targetVal, cx, charY + 5, { align: 'center' });
+        // Target gets ~55% of cell, other gets ~35%, rest is padding
+        var tMaxH = hCard * 0.50;
+        var oMaxH = hCard * 0.30;
 
+        var fitT = fitText(targetF, targetVal, dT.size, contentW, tMaxH);
+        applyFieldFont(targetF);
+        var tStartY = y + (hCard * 0.05) + fitT.lineH;
+        drawFittedText(fitT, cx, tStartY);
+
+        var fitO = fitText(otherF, otherVal, dO.size, contentW, oMaxH);
         applyFieldFont(otherF);
-        pdf.setFontSize(dO.size);
-        if (otherF.type !== 'romanization') {
-          var lines2 = pdf.splitTextToSize(otherVal, wCard - 4);
-          lines2.forEach(function(line, li) { pdf.text(line, cx, charY + 20 + li * (dO.size * 0.45), { align: 'center' }); });
-        } else {
-          pdf.text(otherVal, cx, charY + 21, { align: 'center' });
-        }
+        var oStartY = y + hCard * 0.55 + (hCard * 0.35 - tagReserve - fitO.totalH) / 2 + fitO.lineH;
+        drawFittedText(fitO, cx, oStartY);
         return;
       }
 
@@ -1774,47 +1891,34 @@ async function generatePDF() {
         var d0 = designForField(f0);
         var d1 = designForField(f1);
 
+        var halfH = (hCard - tagReserve - 6) / 2;
+        var fit0 = fitText(f0, v0, d0.size, contentW, halfH);
         applyFieldFont(f0);
-        var sz3 = d0.size;
-        if (v0.length >= 18) sz3 = Math.round(sz3 * 0.78);
-        pdf.setFontSize(sz3);
-        pdf.text(v0, cx, y + 17, { align: 'center' });
+        var s0Y = y + (halfH - fit0.totalH) / 2 + fit0.lineH + 2;
+        drawFittedText(fit0, cx, s0Y);
 
-        var lineY = y + 25;
+        var lineY = y + halfH + 4;
         pdf.setDrawColor(200, 200, 200);
         pdf.line(x + 10, lineY, x + wCard - 10, lineY);
 
+        var fit1 = fitText(f1, v1, d1.size, contentW, halfH);
         applyFieldFont(f1);
-        pdf.setFontSize(d1.size);
-        var lines3 = pdf.splitTextToSize(v1, wCard - 4);
-        lines3.forEach(function(line, li) { pdf.text(line, cx, lineY + 7 + li * (d1.size * 0.45), { align: 'center' }); });
+        var s1Y = lineY + 2 + (halfH - fit1.totalH) / 2 + fit1.lineH;
+        drawFittedText(fit1, cx, s1Y);
         return;
       }
 
-      // 3+ fields
-      var slotH = hCard / (fieldObjs.length + 1);
-      fieldObjs.forEach(function(f, fi) {
-        var val = (card[f.key] || '').trim();
-        var slotY = y + slotH * (fi + 1);
-        var df = designForField(f);
-
-        if (f.type === 'target_lang') {
-          var sz4 = df.size;
-          if (val.length >= 5) sz4 = Math.round(sz4 * 0.75);
-          else if (val.length >= 3) sz4 = Math.round(sz4 * 0.83);
-          applyFieldFont(f);
-          pdf.setFontSize(sz4);
-          pdf.text(val, cx, slotY, { align: 'center' });
-        } else if (f.type === 'romanization') {
-          applyFieldFont(f);
-          pdf.setFontSize(df.size);
-          pdf.text(val, cx, slotY, { align: 'center' });
-        } else {
-          applyFieldFont(f);
-          pdf.setFontSize(df.size);
-          var lines4 = pdf.splitTextToSize(val, wCard - 4);
-          lines4.forEach(function(line, li) { pdf.text(line, cx, slotY + li * (df.size * 0.45), { align: 'center' }); });
-        }
+      // 3+ fields: divide vertically
+      var slotH = (hCard - tagReserve) / fieldObjs.length;
+      fieldObjs.forEach(function(f3, fi) {
+        var val3 = (card[f3.key] || '').trim();
+        if (!val3) return;
+        var df = designForField(f3);
+        var fit3 = fitText(f3, val3, df.size, contentW, slotH - 2);
+        applyFieldFont(f3);
+        var slotTop = y + slotH * fi;
+        var s3Y = slotTop + (slotH - fit3.totalH) / 2 + fit3.lineH;
+        drawFittedText(fit3, cx, s3Y);
       });
     }
 
@@ -1865,7 +1969,7 @@ async function generatePDF() {
     // Add all printed cards to known list for current study mode
     var chineseValues = cards.map(function(c) { return c._chinese; }).filter(Boolean);
     if (chineseValues.length) {
-      addToKnown(studyMode, chineseValues);
+      addToKnown(studyMode, chineseValues, getActiveDeckLabel());
       renderProgressStats();
     }
 
