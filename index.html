@@ -128,6 +128,22 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .field-group label { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 0.9rem; cursor: pointer; }
 .field-group label input[type="checkbox"] { accent-color: var(--accent); }
 
+/* Card design panel */
+.card-design-toggle { font-size: 0.9rem; color: var(--accent); cursor: pointer; text-decoration: underline; display: inline-block; margin-bottom: 12px; }
+.card-design-panel { display: none; }
+.card-design-panel.open { display: block; }
+.design-row { display: grid; grid-template-columns: 80px 1fr 1fr auto auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-light); font-size: 0.85rem; }
+.design-row:last-child { border-bottom: none; }
+.design-row .design-label { font-weight: 600; color: var(--text); }
+.design-row select, .design-row input[type="number"] { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-card); color: var(--text); font-size: 0.82rem; }
+.design-row select { min-width: 0; }
+.design-row input[type="number"] { width: 52px; }
+.design-row label { display: flex; align-items: center; gap: 4px; font-size: 0.82rem; white-space: nowrap; }
+@media (max-width: 500px) {
+  .design-row { grid-template-columns: 60px 1fr 1fr auto auto; gap: 4px; font-size: 0.8rem; }
+  .design-row input[type="number"] { width: 46px; }
+}
+
 /* Download & progress section */
 .download-section { margin-top: 24px; }
 .summary-text { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-size: 0.9rem; color: var(--text-muted); margin: 16px 0; }
@@ -249,6 +265,48 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
     <div id="summary-text" class="summary-text"></div>
 
+    <a class="card-design-toggle" onclick="toggleCardDesign()">Card Design</a>
+    <div id="card-design-panel" class="card-design-panel">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+        <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
+          <span></span><span>Font</span><span>Size (pt)</span><span>Bold</span><span>Italic</span>
+        </div>
+        <div class="design-row">
+          <span class="design-label">Chinese</span>
+          <select id="design-chinese-font" onchange="updateCardDesign()">
+            <option value="NotoSerifSC">Noto Serif SC</option>
+            <option value="NotoSansSC">Noto Sans SC</option>
+          </select>
+          <input type="number" id="design-chinese-size" min="6" max="60" onchange="updateCardDesign()">
+          <label><input type="checkbox" id="design-chinese-bold" onchange="updateCardDesign()"></label>
+          <label><input type="checkbox" id="design-chinese-italic" onchange="updateCardDesign()"></label>
+        </div>
+        <div class="design-row">
+          <span class="design-label">Pinyin</span>
+          <select id="design-pinyin-font" onchange="updateCardDesign()">
+            <option value="NotoSansSC">Noto Sans SC</option>
+            <option value="NotoSerifSC">Noto Serif SC</option>
+          </select>
+          <input type="number" id="design-pinyin-size" min="6" max="60" onchange="updateCardDesign()">
+          <label><input type="checkbox" id="design-pinyin-bold" onchange="updateCardDesign()"></label>
+          <label><input type="checkbox" id="design-pinyin-italic" onchange="updateCardDesign()"></label>
+        </div>
+        <div class="design-row">
+          <span class="design-label">English</span>
+          <select id="design-english-font" onchange="updateCardDesign()">
+            <option value="NotoSansSC">Noto Sans SC</option>
+            <option value="NotoSerifSC">Noto Serif SC</option>
+          </select>
+          <input type="number" id="design-english-size" min="6" max="60" onchange="updateCardDesign()">
+          <label><input type="checkbox" id="design-english-bold" onchange="updateCardDesign()"></label>
+          <label><input type="checkbox" id="design-english-italic" onchange="updateCardDesign()"></label>
+        </div>
+        <div style="margin-top:8px;text-align:right">
+          <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
+        </div>
+      </div>
+    </div>
+
     <div class="download-section">
       <h2>Download</h2>
       <button class="btn btn-primary" onclick="generatePDF()" style="margin-top:8px">Download PDF</button>
@@ -295,7 +353,14 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v1.6';
+var APP_VERSION = 'v1.7';
+
+var DEFAULT_CARD_DESIGN = {
+  chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
+  pinyin:   { font: 'NotoSansSC', size: 14, bold: false, italic: false },
+  english:  { font: 'NotoSansSC', size: 11, bold: false, italic: false }
+};
+var cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
 
 /* ============================================================
    LOCALSTORAGE: KNOWN LISTS & UPLOADS
@@ -332,14 +397,31 @@ function saveUploads(uploads) {
   localStorage.setItem('user_uploads', JSON.stringify(uploads));
 }
 
+function loadCardDesign() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('card_design'));
+    if (saved) {
+      for (var k in DEFAULT_CARD_DESIGN) {
+        if (saved[k]) { for (var p in DEFAULT_CARD_DESIGN[k]) { if (saved[k][p] !== undefined) cardDesign[k][p] = saved[k][p]; } }
+      }
+    }
+  } catch (e) {}
+}
+
+function saveCardDesign() {
+  localStorage.setItem('card_design', JSON.stringify(cardDesign));
+}
+
 /* ============================================================
    INIT
    ============================================================ */
 async function init() {
   try {
     document.getElementById('version-tag').textContent = APP_VERSION;
+    loadCardDesign();
     var res = await fetch('manifest.json');
     manifest = await res.json();
+    await discoverNewSets();
     renderLanding();
     setupUpload();
     setupImport();
@@ -349,6 +431,93 @@ async function init() {
     document.getElementById('accordion-container').innerHTML =
       '<p style="color:red">Failed to load manifest.json.</p>';
     console.error(e);
+  }
+}
+
+/* ============================================================
+   AUTO-DISCOVER CSV SETS
+   Scans data directories via GitHub API for CSVs not in manifest.
+   ============================================================ */
+function getRepoInfo() {
+  // Derive owner/repo from GitHub Pages URL or fall back to hardcoded
+  try {
+    var host = window.location.hostname;
+    var path = window.location.pathname.split('/').filter(Boolean);
+    if (host.endsWith('.github.io')) {
+      var owner = host.replace('.github.io', '');
+      var repo = path[0] || 'flashcards';
+      return { owner: owner, repo: repo };
+    }
+  } catch (e) {}
+  return { owner: 'arlov-commits', repo: 'flashcards' };
+}
+
+async function discoverNewSets() {
+  // For each tradition with a data_dir, scan for CSVs not already in manifest
+  for (var tradKey in manifest.traditions) {
+    var trad = manifest.traditions[tradKey];
+    if (!trad.available) continue;
+
+    // Gather all known CSV paths from manifest
+    var knownFiles = new Set();
+    var allSets = getAllSets(trad);
+    for (var sk in allSets) { knownFiles.add(allSets[sk].file); }
+
+    // Determine data directory from existing set paths
+    var dataDir = '';
+    for (var sk2 in allSets) { dataDir = allSets[sk2].file.replace(/\/[^/]+$/, ''); break; }
+    if (!dataDir) continue;
+
+    try {
+      var info = getRepoInfo();
+      var apiUrl = 'https://api.github.com/repos/' + info.owner + '/' + info.repo + '/contents/' + dataDir;
+      var resp = await fetch(apiUrl);
+      if (!resp.ok) continue;
+      var files = await resp.json();
+      if (!Array.isArray(files)) continue;
+
+      var newCsvs = files.filter(function(f) {
+        return f.name.endsWith('.csv') && !knownFiles.has(f.path);
+      });
+
+      if (newCsvs.length === 0) continue;
+
+      // Fetch each new CSV to get card count and tag
+      if (!trad.subcategories) trad.subcategories = {};
+      if (!trad.subcategories._discovered) {
+        trad.subcategories._discovered = { display_name: 'Other Sets', sets: {} };
+      }
+
+      var fetches = newCsvs.map(function(f) {
+        return fetch(f.path).then(function(r) { return r.text(); }).then(function(csv) {
+          var parsed = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+          var cardCount = parsed.data.length;
+          // Derive a readable name from filename
+          var name = f.name.replace(/\.csv$/, '').replace(/[-_]/g, ' ');
+          name = name.charAt(0).toUpperCase() + name.slice(1);
+          // Get ch_tag from first row if present
+          var chTag = '';
+          if (parsed.data[0] && parsed.data[0].ch_tag) chTag = parsed.data[0].ch_tag;
+
+          var setKey = '_auto_' + f.name.replace(/\.csv$/, '').replace(/[^a-zA-Z0-9]/g, '_');
+          trad.subcategories._discovered.sets[setKey] = {
+            file: f.path,
+            display_tag: chTag || name,
+            eng_name: name,
+            total_cards: cardCount,
+            active_cards: cardCount
+          };
+        }).catch(function(err) { console.warn('Failed to load discovered CSV:', f.name, err); });
+      });
+      await Promise.all(fetches);
+
+      // If no sets were added, remove the empty subcategory
+      if (Object.keys(trad.subcategories._discovered.sets).length === 0) {
+        delete trad.subcategories._discovered;
+      }
+    } catch (e) {
+      console.warn('CSV discovery failed for', tradKey, e);
+    }
   }
 }
 
@@ -753,6 +922,7 @@ function loadUploadedData(text, filename) {
   applyKnownToCards();
   renderModeButtons();
   renderFieldMapping();
+  renderCardDesignInputs();
   renderCardTable();
 }
 
@@ -849,6 +1019,7 @@ async function goToCustomize() {
   applyKnownToCards();
   renderModeButtons();
   renderFieldMapping();
+  renderCardDesignInputs();
   renderCardTable();
 }
 
@@ -1049,6 +1220,38 @@ function selectAllCards(val) {
   updateKnownBar(kc);
   renderCardTable();
   updateSummary();
+}
+
+/* ============================================================
+   CARD DESIGN
+   ============================================================ */
+function toggleCardDesign() {
+  document.getElementById('card-design-panel').classList.toggle('open');
+}
+
+function renderCardDesignInputs() {
+  ['chinese', 'pinyin', 'english'].forEach(function(k) {
+    document.getElementById('design-' + k + '-font').value = cardDesign[k].font;
+    document.getElementById('design-' + k + '-size').value = cardDesign[k].size;
+    document.getElementById('design-' + k + '-bold').checked = cardDesign[k].bold;
+    document.getElementById('design-' + k + '-italic').checked = cardDesign[k].italic;
+  });
+}
+
+function updateCardDesign() {
+  ['chinese', 'pinyin', 'english'].forEach(function(k) {
+    cardDesign[k].font = document.getElementById('design-' + k + '-font').value;
+    cardDesign[k].size = parseInt(document.getElementById('design-' + k + '-size').value) || DEFAULT_CARD_DESIGN[k].size;
+    cardDesign[k].bold = document.getElementById('design-' + k + '-bold').checked;
+    cardDesign[k].italic = document.getElementById('design-' + k + '-italic').checked;
+  });
+  saveCardDesign();
+}
+
+function resetCardDesign() {
+  cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
+  saveCardDesign();
+  renderCardDesignInputs();
 }
 
 /* ============================================================
@@ -1260,8 +1463,16 @@ async function generatePDF() {
       pdf.setTextColor(0, 0, 0);
     }
 
-    function fontForField(field) {
-      return field.font_category === 'chinese' ? 'NotoSerifSC' : 'NotoSansSC';
+    function designForField(field) {
+      if (field.type === 'target_lang') return cardDesign.chinese;
+      if (field.type === 'romanization') return cardDesign.pinyin;
+      return cardDesign.english;
+    }
+
+    function applyFieldFont(field) {
+      var d = designForField(field);
+      var style = d.bold ? 'bold' : 'normal';
+      pdf.setFont(d.font, style);
     }
 
     function renderFieldsInCell(fieldObjs, card, x, y, isFront) {
@@ -1272,21 +1483,22 @@ async function generatePDF() {
         var f = fieldObjs[0];
         var val = (card[f.key] || '').trim();
         if (!val) return;
+        var d = designForField(f);
 
         if (f.type === 'target_lang') {
-          var sz = 28;
-          if (val.length >= 5) sz = 20;
-          else if (val.length >= 3) sz = 24;
-          pdf.setFont(fontForField(f), 'normal');
+          var sz = d.size;
+          if (val.length >= 5) sz = Math.round(sz * 0.71);
+          else if (val.length >= 3) sz = Math.round(sz * 0.86);
+          applyFieldFont(f);
           pdf.setFontSize(sz);
           pdf.text(val, cx, y + hCard / 2 + 2, { align: 'center' });
         } else {
-          pdf.setFont(fontForField(f), 'normal');
-          pdf.setFontSize(11);
+          applyFieldFont(f);
+          pdf.setFontSize(d.size);
           var lines = pdf.splitTextToSize(val, wCard - 4);
-          var blockH = lines.length * 5;
+          var blockH = lines.length * (d.size * 0.45);
           var startY = y + (hCard - blockH) / 2 + 4;
-          lines.forEach(function(line, li) { pdf.text(line, cx, startY + li * 5, { align: 'center' }); });
+          lines.forEach(function(line, li) { pdf.text(line, cx, startY + li * (d.size * 0.45), { align: 'center' }); });
         }
         return;
       }
@@ -1299,25 +1511,24 @@ async function generatePDF() {
         var otherF  = fieldObjs[1 - targetIdx];
         var targetVal = (card[targetF.key] || '').trim();
         var otherVal  = (card[otherF.key] || '').trim();
+        var dT = designForField(targetF);
+        var dO = designForField(otherF);
 
-        var sz2 = 28;
-        if (targetVal.length >= 5) sz2 = 20;
-        else if (targetVal.length >= 3) sz2 = 24;
-        pdf.setFont(fontForField(targetF), 'normal');
+        var sz2 = dT.size;
+        if (targetVal.length >= 5) sz2 = Math.round(sz2 * 0.71);
+        else if (targetVal.length >= 3) sz2 = Math.round(sz2 * 0.86);
+        applyFieldFont(targetF);
         pdf.setFontSize(sz2);
         var charY = y + (hCard / 2) - 12;
         pdf.text(targetVal, cx, charY + 5, { align: 'center' });
 
-        if (otherF.type === 'romanization') {
-          var style = card.multichar ? 'bold' : 'normal';
-          pdf.setFont(fontForField(otherF), style);
-          pdf.setFontSize(14);
-          pdf.text(otherVal, cx, charY + 21, { align: 'center' });
-        } else {
-          pdf.setFont(fontForField(otherF), 'normal');
-          pdf.setFontSize(11);
+        applyFieldFont(otherF);
+        pdf.setFontSize(dO.size);
+        if (otherF.type !== 'romanization') {
           var lines2 = pdf.splitTextToSize(otherVal, wCard - 4);
-          lines2.forEach(function(line, li) { pdf.text(line, cx, charY + 20 + li * 5, { align: 'center' }); });
+          lines2.forEach(function(line, li) { pdf.text(line, cx, charY + 20 + li * (dO.size * 0.45), { align: 'center' }); });
+        } else {
+          pdf.text(otherVal, cx, charY + 21, { align: 'center' });
         }
         return;
       }
@@ -1327,27 +1538,23 @@ async function generatePDF() {
         var f1 = fieldObjs[1];
         var v0 = (card[f0.key] || '').trim();
         var v1 = (card[f1.key] || '').trim();
+        var d0 = designForField(f0);
+        var d1 = designForField(f1);
 
-        if (f0.type === 'romanization') {
-          var st = card.multichar ? 'bold' : 'normal';
-          var sz3 = v0.length >= 18 ? 11 : 14;
-          pdf.setFont(fontForField(f0), st);
-          pdf.setFontSize(sz3);
-          pdf.text(v0, cx, y + 17, { align: 'center' });
-        } else {
-          pdf.setFont(fontForField(f0), 'normal');
-          pdf.setFontSize(11);
-          pdf.text(v0, cx, y + 17, { align: 'center' });
-        }
+        applyFieldFont(f0);
+        var sz3 = d0.size;
+        if (v0.length >= 18) sz3 = Math.round(sz3 * 0.78);
+        pdf.setFontSize(sz3);
+        pdf.text(v0, cx, y + 17, { align: 'center' });
 
         var lineY = y + 25;
         pdf.setDrawColor(200, 200, 200);
         pdf.line(x + 10, lineY, x + wCard - 10, lineY);
 
-        pdf.setFont(fontForField(f1), 'normal');
-        pdf.setFontSize(11);
+        applyFieldFont(f1);
+        pdf.setFontSize(d1.size);
         var lines3 = pdf.splitTextToSize(v1, wCard - 4);
-        lines3.forEach(function(line, li) { pdf.text(line, cx, lineY + 7 + li * 5, { align: 'center' }); });
+        lines3.forEach(function(line, li) { pdf.text(line, cx, lineY + 7 + li * (d1.size * 0.45), { align: 'center' }); });
         return;
       }
 
@@ -1356,24 +1563,24 @@ async function generatePDF() {
       fieldObjs.forEach(function(f, fi) {
         var val = (card[f.key] || '').trim();
         var slotY = y + slotH * (fi + 1);
+        var df = designForField(f);
 
         if (f.type === 'target_lang') {
-          var sz4 = 24;
-          if (val.length >= 5) sz4 = 18;
-          else if (val.length >= 3) sz4 = 20;
-          pdf.setFont(fontForField(f), 'normal');
+          var sz4 = df.size;
+          if (val.length >= 5) sz4 = Math.round(sz4 * 0.75);
+          else if (val.length >= 3) sz4 = Math.round(sz4 * 0.83);
+          applyFieldFont(f);
           pdf.setFontSize(sz4);
           pdf.text(val, cx, slotY, { align: 'center' });
         } else if (f.type === 'romanization') {
-          var st2 = card.multichar ? 'bold' : 'normal';
-          pdf.setFont(fontForField(f), st2);
-          pdf.setFontSize(12);
+          applyFieldFont(f);
+          pdf.setFontSize(df.size);
           pdf.text(val, cx, slotY, { align: 'center' });
         } else {
-          pdf.setFont(fontForField(f), 'normal');
-          pdf.setFontSize(10);
+          applyFieldFont(f);
+          pdf.setFontSize(df.size);
           var lines4 = pdf.splitTextToSize(val, wCard - 4);
-          lines4.forEach(function(line, li) { pdf.text(line, cx, slotY + li * 4.5, { align: 'center' }); });
+          lines4.forEach(function(line, li) { pdf.text(line, cx, slotY + li * (df.size * 0.45), { align: 'center' }); });
         }
       });
     }
