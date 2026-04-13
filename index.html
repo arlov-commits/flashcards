@@ -25,11 +25,16 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .landing-header { text-align: center; padding: 40px 0 24px; position: relative; }
 .landing-header p { color: var(--text-muted); margin-top: 8px; max-width: 500px; margin-left: auto; margin-right: auto; }
 .version-tag { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; vertical-align: super; margin-left: 6px; }
-.known-viewer-link { position: absolute; top: 40px; right: 0; font-size: 0.85rem; color: var(--accent); cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 4px; }
-.known-viewer-link:hover { text-decoration: underline; }
-.known-viewer-link .known-badge { background: var(--accent); color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+.known-corner { position: absolute; top: 12px; font-size: 0.78rem; color: var(--accent); cursor: pointer; text-decoration: none; display: none; align-items: center; gap: 3px; }
+.known-corner:hover { text-decoration: underline; }
+.known-corner-a { left: 0; }
+.known-corner-b { right: 0; }
+.known-corner .kc-label { font-weight: 600; }
+.known-corner .kc-count { font-weight: 700; }
+.known-corner .kc-total { color: var(--text-muted); }
 @media (max-width: 600px) {
-  .known-viewer-link { position: static; justify-content: center; margin-top: 10px; }
+  .known-corner { position: static; justify-content: center; margin-top: 4px; display: none; }
+  .known-corners-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }
 }
 
 /* Accordion */
@@ -202,6 +207,33 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .known-group-body td { padding: 4px 12px; border-bottom: 1px solid var(--border-light); }
 .known-group-body tr:last-child td { border-bottom: none; }
 
+/* Manage mode */
+.manage-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
+.manage-bar .btn { font-size: 0.82rem; padding: 5px 10px; }
+.manage-actions { display: none; gap: 4px; align-items: center; flex-shrink: 0; }
+.manage-mode .manage-actions { display: flex; }
+.manage-btn { background: none; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-size: 0.78rem; padding: 2px 6px; color: var(--text-muted); line-height: 1.3; }
+.manage-btn:hover { color: var(--accent); border-color: var(--accent); }
+.manage-btn.manage-delete { color: #a33; }
+.manage-btn.manage-delete:hover { border-color: #a33; }
+.done-checks { display: none; gap: 4px; align-items: center; flex-shrink: 0; font-size: 0.72rem; color: var(--text-muted); }
+.manage-mode .done-checks { display: flex; }
+.done-checks label { display: flex; align-items: center; gap: 2px; cursor: pointer; }
+.done-checks input { accent-color: var(--accent); width: 14px; height: 14px; }
+.set-item.done-a { background: #f2efea; }
+.set-item.done-a .set-name, .set-item.done-a .set-tag { opacity: 0.6; }
+.set-item.done-both { background: #eae7e2; }
+.set-item.done-both .set-name, .set-item.done-both .set-tag { opacity: 0.4; }
+.drag-handle { display: none; cursor: grab; font-size: 1rem; color: var(--text-muted); user-select: none; flex-shrink: 0; }
+.manage-mode .drag-handle { display: block; }
+.set-item.dragging { opacity: 0.4; }
+.set-item.drag-over { border-top: 2.5px solid var(--accent); }
+.deleted-item { display: flex; align-items: center; gap: 12px; background: #f5f0eb; border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 8px 14px; margin-bottom: 6px; opacity: 0.6; }
+.deleted-item .set-info { flex: 1; font-size: 0.85rem; text-decoration: line-through; color: var(--text-muted); }
+.subcat-manage { display: none; gap: 6px; align-items: center; margin-left: auto; }
+.manage-mode .subcat-manage { display: flex; }
+.inline-edit { border: 1px solid var(--accent); border-radius: 4px; padding: 2px 6px; font-size: inherit; font-weight: inherit; color: var(--text); background: #fff; outline: none; }
+
 /* Upload delete confirmation */
 .upload-confirm { display: flex; align-items: center; gap: 12px; background: #fdf5f0; border: 1.5px solid #c4956a; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; font-size: 0.88rem; color: var(--text); }
 .upload-confirm .confirm-text { flex: 1; }
@@ -214,13 +246,22 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <!-- SCREEN 1: Landing -->
   <div id="screen-landing" class="screen active">
     <div class="landing-header">
-      <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
-      <a class="known-viewer-link" id="known-viewer-link" onclick="navigateTo('known')" style="display:none">
-        Known <span class="known-badge" id="known-badge-a"></span> <span class="known-badge" id="known-badge-b" style="display:none"></span>
+      <a class="known-corner known-corner-a" id="known-corner-a" onclick="navigateTo('known');switchKnownViewerMode('A')">
+        <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a">0</span><span class="kc-total" id="kc-total-a"></span>
       </a>
+      <a class="known-corner known-corner-b" id="known-corner-b" onclick="navigateTo('known');switchKnownViewerMode('B')">
+        <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b">0</span><span class="kc-total" id="kc-total-b"></span>
+      </a>
+      <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
       <p>Select a liturgical tradition to browse card sets, or upload your own flashcard data.</p>
     </div>
-    <h2>Browse Card Sets</h2>
+    <div class="manage-bar">
+      <h2 style="margin-bottom:0">Browse Card Sets</h2>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" id="manage-toggle-btn" onclick="toggleManageMode()">Manage</button>
+        <button class="btn btn-outline btn-sm" id="export-manifest-btn" onclick="exportManifest()" style="display:none">Export Spec</button>
+      </div>
+    </div>
     <div id="accordion-container" class="accordion-section"></div>
     <div id="set-total" class="total-count" style="display:none"></div>
     <div class="btn-row" id="landing-actions" style="display:none">
@@ -428,7 +469,8 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.1';
+var APP_VERSION = 'v2.2';
+let manageMode = false;
 
 var DEFAULT_CARD_DESIGN = {
   chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
@@ -524,6 +566,237 @@ function loadCardDesign() {
 
 function saveCardDesign() {
   localStorage.setItem('card_design', JSON.stringify(cardDesign));
+}
+
+/* ============================================================
+   SET MANAGEMENT (ordering, rename, delete, done, categories)
+   ============================================================ */
+function getMgmt() {
+  try { return JSON.parse(localStorage.getItem('set_management') || '{}'); } catch(e) { return {}; }
+}
+function saveMgmt(m) { localStorage.setItem('set_management', JSON.stringify(m)); }
+
+function getMgmtSetOrder(tradKey, subcatKey) {
+  var m = getMgmt();
+  var key = tradKey + ':' + subcatKey;
+  return (m.setOrder && m.setOrder[key]) || null;
+}
+function saveMgmtSetOrder(tradKey, subcatKey, order) {
+  var m = getMgmt();
+  if (!m.setOrder) m.setOrder = {};
+  m.setOrder[tradKey + ':' + subcatKey] = order;
+  saveMgmt(m);
+}
+function getMgmtRename(setKey) {
+  var m = getMgmt();
+  return (m.renames && m.renames[setKey]) || null;
+}
+function saveMgmtRename(setKey, eng, tag) {
+  var m = getMgmt();
+  if (!m.renames) m.renames = {};
+  m.renames[setKey] = { eng_name: eng, display_tag: tag };
+  saveMgmt(m);
+}
+function getMgmtSubcatRename(key) {
+  var m = getMgmt();
+  return (m.subcatRenames && m.subcatRenames[key]) || null;
+}
+function saveMgmtSubcatRename(key, name) {
+  var m = getMgmt();
+  if (!m.subcatRenames) m.subcatRenames = {};
+  m.subcatRenames[key] = name;
+  saveMgmt(m);
+}
+function getMgmtDone(setKey) {
+  var m = getMgmt();
+  return (m.done && m.done[setKey]) || { A: false, B: false };
+}
+function saveMgmtDone(setKey, typeA, typeB) {
+  var m = getMgmt();
+  if (!m.done) m.done = {};
+  m.done[setKey] = { A: typeA, B: typeB };
+  saveMgmt(m);
+}
+function getMgmtDeleted() {
+  var m = getMgmt();
+  return m.deleted || [];
+}
+function addMgmtDeleted(item) {
+  var m = getMgmt();
+  if (!m.deleted) m.deleted = [];
+  m.deleted.push(item);
+  saveMgmt(m);
+}
+function removeMgmtDeleted(idx) {
+  var m = getMgmt();
+  if (!m.deleted) return;
+  m.deleted.splice(idx, 1);
+  saveMgmt(m);
+}
+function cleanExpiredDeletes() {
+  var m = getMgmt();
+  if (!m.deleted || !m.deleted.length) return;
+  var now = Date.now();
+  var hour = 60 * 60 * 1000;
+  m.deleted = m.deleted.filter(function(d) { return (now - d.at) < hour; });
+  saveMgmt(m);
+}
+
+function toggleManageMode() {
+  manageMode = !manageMode;
+  var btn = document.getElementById('manage-toggle-btn');
+  btn.textContent = manageMode ? 'Done' : 'Manage';
+  btn.className = manageMode ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+  document.getElementById('export-manifest-btn').style.display = manageMode ? '' : 'none';
+  var container = document.getElementById('accordion-container');
+  if (manageMode) container.classList.add('manage-mode');
+  else container.classList.remove('manage-mode');
+  renderLanding();
+}
+
+function renameSet(setKey, tradKey, subcatKey) {
+  var trad = manifest.traditions[tradKey];
+  var allSets = getAllSets(trad);
+  var si = allSets[setKey];
+  if (!si) return;
+  var r = getMgmtRename(setKey);
+  var engName = r ? r.eng_name : si.eng_name;
+  var tag = r ? r.display_tag : si.display_tag;
+  var newEng = prompt('English name:', engName);
+  if (newEng === null) return;
+  var newTag = prompt('Chinese subtitle:', tag);
+  if (newTag === null) return;
+  saveMgmtRename(setKey, newEng || engName, newTag || tag);
+  renderLanding();
+}
+
+function renameSubcat(subcatKey, tradKey) {
+  var trad = manifest.traditions[tradKey];
+  var subcat = trad.subcategories[subcatKey];
+  if (!subcat) return;
+  var cur = getMgmtSubcatRename(subcatKey) || subcat.display_name;
+  var newName = prompt('Category name:', cur);
+  if (newName === null || !newName.trim()) return;
+  saveMgmtSubcatRename(subcatKey, newName.trim());
+  renderLanding();
+}
+
+function deleteSet(setKey, tradKey, subcatKey) {
+  var trad = manifest.traditions[tradKey];
+  var allSets = getAllSets(trad);
+  var si = allSets[setKey];
+  if (!si) return;
+  var r = getMgmtRename(setKey);
+  var name = r ? r.eng_name : si.eng_name;
+  if (!confirm('Delete "' + name + '"? You can undo this within 1 hour.')) return;
+  addMgmtDeleted({ type: 'set', key: setKey, tradKey: tradKey, subcatKey: subcatKey, at: Date.now(), data: JSON.parse(JSON.stringify(si)) });
+  // Remove from manifest in-memory
+  if (trad.subcategories[subcatKey] && trad.subcategories[subcatKey].sets[setKey]) {
+    delete trad.subcategories[subcatKey].sets[setKey];
+  }
+  // Remove from ordering
+  var m = getMgmt();
+  var oKey = tradKey + ':' + subcatKey;
+  if (m.setOrder && m.setOrder[oKey]) {
+    m.setOrder[oKey] = m.setOrder[oKey].filter(function(k) { return k !== setKey; });
+    saveMgmt(m);
+  }
+  renderLanding();
+}
+
+function undoDelete(idx) {
+  var deleted = getMgmtDeleted();
+  var d = deleted[idx];
+  if (!d) return;
+  if (d.type === 'set') {
+    var trad = manifest.traditions[d.tradKey];
+    if (trad && trad.subcategories[d.subcatKey]) {
+      trad.subcategories[d.subcatKey].sets[d.key] = d.data;
+    }
+  } else if (d.type === 'subcat') {
+    var trad2 = manifest.traditions[d.tradKey];
+    if (trad2) trad2.subcategories[d.key] = d.data;
+  }
+  removeMgmtDeleted(idx);
+  renderLanding();
+}
+
+function deleteSubcat(subcatKey, tradKey) {
+  var trad = manifest.traditions[tradKey];
+  var subcat = trad.subcategories[subcatKey];
+  if (!subcat) return;
+  var name = getMgmtSubcatRename(subcatKey) || subcat.display_name;
+  var setCount = Object.keys(subcat.sets || {}).length;
+  if (!confirm('Delete category "' + name + '" and its ' + setCount + ' set(s)? Undo available for 1 hour.')) return;
+  addMgmtDeleted({ type: 'subcat', key: subcatKey, tradKey: tradKey, at: Date.now(), data: JSON.parse(JSON.stringify(subcat)) });
+  delete trad.subcategories[subcatKey];
+  renderLanding();
+}
+
+function toggleDone(setKey, type) {
+  var d = getMgmtDone(setKey);
+  if (type === 'A') d.A = !d.A;
+  else d.B = !d.B;
+  saveMgmtDone(setKey, d.A, d.B);
+  renderLanding();
+}
+
+function addNewSubcat(tradKey) {
+  var name = prompt('New category name:');
+  if (!name || !name.trim()) return;
+  var key = '_custom_' + Date.now();
+  var trad = manifest.traditions[tradKey];
+  if (!trad.subcategories) trad.subcategories = {};
+  trad.subcategories[key] = { display_name: name.trim(), sets: {} };
+  renderLanding();
+}
+
+function exportManifest() {
+  // Build a clean manifest reflecting all customizations
+  var output = { traditions: {} };
+  for (var tk in manifest.traditions) {
+    var trad = manifest.traditions[tk];
+    var tradOut = {
+      display_name: trad.display_name,
+      available: trad.available,
+      fields: trad.fields,
+      meta_fields: trad.meta_fields,
+      default_front: trad.default_front,
+      default_back: trad.default_back,
+      tag_field: trad.tag_field,
+      subcategories: {}
+    };
+    if (trad.subcategories) {
+      for (var sk in trad.subcategories) {
+        var subcat = trad.subcategories[sk];
+        var subcatOut = { display_name: getMgmtSubcatRename(sk) || subcat.display_name, sets: {} };
+        var setKeys = getMgmtSetOrder(tk, sk) || Object.keys(subcat.sets || {});
+        setKeys.forEach(function(setKey) {
+          var si = (subcat.sets || {})[setKey];
+          if (!si) return;
+          var r = getMgmtRename(setKey);
+          subcatOut.sets[setKey] = {
+            file: si.file,
+            display_tag: r ? r.display_tag : si.display_tag,
+            eng_name: r ? r.eng_name : si.eng_name,
+            total_cards: si.total_cards,
+            active_cards: si.active_cards
+          };
+        });
+        tradOut.subcategories[sk] = subcatOut;
+      }
+    }
+    output.traditions[tk] = tradOut;
+  }
+  var blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'manifest.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /* ============================================================
@@ -681,8 +954,11 @@ function getAllSets(tradition) {
    LANDING: ACCORDION TREE
    ============================================================ */
 function renderLanding() {
+  cleanExpiredDeletes();
   var container = document.getElementById('accordion-container');
   container.innerHTML = '';
+  if (manageMode) container.classList.add('manage-mode');
+  else container.classList.remove('manage-mode');
 
   for (var tradKey in manifest.traditions) {
     var trad = manifest.traditions[tradKey];
@@ -719,31 +995,67 @@ function renderLanding() {
 
         var subcatHeader = document.createElement('div');
         subcatHeader.className = 'accordion-subcat-header';
-        subcatHeader.innerHTML = '<span class="arrow">&#9654;</span><span>' + subcat.display_name + '</span>' +
-          '<span class="subcat-count">' + subcatTotal + ' cards</span>';
-        (function(el) { subcatHeader.addEventListener('click', function(e) { e.stopPropagation(); el.classList.toggle('expanded'); }); })(subcatEl);
+        var subcatDisplayName = getMgmtSubcatRename(subcatKey) || subcat.display_name;
+        subcatHeader.innerHTML = '<span class="arrow">&#9654;</span><span>' + subcatDisplayName + '</span>' +
+          '<span class="subcat-count">' + subcatTotal + ' cards</span>' +
+          '<span class="subcat-manage">' +
+            '<button class="manage-btn" onclick="event.stopPropagation();renameSubcat(\'' + subcatKey + '\',\'' + tradKey + '\')" title="Rename">&#9998;</button>' +
+            '<button class="manage-btn manage-delete" onclick="event.stopPropagation();deleteSubcat(\'' + subcatKey + '\',\'' + tradKey + '\')" title="Delete">&#10005;</button>' +
+          '</span>';
+        (function(el) { subcatHeader.addEventListener('click', function(e) { if (e.target.closest('.subcat-manage')) return; e.stopPropagation(); el.classList.toggle('expanded'); }); })(subcatEl);
         subcatEl.appendChild(subcatHeader);
 
         var subcatBody = document.createElement('div');
         subcatBody.className = 'accordion-subcat-body';
         var setList = document.createElement('div');
         setList.className = 'set-list';
+        setList.dataset.tradKey = tradKey;
+        setList.dataset.subcatKey = subcatKey;
 
-        for (var setKey in subcatSets) {
-          (function(tk, sk, si) {
-            var item = document.createElement('div');
-            item.className = 'set-item';
-            item.innerHTML = '<input type="checkbox" data-tradition="' + tk + '" data-set="' + sk + '">' +
-              '<div class="set-info"><div class="set-name">' + si.eng_name + '</div><div class="set-tag">' + si.display_tag + '</div></div>' +
-              '<div class="set-count">' + si.total_cards + ' cards</div>';
-            var cb = item.querySelector('input');
-            cb.addEventListener('change', function() {
-              if (cb.checked) {
+        // Get ordered set keys
+        var setKeys = getMgmtSetOrder(tradKey, subcatKey) || Object.keys(subcatSets);
+        // Include any new sets not in saved order
+        Object.keys(subcatSets).forEach(function(k) { if (setKeys.indexOf(k) === -1) setKeys.push(k); });
+        // Filter out keys no longer in subcatSets
+        setKeys = setKeys.filter(function(k) { return subcatSets[k]; });
+
+        setKeys.forEach(function(setKey) {
+          var si = subcatSets[setKey];
+          var r = getMgmtRename(setKey);
+          var engName = r ? r.eng_name : si.eng_name;
+          var dispTag = r ? r.display_tag : si.display_tag;
+          var done = getMgmtDone(setKey);
+          var doneClass = (done.A && done.B) ? ' done-both' : done.A ? ' done-a' : '';
+
+          var item = document.createElement('div');
+          item.className = 'set-item' + doneClass;
+          item.draggable = manageMode;
+          item.dataset.setKey = setKey;
+
+          item.innerHTML =
+            '<span class="drag-handle" title="Drag to reorder">&#10303;</span>' +
+            '<input type="checkbox" data-tradition="' + tradKey + '" data-set="' + setKey + '">' +
+            '<div class="set-info"><div class="set-name">' + engName + '</div><div class="set-tag">' + dispTag + '</div></div>' +
+            '<div class="done-checks">' +
+              '<label title="Done Type A"><input type="checkbox" ' + (done.A ? 'checked' : '') + ' onchange="event.stopPropagation();toggleDone(\'' + setKey + '\',\'A\')"> A</label>' +
+              '<label title="Done Type B"><input type="checkbox" ' + (done.B ? 'checked' : '') + ' onchange="event.stopPropagation();toggleDone(\'' + setKey + '\',\'B\')"> B</label>' +
+            '</div>' +
+            '<div class="manage-actions">' +
+              '<button class="manage-btn" onclick="event.stopPropagation();renameSet(\'' + setKey + '\',\'' + tradKey + '\',\'' + subcatKey + '\')" title="Rename">&#9998;</button>' +
+              '<button class="manage-btn manage-delete" onclick="event.stopPropagation();deleteSet(\'' + setKey + '\',\'' + tradKey + '\',\'' + subcatKey + '\')" title="Delete">&#10005;</button>' +
+            '</div>' +
+            '<div class="set-count">' + si.total_cards + ' cards</div>';
+
+          // Selection checkbox logic
+          var cb = item.querySelector('input[data-set]');
+          (function(tk, sk, el, checkbox) {
+            checkbox.addEventListener('change', function() {
+              if (checkbox.checked) {
                 if (!currentTraditionKey || currentTraditionKey !== tk) {
                   currentTraditionKey = tk;
                   currentTradition = manifest.traditions[tk];
-                  document.querySelectorAll('.set-item input[type="checkbox"]').forEach(function(o) {
-                    if (o !== cb && o.dataset.tradition !== tk && o.checked) {
+                  document.querySelectorAll('.set-item input[data-set]').forEach(function(o) {
+                    if (o !== checkbox && o.dataset.tradition !== tk && o.checked) {
                       o.checked = false; o.closest('.set-item').classList.remove('checked');
                     }
                   });
@@ -751,18 +1063,80 @@ function renderLanding() {
                 }
                 selectedSets[sk] = true;
               } else { delete selectedSets[sk]; }
-              item.classList.toggle('checked', cb.checked);
+              el.classList.toggle('checked', checkbox.checked);
               isUploadMode = false;
               updateSetTotal();
             });
-            item.addEventListener('click', function(e) { if (e.target !== cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } });
-            setList.appendChild(item);
-          })(tradKey, setKey, subcatSets[setKey]);
-        }
+            el.addEventListener('click', function(e) {
+              if (e.target.closest('.manage-actions') || e.target.closest('.done-checks') || e.target.closest('.drag-handle') || e.target === checkbox) return;
+              checkbox.checked = !checkbox.checked;
+              checkbox.dispatchEvent(new Event('change'));
+            });
+          })(tradKey, setKey, item, cb);
+
+          // Drag and drop
+          if (manageMode) {
+            (function(el, sKey, listEl) {
+              el.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', sKey);
+                el.classList.add('dragging');
+              });
+              el.addEventListener('dragend', function() { el.classList.remove('dragging'); });
+              el.addEventListener('dragover', function(e) { e.preventDefault(); el.classList.add('drag-over'); });
+              el.addEventListener('dragleave', function() { el.classList.remove('drag-over'); });
+              el.addEventListener('drop', function(e) {
+                e.preventDefault();
+                el.classList.remove('drag-over');
+                var draggedKey = e.dataTransfer.getData('text/plain');
+                if (draggedKey === sKey) return;
+                var tk2 = listEl.dataset.tradKey;
+                var sk2 = listEl.dataset.subcatKey;
+                var curOrder = getMgmtSetOrder(tk2, sk2) || Object.keys(manifest.traditions[tk2].subcategories[sk2].sets || {});
+                // Ensure both keys exist
+                if (curOrder.indexOf(draggedKey) === -1 || curOrder.indexOf(sKey) === -1) return;
+                // Remove dragged from current position
+                curOrder = curOrder.filter(function(k) { return k !== draggedKey; });
+                // Insert before drop target
+                var dropIdx = curOrder.indexOf(sKey);
+                curOrder.splice(dropIdx, 0, draggedKey);
+                saveMgmtSetOrder(tk2, sk2, curOrder);
+                renderLanding();
+              });
+            })(item, setKey, setList);
+          }
+
+          setList.appendChild(item);
+        });
+
         subcatBody.appendChild(setList);
         subcatEl.appendChild(subcatBody);
         body.appendChild(subcatEl);
       }
+
+      // Show deleted items with undo (within 1 hour)
+      if (manageMode) {
+        var deleted = getMgmtDeleted();
+        deleted.forEach(function(d, di) {
+          if (d.tradKey !== tradKey) return;
+          var remaining = Math.ceil((3600000 - (Date.now() - d.at)) / 60000);
+          var label = d.type === 'set' ? (d.data.eng_name || d.key) : (d.data.display_name || d.key);
+          var delEl = document.createElement('div');
+          delEl.className = 'deleted-item';
+          delEl.innerHTML = '<div class="set-info">' + label + '</div>' +
+            '<span style="font-size:0.75rem;color:var(--text-muted)">' + remaining + 'min left</span>' +
+            '<button class="btn btn-outline btn-sm" onclick="undoDelete(' + di + ')">Undo</button>';
+          body.appendChild(delEl);
+        });
+
+        // Add category button
+        var addBtn = document.createElement('button');
+        addBtn.className = 'btn btn-outline btn-sm';
+        addBtn.style.marginTop = '8px';
+        addBtn.textContent = '+ Add Category';
+        addBtn.addEventListener('click', function() { addNewSubcat(tradKey); });
+        body.appendChild(addBtn);
+      }
+
       tradEl.appendChild(body);
     }
     container.appendChild(tradEl);
@@ -1679,6 +2053,18 @@ function setupImport() {
   });
 }
 
+function getTotalCardCount() {
+  var total = 0;
+  if (!manifest) return 0;
+  for (var tk in manifest.traditions) {
+    var trad = manifest.traditions[tk];
+    if (!trad.available) continue;
+    var sets = getAllSets(trad);
+    for (var sk in sets) total += (sets[sk].total_cards || 0);
+  }
+  return total;
+}
+
 function renderProgressStats() {
   var knownA = getKnownList('A').size;
   var knownB = getKnownList('B').size;
@@ -1690,27 +2076,24 @@ function renderProgressStats() {
   if (uploads) parts.push(uploads + ' upload' + (uploads > 1 ? 's' : ''));
   el.textContent = parts.length ? parts.join(' · ') : 'No progress saved yet.';
 
-  // Update known viewer link in header
-  var totalKnown = knownA + knownB;
-  var link = document.getElementById('known-viewer-link');
-  if (totalKnown > 0) {
-    link.style.display = 'flex';
-    var badgeA = document.getElementById('known-badge-a');
-    var badgeB = document.getElementById('known-badge-b');
-    if (knownA && knownB) {
-      badgeA.textContent = 'A:' + knownA;
-      badgeB.textContent = 'B:' + knownB;
-      badgeB.style.display = '';
-    } else if (knownA) {
-      badgeA.textContent = knownA;
-      badgeB.style.display = 'none';
-    } else {
-      badgeA.textContent = knownB;
-      badgeB.style.display = 'none';
-    }
-  } else {
-    link.style.display = 'none';
-  }
+  // Update known corner counters
+  var totalCards = getTotalCardCount();
+  var totalStr = totalCards > 0 ? '/' + totalCards : '';
+
+  var cornerA = document.getElementById('known-corner-a');
+  var cornerB = document.getElementById('known-corner-b');
+
+  if (knownA > 0) {
+    cornerA.style.display = 'flex';
+    document.getElementById('kc-count-a').textContent = knownA;
+    document.getElementById('kc-total-a').textContent = totalStr;
+  } else { cornerA.style.display = 'none'; }
+
+  if (knownB > 0) {
+    cornerB.style.display = 'flex';
+    document.getElementById('kc-count-b').textContent = knownB;
+    document.getElementById('kc-total-b').textContent = totalStr;
+  } else { cornerB.style.display = 'none'; }
 }
 
 /* ============================================================
