@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buddhist Liturgy Flashcards</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='none' stroke='%238b1a1a' stroke-width='5'/><circle cx='50' cy='50' r='9' fill='%238b1a1a'/><line x1='50' y1='8' x2='50' y2='92' stroke='%238b1a1a' stroke-width='4'/><line x1='8' y1='50' x2='92' y2='50' stroke='%238b1a1a' stroke-width='4'/><line x1='20' y1='20' x2='80' y2='80' stroke='%238b1a1a' stroke-width='4'/><line x1='80' y1='20' x2='20' y2='80' stroke='%238b1a1a' stroke-width='4'/></svg>">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -302,6 +302,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <select id="design-pinyin-font" onchange="updateCardDesign()">
             <option value="NotoSansSC">Noto Sans SC</option>
             <option value="NotoSerifSC">Noto Serif SC</option>
+            <option value="Lora">Lora</option>
           </select>
           <input type="number" id="design-pinyin-size" min="6" max="60" onchange="updateCardDesign()">
           <label><input type="checkbox" id="design-pinyin-bold" onchange="updateCardDesign()"> </label>
@@ -312,6 +313,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <select id="design-english-font" onchange="updateCardDesign()">
             <option value="NotoSansSC">Noto Sans SC</option>
             <option value="NotoSerifSC">Noto Serif SC</option>
+            <option value="Lora">Lora</option>
+            <option value="Cinzel">Cinzel</option>
+            <option value="TimesNewRoman">Times New Roman</option>
           </select>
           <input type="number" id="design-english-size" min="6" max="60" onchange="updateCardDesign()">
           <label><input type="checkbox" id="design-english-bold" onchange="updateCardDesign()"> </label>
@@ -340,6 +344,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <select id="design-tag-font" onchange="updateCardDesign()">
             <option value="NotoSerifSC">Noto Serif SC</option>
             <option value="NotoSansSC">Noto Sans SC</option>
+            <option value="Lora">Lora</option>
+            <option value="Cinzel">Cinzel</option>
+            <option value="TimesNewRoman">Times New Roman</option>
           </select>
           <span style="margin-left:4px">Size</span>
           <input type="number" id="design-tag-size" min="4" max="20" onchange="updateCardDesign()">
@@ -359,7 +366,8 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         </div>
       </div>
 
-      <div style="text-align:right">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="setCardDesignAsDefault()">Set as default</button>
         <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
       </div>
     </div>
@@ -410,7 +418,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v1.8';
+var APP_VERSION = 'v1.9';
 
 var DEFAULT_CARD_DESIGN = {
   chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
@@ -1291,7 +1299,10 @@ function toggleCardDesign() {
 
 var FONT_CSS_MAP = {
   'NotoSerifSC': "'Noto Serif SC', serif",
-  'NotoSansSC': "'Noto Sans SC', sans-serif"
+  'NotoSansSC': "'Noto Sans SC', sans-serif",
+  'Lora': "'Lora', serif",
+  'Cinzel': "'Cinzel', serif",
+  'TimesNewRoman': "'Times New Roman', 'Times', serif"
 };
 
 function renderCardDesignInputs() {
@@ -1367,7 +1378,28 @@ function updateCardDesign() {
   renderCardPreview();
 }
 
+function setCardDesignAsDefault() {
+  var userDefault = JSON.parse(JSON.stringify(cardDesign));
+  // Strip per-set tags from the default (those are session-specific)
+  userDefault.tag.perSet = {};
+  localStorage.setItem('card_design_default', JSON.stringify(userDefault));
+  var btn = event.target;
+  var orig = btn.textContent;
+  btn.textContent = 'Saved!';
+  setTimeout(function() { btn.textContent = orig; }, 1200);
+}
+
 function resetCardDesign() {
+  // Restore to user's saved default, falling back to hardcoded default
+  try {
+    var userDefault = JSON.parse(localStorage.getItem('card_design_default'));
+    if (userDefault) {
+      cardDesign = JSON.parse(JSON.stringify(userDefault));
+      saveCardDesign();
+      renderCardDesignInputs();
+      return;
+    }
+  } catch(e) {}
   cardDesign = JSON.parse(JSON.stringify(DEFAULT_CARD_DESIGN));
   saveCardDesign();
   renderCardDesignInputs();
@@ -1595,40 +1627,45 @@ async function generatePDF() {
     var jsPDF = window.jspdf.jsPDF;
     var fields = currentTradition.fields;
 
-    // --- Load fonts ---
-    var serifUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf';
-    var sansUrl  = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf';
+    // --- Font registry ---
+    var FONT_URLS = {
+      NotoSerifSC: 'https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf',
+      NotoSansSC: 'https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf',
+      Lora: 'https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora%5Bwght%5D.ttf',
+      Cinzel: 'https://raw.githubusercontent.com/google/fonts/main/ofl/cinzel/Cinzel%5Bwght%5D.ttf',
+      TimesNewRoman: null  // system font — jsPDF has built-in times
+    };
+    var STYLES = ['normal', 'bold', 'italic', 'bolditalic'];
 
-    loadingText.textContent = 'Downloading Chinese serif font\u2026';
-    var serifBuf = await loadFontAsArrayBuffer(serifUrl);
-    loadingText.textContent = 'Downloading sans font\u2026';
-    var sansBuf  = await loadFontAsArrayBuffer(sansUrl);
+    // Determine which fonts are needed
+    var neededFonts = new Set();
+    [cardDesign.chinese, cardDesign.pinyin, cardDesign.english].forEach(function(d) { neededFonts.add(d.font); });
+    neededFonts.add(cardDesign.tag.font);
 
-    loadingText.textContent = 'Preparing fonts\u2026';
-    var serifB64 = arrayBufferToBase64(serifBuf);
-    var sansB64  = arrayBufferToBase64(sansBuf);
+    // Load needed TTF fonts
+    var fontB64 = {};
+    var fontKeys = Array.from(neededFonts).filter(function(k) { return FONT_URLS[k]; });
+    for (var fi = 0; fi < fontKeys.length; fi++) {
+      loadingText.textContent = 'Downloading font ' + (fi + 1) + '/' + fontKeys.length + '\u2026';
+      var buf = await loadFontAsArrayBuffer(FONT_URLS[fontKeys[fi]]);
+      fontB64[fontKeys[fi]] = arrayBufferToBase64(buf);
+    }
 
     loadingText.textContent = 'Generating cards\u2026';
 
     var pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
 
-    pdf.addFileToVFS('NotoSerifSC.ttf', serifB64);
-    pdf.addFont('NotoSerifSC.ttf', 'NotoSerifSC', 'normal');
-    pdf.addFileToVFS('NotoSerifSC-Bold.ttf', serifB64);
-    pdf.addFont('NotoSerifSC-Bold.ttf', 'NotoSerifSC', 'bold');
-    pdf.addFileToVFS('NotoSerifSC-Italic.ttf', serifB64);
-    pdf.addFont('NotoSerifSC-Italic.ttf', 'NotoSerifSC', 'italic');
-    pdf.addFileToVFS('NotoSerifSC-BoldItalic.ttf', serifB64);
-    pdf.addFont('NotoSerifSC-BoldItalic.ttf', 'NotoSerifSC', 'bolditalic');
+    // Register loaded fonts in all 4 styles
+    fontKeys.forEach(function(fk) {
+      STYLES.forEach(function(style) {
+        var vfsName = fk + '-' + style + '.ttf';
+        pdf.addFileToVFS(vfsName, fontB64[fk]);
+        pdf.addFont(vfsName, fk, style);
+      });
+    });
 
-    pdf.addFileToVFS('NotoSansSC.ttf', sansB64);
-    pdf.addFont('NotoSansSC.ttf', 'NotoSansSC', 'normal');
-    pdf.addFileToVFS('NotoSansSC-Bold.ttf', sansB64);
-    pdf.addFont('NotoSansSC-Bold.ttf', 'NotoSansSC', 'bold');
-    pdf.addFileToVFS('NotoSansSC-Italic.ttf', sansB64);
-    pdf.addFont('NotoSansSC-Italic.ttf', 'NotoSansSC', 'italic');
-    pdf.addFileToVFS('NotoSansSC-BoldItalic.ttf', sansB64);
-    pdf.addFont('NotoSansSC-BoldItalic.ttf', 'NotoSansSC', 'bolditalic');
+    // Map font names to jsPDF internal names (for built-in fonts)
+    var PDF_FONT_NAME = { TimesNewRoman: 'times' };
 
     var marginX = 7.62;
     var marginY = 7.62;
@@ -1650,7 +1687,7 @@ async function generatePDF() {
       if (!tagText) return;
       var td = cardDesign.tag;
       pdf.setTextColor(120, 120, 120);
-      pdf.setFont(td.font, td.bold ? 'bold' : 'normal');
+      pdf.setFont(PDF_FONT_NAME[td.font] || td.font, td.bold ? 'bold' : 'normal');
       pdf.setFontSize(td.size);
       pdf.text(tagText, x + wCard - 2, y + hCard - 2, { align: 'right' });
       pdf.setTextColor(0, 0, 0);
@@ -1668,7 +1705,7 @@ async function generatePDF() {
       if (d.bold && d.italic) style = 'bolditalic';
       else if (d.bold) style = 'bold';
       else if (d.italic) style = 'italic';
-      pdf.setFont(d.font, style);
+      pdf.setFont(PDF_FONT_NAME[d.font] || d.font, style);
     }
 
     function renderFieldsInCell(fieldObjs, card, x, y, isFront) {
