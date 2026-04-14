@@ -853,9 +853,7 @@ async function init() {
   try {
     document.getElementById('version-tag').textContent = APP_VERSION;
     loadCardDesign();
-    var res = await fetch('manifest.json');
-    manifest = await res.json();
-    await discoverNewSets();
+    manifest = await loadManifestFromDirectoryCSV();
     renderLanding();
     setupUpload();
     setupImport();
@@ -865,96 +863,141 @@ async function init() {
     renderProgressStats();
   } catch (e) {
     document.getElementById('accordion-container').innerHTML =
-      '<p style="color:red">Failed to load manifest.json.</p>';
+      '<p style="color:red">Failed to load flashcard_directory.csv.</p>';
     console.error(e);
   }
 }
 
 /* ============================================================
-   AUTO-DISCOVER CSV SETS
-   Scans data directories via GitHub API for CSVs not in manifest.
+   LOAD MANIFEST FROM flashcard_directory.csv
+   CSV columns: Language, Section, Name, Rename_to, Alias_Eng, Alias_Ch, section_order
    ============================================================ */
-function getRepoInfo() {
-  // Derive owner/repo from GitHub Pages URL or fall back to hardcoded
-  try {
-    var host = window.location.hostname;
-    var path = window.location.pathname.split('/').filter(Boolean);
-    if (host.endsWith('.github.io')) {
-      var owner = host.replace('.github.io', '');
-      var repo = path[0] || 'flashcards';
-      return { owner: owner, repo: repo };
+async function loadManifestFromDirectoryCSV() {
+  var resp = await fetch('flashcard_directory.csv');
+  if (!resp.ok) throw new Error('flashcard_directory.csv not found');
+  var csvText = await resp.text();
+  var parsed = Papa.parse(csvText.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+
+  // Hardcoded tradition field configs (formerly in manifest.json)
+  var TRADITION_CONFIGS = {
+    chinese: {
+      display_name: 'Chinese Liturgy',
+      available: true,
+      fields: [
+        { key: 'chinese',     label: 'Chinese', type: 'target_lang',  font_category: 'chinese' },
+        { key: 'pinyin',      label: 'Pinyin',  type: 'romanization', font_category: 'english' },
+        { key: 'english_def', label: 'English', type: 'translation',  font_category: 'english' }
+      ],
+      meta_fields: {
+        include: 'Default selection state (1=selected, 0=deselected)',
+        multichar: 'Compound term flag (bold pinyin in PDF)',
+        ch_tag: 'Chinese name of liturgy section',
+        eng_tag: 'English key for liturgy section'
+      },
+      default_front: ['chinese', 'pinyin'],
+      default_back: ['english_def'],
+      tag_field: 'ch_tag',
+      subcategories: {}
+    },
+    pali: {
+      display_name: 'P\u0101li Liturgy',
+      available: false,
+      fields: [], meta_fields: {}, default_front: [], default_back: [],
+      tag_field: '', subcategories: {}
     }
-  } catch (e) {}
-  return { owner: 'arlov-commits', repo: 'flashcards' };
-}
+  };
 
-async function discoverNewSets() {
-  // For each tradition with a data_dir, scan for CSVs not already in manifest
-  for (var tradKey in manifest.traditions) {
-    var trad = manifest.traditions[tradKey];
-    if (!trad.available) continue;
+  function sectionToDirName(section) {
+    return section.toLowerCase().replace(/\s+/g, '-');
+  }
+  function sectionToKey(section) {
+    return section.toLowerCase().replace(/\s+/g, '_');
+  }
+  function setKeyFromFile(filename) {
+    return filename.replace(/\.csv$/i, '').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+  }
 
-    // Gather all known CSV paths from manifest
-    var knownFiles = new Set();
-    var allSets = getAllSets(trad);
-    for (var sk in allSets) { knownFiles.add(allSets[sk].file); }
+  // Track subcategory ordering (first-seen order) and section orders
+  var subcatOrder = {}; // tradKey -> array of subcatKeys in order
+  var setOrderMap = {}; // subcatKey -> array of {setKey, section_order}
 
-    // Determine data directory from existing set paths
-    var dataDir = '';
-    for (var sk2 in allSets) { dataDir = allSets[sk2].file.replace(/\/[^/]+$/, ''); break; }
-    if (!dataDir) continue;
+  parsed.data.forEach(function(row) {
+    var lang = (row.Language || '').trim();
+    var section = (row.Section || '').trim();
+    var name = (row.Name || '').trim();
+    var renameTo = (row.Rename_to || '').trim();
+    var aliasEng = (row.Alias_Eng || '').trim();
+    var aliasCh = (row.Alias_Ch || '').trim();
+    var secOrder = parseInt(row.section_order) || 0;
 
-    try {
-      var info = getRepoInfo();
-      var apiUrl = 'https://api.github.com/repos/' + info.owner + '/' + info.repo + '/contents/' + dataDir;
-      var resp = await fetch(apiUrl);
-      if (!resp.ok) continue;
-      var files = await resp.json();
-      if (!Array.isArray(files)) continue;
+    // Skip blank rows or PENDING rows
+    if (!lang || !section || !name) return;
+    if (renameTo.toUpperCase() === 'PENDING') return;
 
-      var newCsvs = files.filter(function(f) {
-        return f.name.endsWith('.csv') && !knownFiles.has(f.path);
-      });
+    var tradKey = lang.toLowerCase();
+    if (!TRADITION_CONFIGS[tradKey]) return;
+    var trad = TRADITION_CONFIGS[tradKey];
 
-      if (newCsvs.length === 0) continue;
+    var subcatKey = sectionToKey(section);
+    var dirName = sectionToDirName(section);
+    if (!trad.subcategories[subcatKey]) {
+      trad.subcategories[subcatKey] = { display_name: section, sets: {} };
+      if (!subcatOrder[tradKey]) subcatOrder[tradKey] = [];
+      subcatOrder[tradKey].push(subcatKey);
+    }
 
-      // Fetch each new CSV to get card count and tag
-      if (!trad.subcategories) trad.subcategories = {};
-      if (!trad.subcategories._discovered) {
-        trad.subcategories._discovered = { display_name: 'Other Sets', sets: {} };
-      }
+    var filename = renameTo || name;
+    var filePath = 'data/' + tradKey + '/' + dirName + '/' + filename;
+    var sKey = setKeyFromFile(filename);
 
-      var fetches = newCsvs.map(function(f) {
-        return fetch(f.path).then(function(r) { return r.text(); }).then(function(csv) {
-          var parsed = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
-          var cardCount = parsed.data.length;
-          // Derive a readable name from filename
-          var name = f.name.replace(/\.csv$/, '').replace(/[-_]/g, ' ');
-          name = name.charAt(0).toUpperCase() + name.slice(1);
-          // Get ch_tag from first row if present
-          var chTag = '';
-          if (parsed.data[0] && parsed.data[0].ch_tag) chTag = parsed.data[0].ch_tag;
+    trad.subcategories[subcatKey].sets[sKey] = {
+      file: filePath,
+      display_tag: aliasCh,
+      eng_name: aliasEng,
+      total_cards: 0,  // populated below
+      active_cards: 0,
+      section_order: secOrder
+    };
 
-          var setKey = '_auto_' + f.name.replace(/\.csv$/, '').replace(/[^a-zA-Z0-9]/g, '_');
-          trad.subcategories._discovered.sets[setKey] = {
-            file: f.path,
-            display_tag: chTag || name,
-            eng_name: name,
-            total_cards: cardCount,
-            active_cards: cardCount
-          };
-        }).catch(function(err) { console.warn('Failed to load discovered CSV:', f.name, err); });
-      });
-      await Promise.all(fetches);
+    if (!setOrderMap[subcatKey]) setOrderMap[subcatKey] = [];
+    setOrderMap[subcatKey].push({ setKey: sKey, order: secOrder });
+  });
 
-      // If no sets were added, remove the empty subcategory
-      if (Object.keys(trad.subcategories._discovered.sets).length === 0) {
-        delete trad.subcategories._discovered;
-      }
-    } catch (e) {
-      console.warn('CSV discovery failed for', tradKey, e);
+  // Sort sets within each subcategory by section_order, re-build in order
+  for (var tk in TRADITION_CONFIGS) {
+    var trad = TRADITION_CONFIGS[tk];
+    for (var sck in trad.subcategories) {
+      var subcat = trad.subcategories[sck];
+      var ordering = (setOrderMap[sck] || []).slice().sort(function(a, b) { return a.order - b.order; });
+      var sortedSets = {};
+      ordering.forEach(function(o) { if (subcat.sets[o.setKey]) sortedSets[o.setKey] = subcat.sets[o.setKey]; });
+      subcat.sets = sortedSets;
     }
   }
+
+  // Load each CSV in parallel to populate total_cards
+  var fetches = [];
+  for (var tk2 in TRADITION_CONFIGS) {
+    var trad2 = TRADITION_CONFIGS[tk2];
+    if (!trad2.available) continue;
+    for (var sck2 in trad2.subcategories) {
+      var sets2 = trad2.subcategories[sck2].sets;
+      for (var setK in sets2) {
+        (function(setInfo) {
+          fetches.push(
+            fetch(setInfo.file).then(function(r) { return r.text(); }).then(function(csv) {
+              var p = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+              setInfo.total_cards = p.data.length;
+              setInfo.active_cards = p.data.length;
+            }).catch(function(err) { console.warn('Failed to load', setInfo.file, err); })
+          );
+        })(sets2[setK]);
+      }
+    }
+  }
+  await Promise.all(fetches);
+
+  return { traditions: TRADITION_CONFIGS };
 }
 
 /* ============================================================
