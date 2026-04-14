@@ -1,0 +1,25 @@
+Language,Section,Name,Rename_to,Alias_Eng,Alias_Ch,section_order
+Chinese,Multiple Ceremonies,cttb_traditions.csv,,Traditions of CTTB,萬佛聖城宗旨,1
+Chinese,Multiple Ceremonies,incense-praise.csv,,Incense Praise,香讚,2
+Chinese,Multiple Ceremonies,three-refuges.csv,,Three Refuges,三皈依,3
+Chinese,Multiple Ceremonies,heart-sutra.csv,,Heart Sutra,心經,4
+Chinese,Multiple Ceremonies,merit-transfer.csv,,Transfer of Merit,回向,5
+,,,,,,
+Chinese,Evening Ceremony,Amitabha_Sutra.csv,PENDING,Amitabha Sutra,阿彌陀經,1
+Chinese,Evening Ceremony,88_buddhas_flashcards.csv,88_buddhas.csv,Eighty-eight Buddhas Repentance,禮佛大懺悔文,2
+Chinese,Evening Ceremony,meng-shan.csv,,Meng Shan,蒙山,3
+Chinese,Evening Ceremony,amitabha-praise.csv,,Amitabha Praise,佛讚,4
+Chinese,Evening Ceremony,puxian-exhortation.csv,,Samanthabhadra Verse of Exhortation,警眾偈,5
+Chinese,Evening Ceremony,vow_to_be_reborn.csv,PENDING,Vow to be Reborn in the West,淨土文,6
+,,,,,,
+Chinese,Morning Ceremony,am_shurangama (1).csv,shurangama_verse.csv,Shurangama Mantra Intro,楞嚴咒偈,1
+Chinese,Morning Ceremony,am_10mantras (1).csv,ten_small_mantras.csv,Ten Small Mantras,十小咒,2
+Chinese,Morning Ceremony,am_medicinebuddha (1).csv,medicine_buddha.csv,Medicine Buddha,藥師如來,3
+Chinese,Morning Ceremony,am-10vows.csv,puxian_ten_vows.csv,Ten Great Vows,十大願王,4
+Chinese,Morning Ceremony,am-bowing.csv,bowing_patriarchs.csv,Bowing to the Patriarchs,禮祖,5
+,,,,,,
+Chinese,Meal,meal-offering.csv,,Meal Offering,臨齋儀,1
+,,,,,,
+Chinese,Recitation Session,GY7 Flashcards - SeekingRebirth.csv,seeking_rebirth_interjection.csv,Seeking Rebirth in the Pure Land,求生淨土,1
+Chinese,Recitation Session,GY7 Flashcards - 大回向.csv,great_xfer_merit.csv,Great Transfer of Merit,大回向,2
+Chinese,Recitation Session,GY7 Flashcards - 禮祖.csv,bowing_pureland_patriarch.csv,Bowing to Pure Land Patriarchs,淨土禮祖,3
