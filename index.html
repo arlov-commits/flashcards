@@ -1545,13 +1545,17 @@ function renderLanding() {
           body.appendChild(delEl);
         });
 
-        // Add category button
-        var addBtn = document.createElement('button');
-        addBtn.className = 'btn btn-outline btn-sm';
-        addBtn.style.marginTop = '8px';
-        addBtn.textContent = '+ Add Category';
-        addBtn.addEventListener('click', function() { addNewSubcat(tradKey); });
-        body.appendChild(addBtn);
+        // Add category button — IIFE to capture the current tradKey,
+        // since `var` in the enclosing for-in loop would otherwise leak the
+        // last-iterated value (e.g. 'pali') into the click handler.
+        (function(tk) {
+          var addBtn = document.createElement('button');
+          addBtn.className = 'btn btn-outline btn-sm';
+          addBtn.style.marginTop = '8px';
+          addBtn.textContent = '+ Add Category';
+          addBtn.addEventListener('click', function() { addNewSubcat(tk); });
+          body.appendChild(addBtn);
+        })(tradKey);
       }
 
       tradEl.appendChild(body);
