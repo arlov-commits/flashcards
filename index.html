@@ -663,6 +663,115 @@ function cleanExpiredDeletes() {
   saveMgmt(m);
 }
 
+/* Overlay operations — user-side manage edits that must persist across
+   reloads without ever touching repo files. Stored under m.overlay in
+   the same set_management localStorage record. */
+function getOverlay() {
+  var m = getMgmt();
+  m.overlay = m.overlay || {};
+  m.overlay.addedSubcats = m.overlay.addedSubcats || {}; // sck -> { tradKey, display_name }
+  m.overlay.tombSubcats  = m.overlay.tombSubcats  || {}; // sck -> true
+  m.overlay.tombSets     = m.overlay.tombSets     || {}; // setKey -> true
+  m.overlay.setLoc       = m.overlay.setLoc       || {}; // setKey -> subcatKey
+  return m;
+}
+function saveMgmtAddedSubcat(tradKey, subcatKey, displayName) {
+  var m = getOverlay();
+  m.overlay.addedSubcats[subcatKey] = { tradKey: tradKey, display_name: displayName };
+  delete m.overlay.tombSubcats[subcatKey];
+  saveMgmt(m);
+}
+function removeMgmtAddedSubcat(subcatKey) {
+  var m = getOverlay();
+  delete m.overlay.addedSubcats[subcatKey];
+  saveMgmt(m);
+}
+function saveMgmtTombSubcat(subcatKey) {
+  var m = getOverlay();
+  m.overlay.tombSubcats[subcatKey] = true;
+  delete m.overlay.addedSubcats[subcatKey];
+  saveMgmt(m);
+}
+function removeMgmtTombSubcat(subcatKey) {
+  var m = getOverlay();
+  delete m.overlay.tombSubcats[subcatKey];
+  saveMgmt(m);
+}
+function saveMgmtTombSet(setKey) {
+  var m = getOverlay();
+  m.overlay.tombSets[setKey] = true;
+  saveMgmt(m);
+}
+function removeMgmtTombSet(setKey) {
+  var m = getOverlay();
+  delete m.overlay.tombSets[setKey];
+  saveMgmt(m);
+}
+function saveMgmtSetLoc(setKey, subcatKey) {
+  var m = getOverlay();
+  m.overlay.setLoc[setKey] = subcatKey;
+  saveMgmt(m);
+}
+
+function applyMgmtOverlay() {
+  if (!manifest || !manifest.traditions) return;
+  var m = getOverlay();
+  var ov = m.overlay;
+
+  // 1. Re-create any user-added subcats (empty; sets arrive via setLoc)
+  Object.keys(ov.addedSubcats).forEach(function(sck) {
+    var a = ov.addedSubcats[sck];
+    var trad = manifest.traditions[a.tradKey];
+    if (!trad) return;
+    if (!trad.subcategories) trad.subcategories = {};
+    if (!trad.subcategories[sck]) {
+      trad.subcategories[sck] = { display_name: a.display_name, sets: {} };
+    }
+  });
+
+  // 2. Apply persisted set relocations
+  Object.keys(ov.setLoc).forEach(function(setKey) {
+    var targetSck = ov.setLoc[setKey];
+    for (var tk in manifest.traditions) {
+      var trad = manifest.traditions[tk];
+      if (!trad.subcategories) continue;
+      var fromSck = null;
+      for (var sck in trad.subcategories) {
+        var ss = trad.subcategories[sck].sets || {};
+        if (ss[setKey]) { fromSck = sck; break; }
+      }
+      if (!fromSck || fromSck === targetSck) continue;
+      if (!trad.subcategories[targetSck]) continue; // destination missing — leave put
+      var data = trad.subcategories[fromSck].sets[setKey];
+      delete trad.subcategories[fromSck].sets[setKey];
+      trad.subcategories[targetSck].sets = trad.subcategories[targetSck].sets || {};
+      trad.subcategories[targetSck].sets[setKey] = data;
+    }
+  });
+
+  // 3. Remove tombstoned sets
+  Object.keys(ov.tombSets).forEach(function(setKey) {
+    for (var tk in manifest.traditions) {
+      var trad = manifest.traditions[tk];
+      if (!trad.subcategories) continue;
+      for (var sck in trad.subcategories) {
+        var ss = trad.subcategories[sck].sets || {};
+        if (ss[setKey]) delete ss[setKey];
+      }
+    }
+  });
+
+  // 4. Remove tombstoned subcats
+  Object.keys(ov.tombSubcats).forEach(function(sck) {
+    for (var tk in manifest.traditions) {
+      var trad = manifest.traditions[tk];
+      if (trad.subcategories && trad.subcategories[sck]) {
+        delete trad.subcategories[sck];
+      }
+    }
+  });
+}
+
 function toggleManageMode() {
   manageMode = !manageMode;
   var btn = document.getElementById('manage-toggle-btn');
@@ -711,6 +820,10 @@ function deleteSet(setKey, tradKey, subcatKey) {
   var name = r ? r.eng_name : si.eng_name;
   if (!confirm('Delete "' + name + '"? You can undo this within 1 hour.')) return;
   addMgmtDeleted({ type: 'set', key: setKey, tradKey: tradKey, subcatKey: subcatKey, at: Date.now(), data: JSON.parse(JSON.stringify(si)) });
+
+  // Persist tombstone so the deletion survives reload.
+  saveMgmtTombSet(setKey);
+
   // Remove from manifest in-memory
   if (trad.subcategories[subcatKey] && trad.subcategories[subcatKey].sets[setKey]) {
     delete trad.subcategories[subcatKey].sets[setKey];
@@ -730,11 +843,15 @@ function undoDelete(idx) {
   var d = deleted[idx];
   if (!d) return;
   if (d.type === 'set') {
+    removeMgmtTombSet(d.key);
     var trad = manifest.traditions[d.tradKey];
     if (trad && trad.subcategories[d.subcatKey]) {
       trad.subcategories[d.subcatKey].sets[d.key] = d.data;
     }
   } else if (d.type === 'subcat') {
+    removeMgmtTombSubcat(d.key);
+    // If it was user-added, also restore the added-subcat overlay entry.
+    if (d.wasAdded) saveMgmtAddedSubcat(d.tradKey, d.key, d.data && d.data.display_name || d.key);
     var trad2 = manifest.traditions[d.tradKey];
     if (trad2) trad2.subcategories[d.key] = d.data;
   }
@@ -749,7 +866,17 @@ function deleteSubcat(subcatKey, tradKey) {
   var name = getMgmtSubcatRename(subcatKey) || subcat.display_name;
   var setCount = Object.keys(subcat.sets || {}).length;
   if (!confirm('Delete category "' + name + '" and its ' + setCount + ' set(s)? Undo available for 1 hour.')) return;
-  addMgmtDeleted({ type: 'subcat', key: subcatKey, tradKey: tradKey, at: Date.now(), data: JSON.parse(JSON.stringify(subcat)) });
+
+  // Remember whether this subcat came from the overlay (user-added)
+  // so undo can restore it correctly.
+  var ov = getOverlay().overlay;
+  var wasAdded = !!ov.addedSubcats[subcatKey];
+
+  addMgmtDeleted({ type: 'subcat', key: subcatKey, tradKey: tradKey, wasAdded: wasAdded, at: Date.now(), data: JSON.parse(JSON.stringify(subcat)) });
+
+  // Persist tombstone so the deletion survives reload.
+  saveMgmtTombSubcat(subcatKey);
+
   delete trad.subcategories[subcatKey];
   renderLanding();
 }
@@ -811,11 +938,17 @@ function addNewSubcat(tradKey) {
   if (!name || !name.trim()) return;
   var key = '_custom_' + Date.now();
   var trad = manifest.traditions[tradKey];
+  if (!trad) return;
   if (!trad.subcategories) trad.subcategories = {};
   trad.subcategories[key] = { display_name: name.trim(), sets: {} };
+
+  // Persist to localStorage overlay so it survives reload.
+  saveMgmtAddedSubcat(tradKey, key, name.trim());
+
   // Ensure the tradition and new subcat are expanded
   accordionState['trad:' + tradKey] = true;
   accordionState['subcat:' + key] = true;
+  saveAccordionState();
   renderLanding();
 }
 
@@ -876,6 +1009,7 @@ async function init() {
     loadCardDesign();
     loadAccordionState();
     manifest = await loadManifestFromDirectoryCSV();
+    applyMgmtOverlay();
     renderLanding();
     setupUpload();
     setupImport();
@@ -1335,6 +1469,8 @@ function renderLanding() {
                   if (!setData) return;
                   dstSubcat.sets[draggedKey] = setData;
                   delete srcSubcat.sets[draggedKey];
+                  // Persist the relocation so it survives reload.
+                  saveMgmtSetLoc(draggedKey, srcSubcatKey);
                   // Remove from source ordering
                   var srcOrder = getMgmtSetOrder(dragTradKey, dragSubcatKey) || Object.keys(srcSubcat.sets || {});
                   srcOrder = srcOrder.filter(function(k) { return k !== draggedKey; });
@@ -1374,6 +1510,8 @@ function renderLanding() {
                 if (!setData) return;
                 dstSubcat.sets[draggedKey] = setData;
                 delete srcSubcat.sets[draggedKey];
+                // Persist the relocation so it survives reload.
+                saveMgmtSetLoc(draggedKey, sk);
                 var srcOrder = getMgmtSetOrder(dragTradKey, dragSubcatKey) || Object.keys(srcSubcat.sets || {});
                 srcOrder = srcOrder.filter(function(k) { return k !== draggedKey; });
                 saveMgmtSetOrder(dragTradKey, dragSubcatKey, srcOrder);
