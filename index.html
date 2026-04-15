@@ -1543,6 +1543,7 @@ function loadUploadedData(text, filename) {
     }
     row._setKey = '_upload';
     row._index = i;
+    row._originalOrder = i;
     row._included = true;
     row._chinese = targetField ? (row[targetField.key] || '') : '';
     allCards.push(row);
@@ -1600,7 +1601,10 @@ function setStudyMode(mode) {
       return fa - fb;
     });
   } else {
-    allCards.sort(function(a, b) { return a._index - b._index; });
+    // Restore deterministic original order (cross-set) for Types A and C
+    allCards.sort(function(a, b) {
+      return (a._originalOrder || 0) - (b._originalOrder || 0);
+    });
   }
 
   applyKnownToCards();
@@ -1659,9 +1663,14 @@ async function loadCards() {
   allCards = [];
   var fields = currentTradition.fields;
   var targetField = fields.find(function(f) { return f.type === 'target_lang'; });
+  var translationField = fields.find(function(f) { return f.type === 'translation'; });
   var allSets = getAllSets(currentTradition);
-  var loadPromises = [];
+  var allSetKeys = Object.keys(allSets); // deterministic order from manifest
+  var setOrderIndex = {};
+  allSetKeys.forEach(function(k, idx) { setOrderIndex[k] = idx; });
+  var loadedBySet = {}; // setKey -> rows[]
 
+  var loadPromises = [];
   for (var setKey in selectedSets) {
     var setInfo = allSets[setKey];
     if (!setInfo) continue;
@@ -1670,6 +1679,7 @@ async function loadCards() {
         fetch(si.file).then(function(r) { return r.text(); }).then(function(csvText) {
           var clean = csvText.replace(/^\uFEFF/, '');
           var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
+          var rows = [];
           parsed.data.forEach(function(row, i) {
             // Handle both old (with include/multichar) and new format gracefully
             row.multichar = false; // deprecated, ignore
@@ -1680,13 +1690,45 @@ async function loadCards() {
             row._index = i;
             row._included = true;
             row._chinese = targetField ? (row[targetField.key] || '') : '';
-            allCards.push(row);
+            rows.push(row);
           });
+          loadedBySet[sk] = rows;
         })
       );
     })(setKey, setInfo);
   }
   await Promise.all(loadPromises);
+
+  // Build a deterministic initial order: iterate selected sets in manifest
+  // order, then by row index within each set.
+  var orderedKeys = Object.keys(loadedBySet).sort(function(a, b) {
+    var ai = setOrderIndex[a]; if (ai === undefined) ai = 1e9;
+    var bi = setOrderIndex[b]; if (bi === undefined) bi = 1e9;
+    return ai - bi;
+  });
+
+  // De-duplicate by target_lang + translation across all selected sets.
+  // First occurrence wins (preserves manifest-ordered first deck).
+  var seen = {};
+  var ordered = [];
+  orderedKeys.forEach(function(sk) {
+    var rows = loadedBySet[sk] || [];
+    rows.forEach(function(row) {
+      var tKey = targetField ? (row[targetField.key] || '') : '';
+      var trKey = translationField ? (row[translationField.key] || '') : '';
+      var dupKey = tKey + '\u0001' + trKey;
+      // Only dedupe rows that have at least a target value; otherwise keep as-is
+      if (tKey || trKey) {
+        if (seen[dupKey]) return;
+        seen[dupKey] = true;
+      }
+      ordered.push(row);
+    });
+  });
+
+  // Assign a stable original-order index for Type A restoration.
+  ordered.forEach(function(row, idx) { row._originalOrder = idx; });
+  allCards = ordered;
 
   // Set default field mapping for Type A
   var target = null, roman = null, trans = null;
