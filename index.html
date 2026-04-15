@@ -54,6 +54,8 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .accordion-subcat-header .arrow { transition: transform 0.2s; font-size: 0.75rem; color: var(--text-muted); }
 .accordion-subcat.expanded > .accordion-subcat-header .arrow { transform: rotate(90deg); }
 .accordion-subcat-header .subcat-count { margin-left: auto; font-weight: 400; font-size: 0.8rem; color: var(--text-muted); }
+.level-select-cb { display: inline-flex; align-items: center; cursor: pointer; margin: 0; padding: 2px 4px; }
+.level-select-cb input { cursor: pointer; margin: 0; }
 .accordion-subcat-body { display: none; padding-left: 8px; }
 .accordion-subcat.expanded > .accordion-subcat-body { display: block; }
 
@@ -472,6 +474,16 @@ let knownViewerMode = 'A';   // mode for known viewer screen
 var APP_VERSION = 'v2.3';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
+function loadAccordionState() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('accordion_state') || '{}');
+    if (saved && typeof saved === 'object') accordionState = saved;
+  } catch (e) { accordionState = {}; }
+}
+function saveAccordionState() {
+  try { localStorage.setItem('accordion_state', JSON.stringify(accordionState)); }
+  catch (e) { /* ignore quota errors */ }
+}
 
 var DEFAULT_CARD_DESIGN = {
   chinese:  { font: 'NotoSerifSC', size: 28, bold: false, italic: false },
@@ -862,6 +874,7 @@ async function init() {
   try {
     document.getElementById('version-tag').textContent = APP_VERSION;
     loadCardDesign();
+    loadAccordionState();
     manifest = await loadManifestFromDirectoryCSV();
     renderLanding();
     setupUpload();
@@ -1054,6 +1067,75 @@ function getAllSets(tradition) {
 /* ============================================================
    LANDING: ACCORDION TREE
    ============================================================ */
+function selectAllInTradition(tradKey, checked) {
+  var trad = manifest && manifest.traditions && manifest.traditions[tradKey];
+  if (!trad || !trad.available) return;
+  var allSets = getAllSets(trad);
+  if (checked) {
+    // Switch tradition if needed; this wipes cross-tradition selections.
+    currentTraditionKey = tradKey;
+    currentTradition = trad;
+    selectedSets = {};
+    Object.keys(allSets).forEach(function(k) { selectedSets[k] = true; });
+    isUploadMode = false;
+  } else {
+    if (currentTraditionKey === tradKey) {
+      Object.keys(allSets).forEach(function(k) { delete selectedSets[k]; });
+    }
+  }
+  renderLanding();
+}
+
+function selectAllInSubcat(tradKey, subcatKey, checked) {
+  var trad = manifest && manifest.traditions && manifest.traditions[tradKey];
+  if (!trad || !trad.available) return;
+  var subcat = trad.subcategories && trad.subcategories[subcatKey];
+  if (!subcat || !subcat.sets) return;
+  if (checked) {
+    if (currentTraditionKey !== tradKey) {
+      currentTraditionKey = tradKey;
+      currentTradition = trad;
+      selectedSets = {};
+    }
+    Object.keys(subcat.sets).forEach(function(k) { selectedSets[k] = true; });
+    isUploadMode = false;
+  } else {
+    if (currentTraditionKey === tradKey) {
+      Object.keys(subcat.sets).forEach(function(k) { delete selectedSets[k]; });
+    }
+  }
+  renderLanding();
+}
+
+function syncLevelSelectCheckboxes() {
+  document.querySelectorAll('input[data-level="trad"]').forEach(function(cb) {
+    var tk = cb.dataset.trad;
+    var trad = manifest && manifest.traditions && manifest.traditions[tk];
+    if (!trad) return;
+    var allSets = getAllSets(trad);
+    var keys = Object.keys(allSets);
+    if (currentTraditionKey !== tk || keys.length === 0) {
+      cb.checked = false; cb.indeterminate = false; return;
+    }
+    var sel = keys.filter(function(k) { return selectedSets[k]; }).length;
+    cb.checked = sel === keys.length;
+    cb.indeterminate = sel > 0 && sel < keys.length;
+  });
+  document.querySelectorAll('input[data-level="subcat"]').forEach(function(cb) {
+    var tk = cb.dataset.trad, sck = cb.dataset.subcat;
+    var trad = manifest && manifest.traditions && manifest.traditions[tk];
+    var subcat = trad && trad.subcategories && trad.subcategories[sck];
+    if (!subcat || !subcat.sets) return;
+    var keys = Object.keys(subcat.sets);
+    if (currentTraditionKey !== tk || keys.length === 0) {
+      cb.checked = false; cb.indeterminate = false; return;
+    }
+    var sel = keys.filter(function(k) { return selectedSets[k]; }).length;
+    cb.checked = sel === keys.length;
+    cb.indeterminate = sel > 0 && sel < keys.length;
+  });
+}
+
 function renderLanding() {
   cleanExpiredDeletes();
   var container = document.getElementById('accordion-container');
@@ -1074,12 +1156,34 @@ function renderLanding() {
 
     var header = document.createElement('div');
     header.className = 'accordion-tradition-header';
-    header.innerHTML = '<span class="arrow">&#9654;</span><span>' + trad.display_name + '</span>' +
+    var tradCbHtml = trad.available
+      ? '<label class="level-select-cb" title="Select all in ' + trad.display_name + '" onclick="event.stopPropagation()">' +
+          '<input type="checkbox" data-level="trad" data-trad="' + tradKey + '">' +
+        '</label>'
+      : '';
+    header.innerHTML = tradCbHtml +
+      '<span class="arrow">&#9654;</span><span>' + trad.display_name + '</span>' +
       (!trad.available ? '<span style="margin-left:8px;font-size:0.85rem;color:var(--text-muted);font-style:italic">Coming soon</span>' : '') +
       '<span class="trad-count">' + (trad.available ? totalCards + ' cards' : '') + '</span>';
+    if (trad.available) {
+      var tradCb = header.querySelector('input[data-level="trad"]');
+      (function(cb, tk) {
+        cb.addEventListener('change', function(e) {
+          e.stopPropagation();
+          selectAllInTradition(tk, cb.checked);
+        });
+      })(tradCb, tradKey);
+    }
 
     if (trad.available) {
-      (function(el, stKey) { header.addEventListener('click', function() { el.classList.toggle('expanded'); accordionState[stKey] = el.classList.contains('expanded'); }); })(tradEl, tradStateKey);
+      (function(el, stKey) {
+        header.addEventListener('click', function(e) {
+          if (e.target.closest('.level-select-cb')) return; // checkbox handles its own click
+          el.classList.toggle('expanded');
+          accordionState[stKey] = el.classList.contains('expanded');
+          saveAccordionState();
+        });
+      })(tradEl, tradStateKey);
     }
     tradEl.appendChild(header);
 
@@ -1101,13 +1205,32 @@ function renderLanding() {
         var subcatHeader = document.createElement('div');
         subcatHeader.className = 'accordion-subcat-header';
         var subcatDisplayName = getMgmtSubcatRename(subcatKey) || subcat.display_name;
-        subcatHeader.innerHTML = '<span class="arrow">&#9654;</span><span>' + subcatDisplayName + '</span>' +
+        subcatHeader.innerHTML =
+          '<label class="level-select-cb" title="Select all in ' + subcatDisplayName + '" onclick="event.stopPropagation()">' +
+            '<input type="checkbox" data-level="subcat" data-trad="' + tradKey + '" data-subcat="' + subcatKey + '">' +
+          '</label>' +
+          '<span class="arrow">&#9654;</span><span>' + subcatDisplayName + '</span>' +
           '<span class="subcat-count">' + subcatTotal + ' cards</span>' +
           '<span class="subcat-manage">' +
             '<button class="manage-btn" onclick="event.stopPropagation();renameSubcat(\'' + subcatKey + '\',\'' + tradKey + '\')" title="Rename">&#9998;</button>' +
             '<button class="manage-btn manage-delete" onclick="event.stopPropagation();deleteSubcat(\'' + subcatKey + '\',\'' + tradKey + '\')" title="Delete">&#10005;</button>' +
           '</span>';
-        (function(el, stKey) { subcatHeader.addEventListener('click', function(e) { if (e.target.closest('.subcat-manage')) return; e.stopPropagation(); el.classList.toggle('expanded'); accordionState[stKey] = el.classList.contains('expanded'); }); })(subcatEl, subcatStateKey);
+        var subcatCb = subcatHeader.querySelector('input[data-level="subcat"]');
+        (function(cb, tk, sck) {
+          cb.addEventListener('change', function(e) {
+            e.stopPropagation();
+            selectAllInSubcat(tk, sck, cb.checked);
+          });
+        })(subcatCb, tradKey, subcatKey);
+        (function(el, stKey) {
+          subcatHeader.addEventListener('click', function(e) {
+            if (e.target.closest('.subcat-manage') || e.target.closest('.level-select-cb')) return;
+            e.stopPropagation();
+            el.classList.toggle('expanded');
+            accordionState[stKey] = el.classList.contains('expanded');
+            saveAccordionState();
+          });
+        })(subcatEl, subcatStateKey);
         subcatEl.appendChild(subcatHeader);
 
         var subcatBody = document.createElement('div');
@@ -1132,14 +1255,16 @@ function renderLanding() {
           var done = getMgmtDone(setKey);
           var doneClass = (done.A && done.B) ? ' done-both' : (done.A || done.B) ? ' done-a' : '';
 
+          var isSelected = (currentTraditionKey === tradKey) && !!selectedSets[setKey];
+
           var item = document.createElement('div');
-          item.className = 'set-item' + doneClass;
+          item.className = 'set-item' + doneClass + (isSelected ? ' checked' : '');
           item.draggable = manageMode;
           item.dataset.setKey = setKey;
 
           item.innerHTML =
             '<span class="drag-handle" title="Drag to reorder">&#10303;</span>' +
-            '<input type="checkbox" data-tradition="' + tradKey + '" data-set="' + setKey + '">' +
+            '<input type="checkbox" data-tradition="' + tradKey + '" data-set="' + setKey + '"' + (isSelected ? ' checked' : '') + '>' +
             '<div class="set-info"><div class="set-name">' + engName + '</div><div class="set-tag">' + dispTag + '</div></div>' +
             '<div class="done-checks">' +
               '<label title="Done Type A"><input type="checkbox" ' + (done.A ? 'checked' : '') + ' onchange="event.stopPropagation();toggleDone(\'' + setKey + '\',\'A\')"> A</label>' +
@@ -1170,6 +1295,7 @@ function renderLanding() {
               } else { delete selectedSets[sk]; }
               el.classList.toggle('checked', checkbox.checked);
               isUploadMode = false;
+              syncLevelSelectCheckboxes();
               updateSetTotal();
             });
             el.addEventListener('click', function(e) {
@@ -1296,6 +1422,7 @@ function renderLanding() {
   }
 
   renderMyUploads();
+  syncLevelSelectCheckboxes();
   updateSetTotal();
 }
 
