@@ -52,8 +52,8 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 }
 .gs-meta { padding: 8px 14px; font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid var(--border-light); }
 .gs-row {
-  display: grid; grid-template-columns: minmax(80px, 1.3fr) minmax(100px, 1.2fr) minmax(140px, 2fr) minmax(160px, 1.5fr);
-  gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--border-light); align-items: baseline;
+  display: grid; grid-template-columns: minmax(80px, 1.3fr) minmax(100px, 1.2fr) minmax(140px, 2fr) minmax(160px, 1.5fr) 36px;
+  gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--border-light); align-items: center;
 }
 .gs-row:last-child { border-bottom: none; }
 .gs-row:hover { background: rgba(0,0,0,0.03); }
@@ -819,6 +819,10 @@ let globalCardIndex = null;
 let globalCardIndexPromise = null;
 let globalSearchDebounce = null;
 
+function stripDiacritics(s) {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 function buildGlobalCardIndex() {
   if (globalCardIndex) return Promise.resolve(globalCardIndex);
   if (globalCardIndexPromise) return globalCardIndexPromise;
@@ -834,7 +838,7 @@ function buildGlobalCardIndex() {
         (function(sk, si, fieldList, tradKey) {
           tasks.push(
             fetch(si.file).then(function(r) { return r.text(); }).then(function(csv) {
-              var parsed = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+              var parsed = Papa.parse(csv.replace(/^﻿/, ''), { header: true, skipEmptyLines: true });
               parsed.data.forEach(function(row) {
                 var entry = {
                   _tradKey: tradKey,
@@ -847,12 +851,18 @@ function buildGlobalCardIndex() {
                 for (var fi = 0; fi < fieldList.length; fi++) {
                   entry[fieldList[fi].key] = (row[fieldList[fi].key] || '').trim();
                 }
-                // Keep only rows that have something searchable.
                 var any = false;
                 for (var fi2 = 0; fi2 < fieldList.length; fi2++) {
                   if (entry[fieldList[fi2].key]) { any = true; break; }
                 }
-                if (any) idx.push(entry);
+                if (any) {
+                  entry._norm = {};
+                  for (var fi3 = 0; fi3 < fieldList.length; fi3++) {
+                    var k = fieldList[fi3].key;
+                    entry._norm[k] = stripDiacritics((entry[k] || '').toLowerCase());
+                  }
+                  idx.push(entry);
+                }
               });
             }).catch(function(err) { console.warn('global search: failed to load', si.file, err); })
           );
@@ -871,21 +881,40 @@ function invalidateGlobalCardIndex() {
   globalCardIndexPromise = null;
 }
 
-function highlightMatch(text, q) {
+function gsFieldScore(norm, nq) {
+  if (!norm) return 0;
+  if (norm === nq) return 3;
+  if (norm.indexOf(nq) === 0) return 2;
+  if (norm.indexOf(nq) !== -1) return 1;
+  return 0;
+}
+
+function highlightWithNorm(text, normQ) {
   if (!text) return '';
   var safe = escapeHtml(text);
-  if (!q) return safe;
-  var lowerSafe = safe.toLowerCase();
-  var lowerQ = q.toLowerCase();
-  var out = '';
-  var i = 0;
-  while (i < safe.length) {
-    var hit = lowerSafe.indexOf(lowerQ, i);
-    if (hit === -1) { out += safe.slice(i); break; }
-    out += safe.slice(i, hit) + '<mark class="gs-mark">' + safe.slice(hit, hit + lowerQ.length) + '</mark>';
-    i = hit + lowerQ.length;
+  if (!normQ) return safe;
+  var normFull = stripDiacritics(safe.toLowerCase());
+  var pos = normFull.indexOf(normQ);
+  if (pos === -1) return safe;
+  // Map normalized-string positions back to original-string positions
+  var origPositions = [];
+  var oi = 0;
+  for (var ni = 0; ni < normFull.length; ni++) {
+    origPositions.push(oi);
+    // Advance oi past the original character (which may have combining marks in NFD)
+    var nfd = safe[oi] ? safe[oi].normalize('NFD') : '';
+    var baseLen = 1;
+    // Check if next chars in safe are combining marks
+    while (oi + baseLen < safe.length) {
+      var cp = safe.charCodeAt(oi + baseLen);
+      if (cp >= 0x0300 && cp <= 0x036f) { baseLen++; } else break;
+    }
+    oi += baseLen;
   }
-  return out;
+  origPositions.push(safe.length);
+  var start = origPositions[pos];
+  var end = origPositions[pos + normQ.length];
+  return safe.slice(0, start) + '<mark class="gs-mark">' + safe.slice(start, end) + '</mark>' + safe.slice(end);
 }
 
 function runGlobalSearch(q) {
@@ -904,34 +933,37 @@ function runGlobalSearch(q) {
     buildGlobalCardIndex().then(function() { runGlobalSearch(q); });
     return;
   }
-  var lq = q.toLowerCase();
-  var matches = [];
+  var nq = stripDiacritics(q.toLowerCase());
+  var scored = [];
   for (var i = 0; i < globalCardIndex.length; i++) {
     var c = globalCardIndex[i];
     var trad = manifest.traditions[c._tradKey];
     var flds = (trad && trad.fields) || [];
-    var hit = false;
+    var best = 0;
     for (var fi = 0; fi < flds.length; fi++) {
-      if ((c[flds[fi].key] || '').toLowerCase().indexOf(lq) !== -1) { hit = true; break; }
+      var s = gsFieldScore(c._norm[flds[fi].key], nq);
+      if (s > best) best = s;
     }
-    if (!hit && (c.eng_tag || '').toLowerCase().indexOf(lq) !== -1) hit = true;
-    if (!hit && (c.ch_tag  || '').toLowerCase().indexOf(lq) !== -1) hit = true;
-    if (hit) matches.push(c);
+    if (best > 0) scored.push({ card: c, score: best });
   }
+  scored.sort(function(a, b) { return b.score - a.score; });
 
-  if (statusEl) statusEl.textContent = matches.length + ' match' + (matches.length === 1 ? '' : 'es');
+  if (statusEl) statusEl.textContent = scored.length + ' match' + (scored.length === 1 ? '' : 'es');
 
-  if (matches.length === 0) {
+  if (scored.length === 0) {
     box.innerHTML = '<div class="gs-empty">No matches for “' + escapeHtml(q) + '”</div>';
     box.style.display = 'block';
     return;
   }
 
+  var knownA = getKnownList('A');
+  var knownB = getKnownList('B');
+
   var LIMIT = 300;
-  var shown = matches.slice(0, LIMIT);
-  var html = '<div class="gs-meta">Showing ' + shown.length + ' of ' + matches.length + ' match' + (matches.length === 1 ? '' : 'es') + '</div>';
+  var shown = scored.slice(0, LIMIT);
+  var html = '<div class="gs-meta">Showing ' + shown.length + ' of ' + scored.length + ' match' + (scored.length === 1 ? '' : 'es') + '</div>';
   for (var k = 0; k < shown.length; k++) {
-    var c2 = shown[k];
+    var c2 = shown[k].card;
     var trad2 = manifest.traditions[c2._tradKey];
     var byType = {};
     (trad2.fields || []).forEach(function(f) { byType[f.type] = f.key; });
@@ -940,12 +972,14 @@ function runGlobalSearch(q) {
     var en  = c2[byType.translation]  || '';
     var src = getCardSourceLabel(c2);
     var deckLine = src ? (src + ' — ' + c2._setLabel) : c2._setLabel;
+    var isKnown = knownA.has(ch) || knownB.has(ch);
     html +=
       '<div class="gs-row">' +
-        '<span class="gs-field-chinese">' + highlightMatch(ch, q) + '</span>' +
-        '<span class="gs-field-pinyin">'  + highlightMatch(py, q) + '</span>' +
-        '<span class="gs-field-english">' + highlightMatch(en, q) + '</span>' +
-        '<span class="gs-source">'        + highlightMatch(deckLine, q) + '</span>' +
+        '<span class="gs-field-chinese">' + highlightWithNorm(ch, nq) + '</span>' +
+        '<span class="gs-field-pinyin">'  + highlightWithNorm(py, nq) + '</span>' +
+        '<span class="gs-field-english">' + highlightWithNorm(en, nq) + '</span>' +
+        '<span class="gs-source">'        + highlightWithNorm(deckLine, nq) + '</span>' +
+        '<button class="known-toggle' + (isKnown ? ' is-known' : '') + '" data-gs-known="' + escapeHtml(ch) + '" data-gs-deck="' + escapeHtml(c2._setLabel) + '" title="Toggle known">' + (isKnown ? '✓' : '') + '</button>' +
       '</div>';
   }
   box.innerHTML = html;
@@ -960,9 +994,33 @@ function setupGlobalSearch() {
     var v = input.value;
     globalSearchDebounce = setTimeout(function() { runGlobalSearch(v); }, 180);
   });
-  // Pre-warm index in the background so the first query is snappy.
+
+  var box = document.getElementById('global-search-results');
+  if (box) {
+    box.addEventListener('click', function(e) {
+      var btn = e.target.closest('.known-toggle[data-gs-known]');
+      if (!btn) return;
+      var ch = btn.getAttribute('data-gs-known');
+      var deck = btn.getAttribute('data-gs-deck') || 'Unknown';
+      if (!ch) return;
+      var isKnown = btn.classList.contains('is-known');
+      if (isKnown) {
+        removeFromKnown('A', ch);
+        removeFromKnown('B', ch);
+        btn.classList.remove('is-known');
+        btn.textContent = '';
+      } else {
+        addToKnown('A', [ch], deck);
+        addToKnown('B', [ch], deck);
+        btn.classList.add('is-known');
+        btn.textContent = '✓';
+      }
+    });
+  }
+
   setTimeout(function() { buildGlobalCardIndex(); }, 400);
 }
+
 
 function toggleManageMode() {
   manageMode = !manageMode;
