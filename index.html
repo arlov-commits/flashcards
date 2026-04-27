@@ -151,6 +151,15 @@ table.card-table th { position: sticky; top: 0; background: #e8dfd4; text-align:
 table.card-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
 table.card-table td.chinese-cell { font-size: calc(0.9rem + 3pt); }
 table.card-table td.source-cell { font-size: 0.78rem; color: var(--text-muted, #7a6f60); white-space: nowrap; }
+.known-toggle {
+  width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border, #c8bfb1);
+  background: transparent; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;
+  color: var(--text-muted, #7a6f60); transition: all 0.15s;
+}
+.known-toggle:hover { border-color: var(--accent, #9a7948); background: rgba(154,121,72,0.08); }
+.known-toggle.is-known {
+  background: var(--accent, #9a7948); border-color: var(--accent, #9a7948); color: #fff; font-weight: 700;
+}
 table.card-table tr:last-child td { border-bottom: none; }
 table.card-table tr.excluded { opacity: 0.45; }
 table.card-table td:first-child { width: 36px; text-align: center; }
@@ -2321,7 +2330,7 @@ function renderCardTable() {
   var thead = document.getElementById('card-table-head');
   var thRow = '<tr><th style="width:36px;text-align:center"><input type="checkbox" id="select-all-cb" onchange="selectAllCards(this.checked)" checked></th>' +
     fields.map(function(f) { return '<th>' + f.label + '</th>'; }).join('') +
-    '<th>Source</th></tr>';
+    '<th>Source</th><th style="width:56px;text-align:center">Known</th></tr>';
   thead.innerHTML = thRow;
 
   // Sync select-all checkbox state
@@ -2344,17 +2353,8 @@ function renderCardTable() {
       checkbox.addEventListener('change', function() {
         c._included = checkbox.checked;
         row.className = checkbox.checked ? '' : 'excluded';
-        if (c._chinese) {
-          if (!checkbox.checked) { addToKnown(studyMode, [c._chinese], getDeckLabelForCard(c)); }
-          else { removeFromKnown(studyMode, c._chinese); }
-        }
         updateCardCount();
         updateSummary();
-        // Update known bar count
-        var kn = getKnownList(studyMode);
-        var kc = 0;
-        for (var j = 0; j < allCards.length; j++) { if (allCards[j]._chinese && kn.has(allCards[j]._chinese)) kc++; }
-        updateKnownBar(kc);
         // Sync select-all checkbox
         var allCk = allCards.every(function(c2) { return c2._included; });
         document.getElementById('select-all-cb').checked = allCk;
@@ -2373,6 +2373,42 @@ function renderCardTable() {
     srcTd.className = 'source-cell';
     srcTd.textContent = getCardSourceLabel(card2);
     tr.appendChild(srcTd);
+
+    // "Known" toggle — independent of include checkbox, instant commit.
+    var knownTd = document.createElement('td');
+    knownTd.style.textAlign = 'center';
+    var knownBtn = document.createElement('button');
+    var cardIsKnown = !!(card2._chinese && known.has(card2._chinese));
+    knownBtn.className = 'known-toggle' + (cardIsKnown ? ' is-known' : '');
+    knownBtn.textContent = cardIsKnown ? '✓' : '';
+    knownBtn.title = cardIsKnown ? 'Mark as not known' : 'Mark as known';
+    (function(c, btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var kn = getKnownList(studyMode);
+        var isNowKnown = c._chinese && kn.has(c._chinese);
+        if (isNowKnown) {
+          removeFromKnown(studyMode, c._chinese);
+          btn.className = 'known-toggle';
+          btn.textContent = '';
+          btn.title = 'Mark as known';
+        } else if (c._chinese) {
+          addToKnown(studyMode, [c._chinese], getDeckLabelForCard(c));
+          btn.className = 'known-toggle is-known';
+          btn.textContent = '✓';
+          btn.title = 'Mark as not known';
+        }
+        // Update known bar count
+        var kn2 = getKnownList(studyMode);
+        var kc = 0;
+        for (var j = 0; j < allCards.length; j++) {
+          if (allCards[j]._chinese && kn2.has(allCards[j]._chinese)) kc++;
+        }
+        updateKnownBar(kc);
+      });
+    })(card2, knownBtn);
+    knownTd.appendChild(knownBtn);
+    tr.appendChild(knownTd);
     tbody.appendChild(tr);
   }
   updateCardCount();
@@ -2409,16 +2445,7 @@ function selectAllCards(val) {
       if (!match) continue;
     }
     card._included = val;
-    if (card._chinese) {
-      if (!val) addToKnown(studyMode, [card._chinese], getDeckLabelForCard(card));
-      else removeFromKnown(studyMode, card._chinese);
-    }
   }
-  // Update known bar
-  var kn = getKnownList(studyMode);
-  var kc = 0;
-  for (var j = 0; j < allCards.length; j++) { if (allCards[j]._chinese && kn.has(allCards[j]._chinese)) kc++; }
-  updateKnownBar(kc);
   renderCardTable();
   updateSummary();
 }
