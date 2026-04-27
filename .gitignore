@@ -1,0 +1,15 @@
+manifest.json
+
+# Legacy flat-structure CSV files (data now lives in subdirectories)
+data/chinese/88_buddhas_flashcards.csv
+data/chinese/am-*.csv
+data/chinese/am_*.csv
+data/chinese/amitabha-praise.csv
+data/chinese/cttb_traditions.csv
+data/chinese/heart-sutra.csv
+data/chinese/incense-praise.csv
+data/chinese/meal-offering.csv
+data/chinese/meng-shan.csv
+data/chinese/merit-transfer.csv
+data/chinese/puxian-exhortation.csv
+data/chinese/three-refuges.csv
