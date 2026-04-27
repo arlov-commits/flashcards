@@ -138,8 +138,6 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .mode-btn .mode-desc { font-size: 0.78rem; opacity: 0.8; }
 
 /* Known info bar */
-.known-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 8px 14px; background: #f0ebe4; border-radius: var(--radius); font-size: 0.88rem; color: var(--text-muted); }
-.known-bar a { color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 0.85rem; }
 
 /* Card list */
 .card-list-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
@@ -152,9 +150,12 @@ table.card-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-l
 table.card-table td.chinese-cell { font-size: calc(0.9rem + 3pt); }
 table.card-table td.source-cell { font-size: 0.78rem; color: var(--text-muted, #7a6f60); white-space: nowrap; }
 .known-toggle {
-  width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border, #c8bfb1);
-  background: transparent; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;
+  width: 28px; height: 28px; min-width: 28px; min-height: 28px;
+  border-radius: 50%; border: 1.5px solid var(--border, #c8bfb1);
+  background: transparent; cursor: pointer; font-size: 0.85rem;
+  line-height: 28px; padding: 0; box-sizing: border-box;
   color: var(--text-muted, #7a6f60); transition: all 0.15s;
+  vertical-align: middle; display: inline-block; text-align: center;
 }
 .known-toggle:hover { border-color: var(--accent, #9a7948); background: rgba(154,121,72,0.08); }
 .known-toggle.is-known {
@@ -364,9 +365,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     </div>
 
     <h2>Card List</h2>
-    <div id="known-bar" class="known-bar" style="display:none">
-      <span id="known-count-text"></span>
-    </div>
     <div class="card-list-controls">
       <input type="text" id="card-search" placeholder="Search cards..." oninput="renderCardTable()">
     </div>
@@ -2106,14 +2104,13 @@ function applyKnownToCards() {
       allCards[i]._included = true;
     }
   }
-  updateKnownBar(knownCount);
+  updateKnownBar();
 }
 
-function updateKnownBar(knownCount) {
-  var bar = document.getElementById('known-bar');
-  if (knownCount === 0) { bar.style.display = 'none'; return; }
-  bar.style.display = 'flex';
-  document.getElementById('known-count-text').textContent = knownCount + ' cards already known (Type ' + studyMode + ') — shown unchecked below';
+function updateKnownBar() {
+  // Known count is now shown inline in updateCardCount; this is kept as
+  // a call-site compat stub.
+  updateCardCount();
 }
 
 /* ============================================================
@@ -2380,7 +2377,7 @@ function renderCardTable() {
     var knownBtn = document.createElement('button');
     var cardIsKnown = !!(card2._chinese && known.has(card2._chinese));
     knownBtn.className = 'known-toggle' + (cardIsKnown ? ' is-known' : '');
-    knownBtn.textContent = cardIsKnown ? '✓' : '';
+    knownBtn.textContent = cardIsKnown ? '✓' : ' ';
     knownBtn.title = cardIsKnown ? 'Mark as not known' : 'Mark as known';
     (function(c, btn) {
       btn.addEventListener('click', function(e) {
@@ -2390,7 +2387,7 @@ function renderCardTable() {
         if (isNowKnown) {
           removeFromKnown(studyMode, c._chinese);
           btn.className = 'known-toggle';
-          btn.textContent = '';
+          btn.textContent = ' ';
           btn.title = 'Mark as known';
         } else if (c._chinese) {
           addToKnown(studyMode, [c._chinese], getDeckLabelForCard(c));
@@ -2404,7 +2401,7 @@ function renderCardTable() {
         for (var j = 0; j < allCards.length; j++) {
           if (allCards[j]._chinese && kn2.has(allCards[j]._chinese)) kc++;
         }
-        updateKnownBar(kc);
+        updateKnownBar();
       });
     })(card2, knownBtn);
     knownTd.appendChild(knownBtn);
@@ -2417,7 +2414,14 @@ function renderCardTable() {
 function updateCardCount() {
   var total = allCards.length;
   var included = allCards.filter(function(c) { return c._included; }).length;
-  document.getElementById('card-count').textContent = included + ' of ' + total + ' cards selected';
+  var known = getKnownList(studyMode);
+  var knownCount = 0;
+  for (var i = 0; i < allCards.length; i++) {
+    if (allCards[i]._chinese && known.has(allCards[i]._chinese)) knownCount++;
+  }
+  var text = included + ' of ' + total + ' cards selected';
+  if (knownCount > 0) text += '  ·  ' + knownCount + ' already known';
+  document.getElementById('card-count').textContent = text;
 }
 
 function updateSummary() {
