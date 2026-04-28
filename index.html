@@ -114,7 +114,7 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .set-item .set-info { flex: 1; }
 .set-item .set-name { font-weight: 600; font-size: 0.9rem; }
 .set-item .set-tag { color: var(--text-muted); font-size: 0.8rem; }
-.set-item .set-count { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+.set-item .set-count { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; min-width: 52px; text-align: right; }
 .total-count { font-size: 0.95rem; color: var(--text-muted); margin: 8px 0 16px; }
 
 /* Upload area */
@@ -256,9 +256,20 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .manage-btn:hover { color: var(--accent); border-color: var(--accent); }
 .manage-btn.manage-delete { color: #a33; }
 .manage-btn.manage-delete:hover { border-color: #a33; }
-.done-checks { display: flex; gap: 4px; align-items: center; flex-shrink: 0; font-size: 0.72rem; color: var(--text-muted); }
-.done-checks label { display: flex; align-items: center; gap: 2px; cursor: pointer; }
-.done-checks input { accent-color: var(--accent); width: 14px; height: 14px; }
+.done-checks { display: flex; gap: 6px; align-items: center; flex-shrink: 0; font-size: 0.65rem; color: var(--text-muted); }
+.done-checks label { display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; }
+.done-checks .done-toggle {
+  width: 22px; height: 22px; min-width: 22px; min-height: 22px;
+  border-radius: 50%; border: 1.5px solid var(--border, #c8bfb1);
+  background: transparent; cursor: pointer; font-size: 0.7rem;
+  line-height: 22px; padding: 0; box-sizing: border-box;
+  color: var(--text-muted, #7a6f60); transition: all 0.15s;
+  display: inline-block; text-align: center;
+}
+.done-checks .done-toggle:hover { border-color: var(--accent, #9a7948); background: rgba(154,121,72,0.08); }
+.done-checks .done-toggle.is-done {
+  background: var(--accent, #9a7948); border-color: var(--accent, #9a7948); color: #fff; font-weight: 700;
+}
 .set-item.done-a { background: #f2efea; }
 .set-item.done-a .set-name, .set-item.done-a .set-tag { opacity: 0.6; }
 .set-item.done-both { background: #eae7e2; }
@@ -510,7 +521,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.5';
+var APP_VERSION = 'v2.6';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -1131,12 +1142,16 @@ function deleteSubcat(subcatKey, tradKey) {
   renderLanding();
 }
 
-async function toggleDone(setKey, type) {
+async function toggleDone(setKey, type, btnEl) {
   var d = getMgmtDone(setKey);
   var newVal = type === 'A' ? !d.A : !d.B;
   if (type === 'A') d.A = newVal;
   else d.B = newVal;
   saveMgmtDone(setKey, d.A, d.B);
+  if (btnEl) {
+    btnEl.classList.toggle('is-done', newVal);
+    btnEl.textContent = newVal ? '✓' : '';
+  }
 
   // Find the set info to get CSV file path and name
   var si = null;
@@ -1652,8 +1667,8 @@ function renderLanding() {
             '<input type="checkbox" data-tradition="' + tradKey + '" data-set="' + setKey + '"' + (isSelected ? ' checked' : '') + '>' +
             '<div class="set-info"><div class="set-name">' + engName + '</div><div class="set-tag">' + dispTag + '</div></div>' +
             '<div class="done-checks">' +
-              '<label title="Done Type A"><input type="checkbox" ' + (done.A ? 'checked' : '') + ' onchange="event.stopPropagation();toggleDone(\'' + setKey + '\',\'A\')"> A</label>' +
-              '<label title="Done Type B"><input type="checkbox" ' + (done.B ? 'checked' : '') + ' onchange="event.stopPropagation();toggleDone(\'' + setKey + '\',\'B\')"> B</label>' +
+              '<label title="Done Type A"><button class="done-toggle' + (done.A ? ' is-done' : '') + '" onclick="event.stopPropagation();toggleDone(\'' + setKey + '\',\'A\',this)">' + (done.A ? '✓' : '') + '</button> A</label>' +
+              '<label title="Done Type B"><button class="done-toggle' + (done.B ? ' is-done' : '') + '" onclick="event.stopPropagation();toggleDone(\'' + setKey + '\',\'B\',this)">' + (done.B ? '✓' : '') + '</button> B</label>' +
             '</div>' +
             '<div class="manage-actions">' +
               '<button class="manage-btn" onclick="event.stopPropagation();renameSet(\'' + setKey + '\',\'' + tradKey + '\',\'' + subcatKey + '\')" title="Rename">&#9998;</button>' +
