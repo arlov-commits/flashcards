@@ -520,7 +520,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.7';
+var APP_VERSION = 'v2.8';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -589,11 +589,6 @@ function removeFromKnown(mode, chineseValue) {
   saveKnownEntries(mode, entries);
 }
 
-function removeKnownGroup(mode, groupKey) {
-  var entries = getKnownEntries(mode);
-  entries = entries.filter(function(e) { return (e.ts + '|' + e.deck) !== groupKey; });
-  saveKnownEntries(mode, entries);
-}
 
 function getDeckLabelForCard(card) {
   if (isUploadMode) return currentTradition ? currentTradition.display_name : 'Upload';
@@ -2951,31 +2946,48 @@ function renderKnownViewer() {
     return;
   }
 
-  // Group by timestamp+deck
+  // Group by session: entries within 10 minutes of each other in the same deck
+  var SESSION_GAP_MS = 10 * 60 * 1000;
+  var sorted = entries.slice().sort(function(a, b) {
+    var cmp = a.deck.localeCompare(b.deck);
+    return cmp !== 0 ? cmp : a.ts.localeCompare(b.ts);
+  });
   var groups = {};
   var groupOrder = [];
-  entries.forEach(function(e) {
-    var key = e.ts + '|' + e.deck;
-    if (!groups[key]) {
-      groups[key] = { deck: e.deck, ts: e.ts, chars: [] };
+  sorted.forEach(function(e) {
+    var eTime = new Date(e.ts).getTime();
+    var merged = false;
+    for (var gi = groupOrder.length - 1; gi >= 0; gi--) {
+      var g = groups[groupOrder[gi]];
+      if (g.deck !== e.deck) continue;
+      if (Math.abs(eTime - g._lastTime) <= SESSION_GAP_MS) {
+        g.chars.push(e.ch);
+        if (eTime > g._lastTime) g._lastTime = eTime;
+        if (e.ts > g.tsEnd) g.tsEnd = e.ts;
+        if (e.ts < g.tsStart) g.tsStart = e.ts;
+        merged = true;
+        break;
+      }
+    }
+    if (!merged) {
+      var key = e.ts + '|' + e.deck;
+      groups[key] = { deck: e.deck, tsStart: e.ts, tsEnd: e.ts, _lastTime: eTime, chars: [e.ch] };
       groupOrder.push(key);
     }
-    groups[key].chars.push(e.ch);
   });
 
   // Sort groups newest first
-  groupOrder.sort(function(a, b) { return groups[b].ts.localeCompare(groups[a].ts); });
+  groupOrder.sort(function(a, b) { return groups[b].tsEnd.localeCompare(groups[a].tsEnd); });
 
   var html = '';
-  groupOrder.forEach(function(key) {
+  groupOrder.forEach(function(key, idx) {
     var g = groups[key];
-    var date = g.ts === new Date(0).toISOString() ? 'Before tracking' : formatGroupDate(g.ts);
-    var escapedKey = key.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    var date = g.tsStart === new Date(0).toISOString() ? 'Before tracking' : formatGroupDate(g.tsStart);
     html += '<div class="known-group">';
     html += '<div class="known-group-header">';
     html += '<div class="group-info"><div class="group-deck">' + escapeHtml(g.deck) + '</div>';
     html += '<div class="group-meta">' + date + ' · ' + g.chars.length + ' character' + (g.chars.length !== 1 ? 's' : '') + '</div></div>';
-    html += '<button class="btn btn-danger btn-sm" onclick="confirmRemoveGroup(\'' + escapedKey + '\')">Remove group</button>';
+    html += '<button class="btn btn-danger btn-sm" data-remove-group="' + idx + '">Remove group</button>';
     html += '</div>';
     html += '<div class="known-group-body"><table><tbody>';
     g.chars.forEach(function(ch) {
@@ -2984,6 +2996,29 @@ function renderKnownViewer() {
     html += '</tbody></table></div></div>';
   });
   body.innerHTML = html;
+
+  body.querySelectorAll('[data-remove-group]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var gi = parseInt(btn.getAttribute('data-remove-group'));
+      var g = groups[groupOrder[gi]];
+      if (!g) return;
+      var charSet = new Set(g.chars);
+      if (confirm('Remove this group of ' + g.chars.length + ' character' + (g.chars.length !== 1 ? 's' : '') + ' from known list?')) {
+        var entries2 = getKnownEntries(knownViewerMode);
+        var startTime = new Date(g.tsStart).getTime() - 1000;
+        var endTime = g._lastTime + 1000;
+        entries2 = entries2.filter(function(e) {
+          if (e.deck !== g.deck) return true;
+          var t = new Date(e.ts).getTime();
+          if (t >= startTime && t <= endTime && charSet.has(e.ch)) return false;
+          return true;
+        });
+        saveKnownEntries(knownViewerMode, entries2);
+        renderKnownViewer();
+        renderProgressStats();
+      }
+    });
+  });
 }
 
 function escapeHtml(str) {
@@ -3000,15 +3035,6 @@ function formatGroupDate(isoStr) {
   } catch (e) { return isoStr; }
 }
 
-function confirmRemoveGroup(groupKey) {
-  var entries = getKnownEntries(knownViewerMode);
-  var count = entries.filter(function(e) { return (e.ts + '|' + e.deck) === groupKey; }).length;
-  if (confirm('Remove this group of ' + count + ' character' + (count !== 1 ? 's' : '') + ' from known list?')) {
-    removeKnownGroup(knownViewerMode, groupKey);
-    renderKnownViewer();
-    renderProgressStats();
-  }
-}
 
 /* ============================================================
    FONT LOADING FOR PDF
