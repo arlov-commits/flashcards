@@ -553,7 +553,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.11';
+var APP_VERSION = 'v2.12';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -3105,17 +3105,51 @@ function formatGroupDate(isoStr) {
 /* ============================================================
    DATA EXPORT (CSV, TSV, JSON, XLSX, Anki, Google Sheets)
    ============================================================ */
+function buildSetHierarchy() {
+  var map = {};
+  for (var tk in manifest.traditions) {
+    var trad = manifest.traditions[tk];
+    if (!trad.subcategories) continue;
+    for (var sck in trad.subcategories) {
+      var subcat = trad.subcategories[sck];
+      var subcatName = getMgmtSubcatRename(sck) || subcat.display_name || sck;
+      if (!subcat.sets) continue;
+      for (var sk in subcat.sets) {
+        var si = subcat.sets[sk];
+        var r = getMgmtRename(sk);
+        map[sk] = {
+          tradition: trad.display_name || tk,
+          subcategory: subcatName,
+          set_name: r ? r.eng_name : (si.eng_name || sk),
+          source_eng: (si.eng_tag_sample || ''),
+          source_ch: (si.ch_tag_sample || '')
+        };
+      }
+    }
+  }
+  return map;
+}
+
 function getExportRows() {
   var fields = currentTradition ? currentTradition.fields : [];
   var headers = fields.map(function(f) { return f.key; });
+  var hier = buildSetHierarchy();
+  var extraHeaders = ['source_eng', 'source_ch', 'category_1', 'category_2', 'category_3'];
+  var allHeaders = headers.concat(extraHeaders);
   var rows = [];
   allCards.forEach(function(c) {
     if (!c._included) return;
     var row = {};
     headers.forEach(function(h) { row[h] = c[h] || ''; });
+    row.source_eng = (c.eng_tag || '').trim();
+    row.source_ch = (c.ch_tag || '').trim();
+    var h = hier[c._setKey];
+    row.category_1 = h ? h.tradition : (currentTradition ? currentTradition.display_name : '');
+    row.category_2 = h ? h.subcategory : '';
+    row.category_3 = '';
     rows.push(row);
   });
-  return { headers: headers, rows: rows };
+  return { headers: allHeaders, rows: rows };
 }
 
 function toDSV(headers, rows, sep) {
