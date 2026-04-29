@@ -553,7 +553,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.12';
+var APP_VERSION = 'v2.13';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -1318,6 +1318,12 @@ function exportManifest() {
 async function init() {
   try {
     document.getElementById('version-tag').textContent = APP_VERSION;
+    var savedGrid = localStorage.getItem('pdf_grid');
+    if (savedGrid && GRID_DEFAULTS[savedGrid]) {
+      currentGrid = savedGrid;
+      var sel = document.getElementById('pdf-grid-select');
+      if (sel) sel.value = currentGrid;
+    }
     loadCardDesign();
     loadAccordionState();
     manifest = await loadManifestFromDirectoryCSV();
@@ -3520,6 +3526,7 @@ async function generatePDF() {
         .join('_');
     }
     pdf.save('flashcards-' + setNames + '.pdf');
+    localStorage.setItem('pdf_grid', currentGrid);
 
     // Add all printed cards to known list for current study mode
     // Group by deck so each card is attributed to its own deck
