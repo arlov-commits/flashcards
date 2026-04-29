@@ -64,6 +64,21 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .gs-empty, .gs-loading { padding: 14px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
 .gs-mark { background: #ffe89a; border-radius: 2px; padding: 0 1px; }
 
+/* Export dropdown */
+.export-menu {
+  display: none; position: absolute; top: 100%; left: 0; z-index: 20;
+  margin-top: 4px; min-width: 150px; background: var(--bg-card);
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10); padding: 4px 0;
+}
+.export-menu.open { display: block; }
+.export-menu button {
+  display: block; width: 100%; text-align: left; padding: 7px 14px;
+  background: none; border: none; cursor: pointer; font-size: 0.84rem;
+  color: var(--text);
+}
+.export-menu button:hover { background: rgba(154,121,72,0.08); }
+
 /* Accordion */
 .accordion-section { margin-top: 16px; }
 .accordion-tradition { background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
@@ -476,7 +491,20 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
     <div class="download-section">
       <h2>Download</h2>
-      <button class="btn btn-primary" onclick="generatePDF()" style="margin-top:8px">Download PDF</button>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="generatePDF()">Download PDF</button>
+        <div class="export-dropdown" style="position:relative;display:inline-block">
+          <button class="btn btn-outline btn-sm" onclick="this.nextElementSibling.classList.toggle('open')" style="font-size:0.82rem">Download Data ▾</button>
+          <div class="export-menu">
+            <button onclick="exportData('csv')">CSV</button>
+            <button onclick="exportData('tsv')">TSV</button>
+            <button onclick="exportData('json')">JSON</button>
+            <button onclick="exportData('xlsx')">XLSX</button>
+            <button onclick="exportData('anki')">Anki</button>
+            <button onclick="exportData('gsheet')">Google Sheets</button>
+          </div>
+        </div>
+      </div>
       <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Checked cards will be added to your known list.</p>
     </div>
   </div>
@@ -520,7 +548,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.8';
+var APP_VERSION = 'v2.9';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -3035,6 +3063,112 @@ function formatGroupDate(isoStr) {
   } catch (e) { return isoStr; }
 }
 
+
+/* ============================================================
+   DATA EXPORT (CSV, TSV, JSON, XLSX, Anki, Google Sheets)
+   ============================================================ */
+function getExportRows() {
+  var fields = currentTradition ? currentTradition.fields : [];
+  var headers = fields.map(function(f) { return f.key; });
+  var rows = [];
+  allCards.forEach(function(c) {
+    if (!c._included) return;
+    var row = {};
+    headers.forEach(function(h) { row[h] = c[h] || ''; });
+    rows.push(row);
+  });
+  return { headers: headers, rows: rows };
+}
+
+function toDSV(headers, rows, sep) {
+  function esc(v) {
+    v = String(v);
+    if (v.indexOf(sep) !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1)
+      return '"' + v.replace(/"/g, '""') + '"';
+    return v;
+  }
+  var lines = [headers.map(esc).join(sep)];
+  rows.forEach(function(r) {
+    lines.push(headers.map(function(h) { return esc(r[h]); }).join(sep));
+  });
+  return lines.join('\n');
+}
+
+function downloadBlob(blob, filename) {
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.export-dropdown')) {
+    document.querySelectorAll('.export-menu.open').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
+
+function exportData(fmt) {
+  document.querySelectorAll('.export-menu').forEach(function(m) { m.classList.remove('open'); });
+  var d = getExportRows();
+  if (d.rows.length === 0) { alert('No cards selected to export.'); return; }
+  var baseName = (document.getElementById('customize-title').textContent || 'flashcards').replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  if (fmt === 'csv') {
+    var csv = toDSV(d.headers, d.rows, ',');
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), baseName + '.csv');
+
+  } else if (fmt === 'tsv') {
+    var tsv = toDSV(d.headers, d.rows, '\t');
+    downloadBlob(new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8' }), baseName + '.tsv');
+
+  } else if (fmt === 'json') {
+    var json = JSON.stringify(d.rows, null, 2);
+    downloadBlob(new Blob([json], { type: 'application/json;charset=utf-8' }), baseName + '.json');
+
+  } else if (fmt === 'anki') {
+    var lines = [];
+    d.rows.forEach(function(r) {
+      lines.push(d.headers.map(function(h) {
+        var v = String(r[h]);
+        if (v.indexOf('\t') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1)
+          return '"' + v.replace(/"/g, '""') + '"';
+        return v;
+      }).join('\t'));
+    });
+    downloadBlob(new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }), baseName + '_anki.txt');
+
+  } else if (fmt === 'xlsx') {
+    exportXLSX(d, baseName);
+
+  } else if (fmt === 'gsheet') {
+    var tsv2 = toDSV(d.headers, d.rows, '\t');
+    navigator.clipboard.writeText(tsv2).then(function() {
+      alert('Data copied to clipboard (' + d.rows.length + ' rows). Open Google Sheets and paste (Ctrl+V).');
+    }).catch(function() {
+      downloadBlob(new Blob([tsv2], { type: 'text/tab-separated-values;charset=utf-8' }), baseName + '_gsheet.tsv');
+      alert('Clipboard unavailable — downloaded as TSV. Open in Google Sheets via File → Import.');
+    });
+  }
+}
+
+function exportXLSX(d, baseName) {
+  // Minimal XLSX using a single-sheet XML spreadsheet saved as .xlsx-compatible XML
+  var xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<?mso-application progid="Excel.Sheet"?>\n';
+  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ';
+  xml += 'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
+  xml += '<Worksheet ss:Name="Flashcards"><Table>\n';
+  xml += '<Row>' + d.headers.map(function(h) {
+    return '<Cell><Data ss:Type="String">' + escapeHtml(h) + '</Data></Cell>';
+  }).join('') + '</Row>\n';
+  d.rows.forEach(function(r) {
+    xml += '<Row>' + d.headers.map(function(h) {
+      return '<Cell><Data ss:Type="String">' + escapeHtml(r[h]) + '</Data></Cell>';
+    }).join('') + '</Row>\n';
+  });
+  xml += '</Table></Worksheet></Workbook>';
+  downloadBlob(new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8' }), baseName + '.xls');
+}
 
 /* ============================================================
    FONT LOADING FOR PDF
