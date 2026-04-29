@@ -493,6 +493,11 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <h2>Download</h2>
       <div style="display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap">
         <button class="btn btn-primary" onclick="generatePDF()">Download PDF</button>
+        <select id="pdf-grid-select" style="font-size:0.82rem;padding:4px 8px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--bg-card);color:var(--text);cursor:pointer">
+          <option value="4x4-landscape">4 × 4 landscape (16)</option>
+          <option value="5x4-portrait">5 × 4 portrait (20)</option>
+          <option value="4x5-portrait">4 × 5 portrait (20)</option>
+        </select>
         <div class="export-dropdown" style="position:relative;display:inline-block">
           <button class="btn btn-outline btn-sm" onclick="this.nextElementSibling.classList.toggle('open')" style="font-size:0.82rem">Download Data ▾</button>
           <div class="export-menu">
@@ -548,7 +553,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.9';
+var APP_VERSION = 'v2.10';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -3233,7 +3238,19 @@ async function generatePDF() {
 
     loadingText.textContent = 'Generating cards\u2026';
 
-    var pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
+    // Grid layout from selector
+    var gridSel = (document.getElementById('pdf-grid-select') || {}).value || '4x4-landscape';
+    var gridParts = gridSel.split('-');
+    var gridDims = gridParts[0].split('x');
+    var COLS = parseInt(gridDims[0]);
+    var ROWS = parseInt(gridDims[1]);
+    var CARDS_PER_PAGE = COLS * ROWS;
+    var orient = gridParts[1] || 'landscape';
+
+    var pageW = orient === 'landscape' ? 279.4 : 215.9;
+    var pageH = orient === 'landscape' ? 215.9 : 279.4;
+
+    var pdf = new jsPDF({ orientation: orient, unit: 'mm', format: 'letter' });
 
     // Register loaded fonts in all 4 styles
     fontKeys.forEach(function(fk) {
@@ -3249,8 +3266,8 @@ async function generatePDF() {
 
     var marginX = 7.62;
     var marginY = 7.62;
-    var wCard = (279.4 - 2 * marginX) / 4;
-    var hCard = (215.9 - 2 * marginY) / 4;
+    var wCard = (pageW - 2 * marginX) / COLS;
+    var hCard = (pageH - 2 * marginY) / ROWS;
 
     var cards = allCards.filter(function(c) { return c._included; });
 
@@ -3396,8 +3413,8 @@ async function generatePDF() {
     // --- Page generation ---
     var isFirstPage = true;
 
-    for (var i = 0; i < cards.length; i += 16) {
-      var chunk = cards.slice(i, i + 16);
+    for (var i = 0; i < cards.length; i += CARDS_PER_PAGE) {
+      var chunk = cards.slice(i, i + CARDS_PER_PAGE);
 
       if (!isFirstPage) pdf.addPage();
       isFirstPage = false;
@@ -3405,8 +3422,8 @@ async function generatePDF() {
       // Column-first order for cutting stack: col0 top-to-bottom, then col1, etc.
       for (var idx = 0; idx < chunk.length; idx++) {
         var card = chunk[idx];
-        var col = Math.floor(idx / 4);
-        var row = idx % 4;
+        var col = Math.floor(idx / ROWS);
+        var row = idx % ROWS;
         var x = marginX + col * wCard;
         var yPos = marginY + row * hCard;
         drawGridCell(x, yPos);
@@ -3417,8 +3434,8 @@ async function generatePDF() {
 
       for (var idx2 = 0; idx2 < chunk.length; idx2++) {
         var card2 = chunk[idx2];
-        var col2 = 3 - Math.floor(idx2 / 4);
-        var row2 = idx2 % 4;
+        var col2 = (COLS - 1) - Math.floor(idx2 / ROWS);
+        var row2 = idx2 % ROWS;
         var x2 = marginX + col2 * wCard;
         var yPos2 = marginY + row2 * hCard;
         drawGridCell(x2, yPos2);
