@@ -330,10 +330,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <!-- SCREEN 0: Tradition Picker (initial) -->
   <div id="screen-pick" class="screen active">
     <div class="landing-header">
-      <a class="known-corner known-corner-a" id="known-corner-a-pick" onclick="navigateTo('known');switchKnownViewerMode('A')">
+      <a class="known-corner known-corner-a" id="known-corner-a-pick" onclick="openCornerKnownViewer(this)">
         <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a-pick">0</span><span class="kc-total" id="kc-total-a-pick"></span>
       </a>
-      <a class="known-corner known-corner-b" id="known-corner-b-pick" onclick="navigateTo('known');switchKnownViewerMode('B')">
+      <a class="known-corner known-corner-b" id="known-corner-b-pick" onclick="openCornerKnownViewer(this)">
         <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b-pick">0</span><span class="kc-total" id="kc-total-b-pick"></span>
       </a>
       <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag-pick"></span></h1>
@@ -345,10 +345,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <!-- SCREEN 1: Landing (sets browser, scoped to picked tradition) -->
   <div id="screen-landing" class="screen">
     <div class="landing-header">
-      <a class="known-corner known-corner-a" id="known-corner-a" onclick="navigateTo('known');switchKnownViewerMode('A')">
+      <a class="known-corner known-corner-a" id="known-corner-a" onclick="openCornerKnownViewer(this)">
         <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a">0</span><span class="kc-total" id="kc-total-a"></span>
       </a>
-      <a class="known-corner known-corner-b" id="known-corner-b" onclick="navigateTo('known');switchKnownViewerMode('B')">
+      <a class="known-corner known-corner-b" id="known-corner-b" onclick="openCornerKnownViewer(this)">
         <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b">0</span><span class="kc-total" id="kc-total-b"></span>
       </a>
       <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
@@ -557,7 +557,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <a class="back-link" onclick="navigateTo('landing')">&larr; Back</a>
       <span>Known Characters</span>
     </div>
-    <div class="known-mode-tabs">
+    <div class="known-mode-tabs" id="known-mode-tabs">
       <button class="known-mode-tab active" data-kmode="A" onclick="switchKnownViewerMode('A')">Type A</button>
       <button class="known-mode-tab" data-kmode="B" onclick="switchKnownViewerMode('B')">Type B</button>
     </div>
@@ -620,7 +620,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.16';
+var APP_VERSION = 'v2.17';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -2396,7 +2396,7 @@ function renderModeButtons() {
    KNOWN LIST INTEGRATION
    ============================================================ */
 function applyKnownToCards() {
-  var known = getKnownList(studyMode);
+  var known = getKnownList(effectiveKnownMode());
   var knownCount = 0;
   for (var i = 0; i < allCards.length; i++) {
     var ch = allCards[i]._chinese;
@@ -2608,7 +2608,7 @@ function renderFieldMapping() {
 function renderCardTable() {
   var fields = currentTradition.fields;
   var searchVal = (document.getElementById('card-search').value || '').toLowerCase();
-  var known = getKnownList(studyMode);
+  var known = getKnownList(effectiveKnownMode());
 
   // Build sorted display list: unknowns first (CSV order), then knowns (CSV order)
   var unknowns = [];
@@ -2685,21 +2685,22 @@ function renderCardTable() {
     (function(c, btn) {
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
-        var kn = getKnownList(studyMode);
+        var kmode = effectiveKnownMode();
+        var kn = getKnownList(kmode);
         var isNowKnown = c._chinese && kn.has(c._chinese);
         if (isNowKnown) {
-          removeFromKnown(studyMode, c._chinese);
+          removeFromKnown(kmode, c._chinese);
           btn.className = 'known-toggle';
           btn.textContent = ' ';
           btn.title = 'Mark as known';
         } else if (c._chinese) {
-          addToKnown(studyMode, [c._chinese], getDeckLabelForCard(c));
+          addToKnown(kmode, [c._chinese], getDeckLabelForCard(c));
           btn.className = 'known-toggle is-known';
           btn.textContent = '✓';
           btn.title = 'Mark as not known';
         }
         // Update known bar count
-        var kn2 = getKnownList(studyMode);
+        var kn2 = getKnownList(kmode);
         var kc = 0;
         for (var j = 0; j < allCards.length; j++) {
           if (allCards[j]._chinese && kn2.has(allCards[j]._chinese)) kc++;
@@ -2717,7 +2718,7 @@ function renderCardTable() {
 function updateCardCount() {
   var total = allCards.length;
   var included = allCards.filter(function(c) { return c._included; }).length;
-  var known = getKnownList(studyMode);
+  var known = getKnownList(effectiveKnownMode());
   var knownCount = 0;
   for (var i = 0; i < allCards.length; i++) {
     if (allCards[i]._chinese && known.has(allCards[i]._chinese)) knownCount++;
@@ -3143,42 +3144,79 @@ function getTotalCardCount() {
   return _distinctChineseCount || 0;
 }
 
+// Pali uses a single 'P' known mode (no Type A / Type B split).
+// Chinese uses 'A' and 'B'. effectiveKnownMode() resolves the active
+// mode for the current tradition context.
+function isPaliContext() {
+  return currentTraditionKey === 'pali' || pickedTraditionKey === 'pali';
+}
+function effectiveKnownMode() {
+  if (currentTraditionKey === 'pali') return 'P';
+  return studyMode === 'C' ? 'A' : studyMode;
+}
+function openCornerKnownViewer(cornerEl) {
+  var mode = (cornerEl && cornerEl.dataset && cornerEl.dataset.kmode) || 'A';
+  navigateTo('known');
+  switchKnownViewerMode(mode);
+}
+
 function renderProgressStats() {
   var knownA = getKnownList('A').size;
   var knownB = getKnownList('B').size;
+  var knownP = getKnownList('P').size;
   var uploads = getSavedUploads().length;
   var el = document.getElementById('progress-stats');
   var parts = [];
   if (knownA) parts.push(knownA + ' known (Type A)');
   if (knownB) parts.push(knownB + ' known (Type B)');
+  if (knownP) parts.push(knownP + ' Pāli known');
   if (uploads) parts.push(uploads + ' upload' + (uploads > 1 ? 's' : ''));
   el.textContent = parts.length ? parts.join(' · ') : 'No progress saved yet.';
 
   // Update known corner counters
   var totalCards = getTotalCardCount();
   var totalStr = totalCards > 0 ? '/' + totalCards : '';
+  var paliCtx = isPaliContext();
 
-  // Update known corner counters on both the picker and landing screens
-  function setCorner(suffix, count, total) {
-    var corner = document.getElementById('known-corner-a' + suffix);
+  function setCorner(suffix) {
+    var cornerA = document.getElementById('known-corner-a' + suffix);
     var cornerB = document.getElementById('known-corner-b' + suffix);
-    if (corner) {
-      if (count.A > 0) {
-        corner.style.display = 'flex';
-        document.getElementById('kc-count-a' + suffix).textContent = count.A;
-        document.getElementById('kc-total-a' + suffix).textContent = total;
-      } else { corner.style.display = 'none'; }
-    }
-    if (cornerB) {
-      if (count.B > 0) {
-        cornerB.style.display = 'flex';
-        document.getElementById('kc-count-b' + suffix).textContent = count.B;
-        document.getElementById('kc-total-b' + suffix).textContent = total;
-      } else { cornerB.style.display = 'none'; }
+    var labelA = cornerA && cornerA.querySelector('.kc-label');
+    if (paliCtx) {
+      // Pali: single "Known" corner on the left, hide right corner.
+      if (cornerB) cornerB.style.display = 'none';
+      if (cornerA) {
+        if (knownP > 0) {
+          cornerA.style.display = 'flex';
+          if (labelA) labelA.textContent = 'Known';
+          document.getElementById('kc-count-a' + suffix).textContent = knownP;
+          document.getElementById('kc-total-a' + suffix).textContent = totalStr;
+          cornerA.dataset.kmode = 'P';
+        } else { cornerA.style.display = 'none'; }
+      }
+    } else {
+      // Chinese (or unpicked): Type A left, Type B right.
+      if (cornerA) {
+        if (labelA) labelA.textContent = 'Type A';
+        cornerA.dataset.kmode = 'A';
+        if (knownA > 0) {
+          cornerA.style.display = 'flex';
+          document.getElementById('kc-count-a' + suffix).textContent = knownA;
+          document.getElementById('kc-total-a' + suffix).textContent = totalStr;
+        } else { cornerA.style.display = 'none'; }
+      }
+      if (cornerB) {
+        cornerB.dataset.kmode = 'B';
+        if (knownB > 0) {
+          cornerB.style.display = 'flex';
+          document.getElementById('kc-count-b' + suffix).textContent = knownB;
+          document.getElementById('kc-total-b' + suffix).textContent = totalStr;
+        } else { cornerB.style.display = 'none'; }
+      }
     }
   }
-  setCorner('',      { A: knownA, B: knownB }, totalStr);
-  setCorner('-pick', { A: knownA, B: knownB }, totalStr);
+  setCorner('');
+  setCorner('-pick');
 }
 
 /* ============================================================
@@ -3193,13 +3231,31 @@ function switchKnownViewerMode(mode) {
 }
 
 function renderKnownViewer() {
+  // Render tabs dynamically: Pali ('P') is single-mode, Chinese has Type A/B.
+  var tabsEl = document.getElementById('known-mode-tabs');
+  var modes = (knownViewerMode === 'P')
+    ? [{ key: 'P', label: 'Known' }]
+    : [{ key: 'A', label: 'Type A' }, { key: 'B', label: 'Type B' }];
+  if (tabsEl) {
+    if (modes.length === 1) {
+      tabsEl.style.display = 'none';
+    } else {
+      tabsEl.style.display = '';
+      tabsEl.innerHTML = modes.map(function(m) {
+        return '<button class="known-mode-tab' + (m.key === knownViewerMode ? ' active' : '') +
+               '" data-kmode="' + m.key + '" onclick="switchKnownViewerMode(\'' + m.key + '\')">' + m.label + '</button>';
+      }).join('');
+    }
+  }
+  var modeLabel = (modes.find(function(m) { return m.key === knownViewerMode; }) || { label: knownViewerMode }).label;
+
   var entries = getKnownEntries(knownViewerMode);
   var body = document.getElementById('known-viewer-body');
   var countEl = document.getElementById('known-viewer-count');
-  countEl.textContent = entries.length + ' characters known (Type ' + knownViewerMode + ')';
+  countEl.textContent = entries.length + ' characters known (' + modeLabel + ')';
 
   if (entries.length === 0) {
-    body.innerHTML = '<div class="known-empty">No known characters yet for Type ' + knownViewerMode + '.</div>';
+    body.innerHTML = '<div class="known-empty">No known characters yet (' + modeLabel + ').</div>';
     return;
   }
 
@@ -3724,7 +3780,7 @@ async function generatePDF() {
     });
     var addedAny = false;
     for (var deckName in cardsByDeck) {
-      addToKnown(studyMode, cardsByDeck[deckName], deckName);
+      addToKnown(effectiveKnownMode(), cardsByDeck[deckName], deckName);
       addedAny = true;
     }
     if (addedAny) renderProgressStats();
