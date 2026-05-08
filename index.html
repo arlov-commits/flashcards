@@ -620,7 +620,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.20';
+var APP_VERSION = 'v2.21';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -1468,13 +1468,13 @@ async function loadManifestFromDirectoryCSV() {
         { key: 'english_secondary', label: 'English (alt)',     type: 'translation_alt', font_category: 'english' },
         { key: 'sanskrit',          label: 'Sanskrit',          type: 'reference',       font_category: 'english' },
         { key: 'sanskrit_root',     label: 'Skt root',          type: 'root',            font_category: 'english' },
-        { key: 'sanskrit_meaning',  label: 'Sanskrit meaning',  type: 'root_meaning',    font_category: 'english' }
+        { key: 'sanskrit_meaning',  label: 'Sanskrit meaning',  type: 'root_meaning',    font_category: 'english' },
+        { key: 'source_line',       label: 'Source',            type: 'source',          font_category: 'english' }
       ],
       meta_fields: {
-        pali_conf:   'P\u0101li gloss confidence (1-10)',
-        skt_conf:    'Sanskrit gloss confidence (1-10)',
-        eng_tag:     'Section tag (English)',
-        source_line: 'Original chant line'
+        pali_conf: 'P\u0101li gloss confidence (1-10)',
+        skt_conf:  'Sanskrit gloss confidence (1-10)',
+        eng_tag:   'Section tag (English)'
       },
       default_front: ['pali'],
       default_back: ['english_primary'],
@@ -2682,10 +2682,14 @@ function renderCardTable() {
   }
   var displayCards = unknowns.concat(knowns);
 
+  // Pali exposes source_line as a regular selectable field, so the
+  // standalone Source column would be redundant — hide it for Pali.
+  var showSourceCol = currentTraditionKey !== 'pali';
   var thead = document.getElementById('card-table-head');
   var thRow = '<tr><th style="width:36px;text-align:center"><input type="checkbox" id="select-all-cb" onchange="selectAllCards(this.checked)" checked></th>' +
     fields.map(function(f) { return '<th>' + f.label + '</th>'; }).join('') +
-    '<th>Source</th><th style="width:56px;text-align:center">Known</th></tr>';
+    (showSourceCol ? '<th>Source</th>' : '') +
+    '<th style="width:56px;text-align:center">Known</th></tr>';
   thead.innerHTML = thRow;
 
   // Sync select-all checkbox state
@@ -2728,10 +2732,12 @@ function renderCardTable() {
       }
       tr.appendChild(td);
     }
-    var srcTd = document.createElement('td');
-    srcTd.className = 'source-cell';
-    srcTd.textContent = getCardSourceLabel(card2);
-    tr.appendChild(srcTd);
+    if (showSourceCol) {
+      var srcTd = document.createElement('td');
+      srcTd.className = 'source-cell';
+      srcTd.textContent = getCardSourceLabel(card2);
+      tr.appendChild(srcTd);
+    }
 
     // "Known" toggle — independent of include checkbox, instant commit.
     var knownTd = document.createElement('td');
