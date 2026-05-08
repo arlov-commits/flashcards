@@ -620,7 +620,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.18';
+var APP_VERSION = 'v2.19';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -1468,7 +1468,7 @@ async function loadManifestFromDirectoryCSV() {
         { key: 'english_secondary', label: 'English (alt)',     type: 'translation_alt', font_category: 'english' },
         { key: 'sanskrit',          label: 'Sanskrit',          type: 'reference',       font_category: 'english' },
         { key: 'sanskrit_root',     label: 'Skt root',          type: 'root',            font_category: 'english' },
-        { key: 'root_meaning',      label: 'Root meaning',      type: 'root_meaning',    font_category: 'english' }
+        { key: 'sanskrit_meaning',  label: 'Sanskrit meaning',  type: 'root_meaning',    font_category: 'english' }
       ],
       meta_fields: {
         pali_conf:   'P\u0101li gloss confidence (1-10)',
@@ -1507,8 +1507,9 @@ async function loadManifestFromDirectoryCSV() {
     var aliasCh = (row.Alias_Ch || '').trim();
     var secOrder = parseInt(row.section_order) || 0;
 
-    // Skip blank rows or PENDING rows
+    // Skip blank rows or PENDING rows (PENDING may live in Name or Rename_to)
     if (!lang || !section || !name) return;
+    if (name.toUpperCase() === 'PENDING') return;
     if (renameTo.toUpperCase() === 'PENDING') return;
 
     var tradKey = lang.toLowerCase();
