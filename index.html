@@ -404,8 +404,8 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <span id="customize-title"></span>
     </div>
 
-    <h2>Study Mode</h2>
-    <div class="mode-selector">
+    <h2 id="study-mode-header">Study Mode</h2>
+    <div class="mode-selector" id="study-mode-selector">
       <button class="mode-btn active" data-mode="A" onclick="setStudyMode('A')">
         <span class="mode-label">Type A</span>
         <span class="mode-desc">Chinese + Pinyin front</span>
@@ -440,7 +440,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
     <div id="summary-text" class="summary-text"></div>
 
-    <a class="card-design-toggle" onclick="toggleCardDesign()">Card Design</a>
+    <a class="card-design-toggle" id="card-design-toggle-link" onclick="toggleCardDesign()">Card Design</a>
     <div id="card-design-panel" class="card-design-panel">
       <div class="design-section">
         <h3>Front</h3>
@@ -620,7 +620,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.17';
+var APP_VERSION = 'v2.18';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -2419,16 +2419,68 @@ function updateKnownBar() {
 /* ============================================================
    CUSTOMIZE SCREEN
    ============================================================ */
+function getSavedFieldMapping(tradKey) {
+  try {
+    var raw = JSON.parse(localStorage.getItem('field_mapping_' + tradKey) || 'null');
+    if (raw && Array.isArray(raw.front) && Array.isArray(raw.back)) return raw;
+  } catch (e) {}
+  return null;
+}
+function saveFieldMapping(tradKey, front, back) {
+  try { localStorage.setItem('field_mapping_' + tradKey, JSON.stringify({ front: front, back: back })); }
+  catch (e) {}
+}
+
+// Show / hide customize-screen sections that don't apply to Pali (study mode
+// selector, card design panel). For Pali we always show the field mapping
+// editor with the user's remembered selection.
+function applyTraditionUIForCustomize(isPali) {
+  var modeSelector = document.getElementById('study-mode-selector');
+  var modeHeader = document.getElementById('study-mode-header');
+  var modeSummary = document.getElementById('mode-field-summary');
+  var designToggle = document.getElementById('card-design-toggle-link');
+  var designPanel = document.getElementById('card-design-panel');
+  var fieldMapping = document.getElementById('field-mapping-section');
+
+  var hide = isPali ? 'none' : '';
+  if (modeSelector)  modeSelector.style.display = hide;
+  if (modeHeader)    modeHeader.style.display = hide;
+  if (modeSummary)   modeSummary.style.display = hide;
+  if (designToggle)  designToggle.style.display = hide;
+  if (designPanel) {
+    if (isPali) { designPanel.classList.remove('open'); designPanel.style.display = 'none'; }
+    else designPanel.style.display = '';
+  }
+  if (fieldMapping) {
+    // Pali always shows field mapping; for Chinese, setStudyMode toggles it.
+    if (isPali) fieldMapping.style.display = '';
+  }
+}
+
 async function goToCustomize() {
   if (!currentTradition) return;
   document.getElementById('customize-title').textContent = currentTradition.display_name;
-  studyMode = 'A';
+  var isPali = currentTraditionKey === 'pali';
+  applyTraditionUIForCustomize(isPali);
+
+  if (isPali) {
+    var saved = getSavedFieldMapping('pali');
+    if (saved) { frontFields = saved.front.slice(); backFields = saved.back.slice(); }
+    else {
+      frontFields = (currentTradition.default_front || []).slice();
+      backFields  = (currentTradition.default_back  || []).slice();
+    }
+    studyMode = 'C'; // custom field mapping, no A/B
+  } else {
+    studyMode = 'A';
+  }
+
   navigateTo('customize');
   await loadCards();
   applyKnownToCards();
   renderModeButtons();
   renderFieldMapping();
-  renderCardDesignInputs();
+  if (!isPali) renderCardDesignInputs();
   renderCardTable();
 }
 
@@ -2580,6 +2632,7 @@ function renderFieldMapping() {
         if (fcb.checked) { if (frontFields.indexOf(f.key) === -1) frontFields.push(f.key); }
         else { frontFields = frontFields.filter(function(k) { return k !== f.key; }); }
         updateSummary();
+        if (currentTraditionKey === 'pali') saveFieldMapping('pali', frontFields, backFields);
       });
     }
     fl.appendChild(fcb);
@@ -2596,6 +2649,7 @@ function renderFieldMapping() {
         if (bcb.checked) { if (backFields.indexOf(f.key) === -1) backFields.push(f.key); }
         else { backFields = backFields.filter(function(k) { return k !== f.key; }); }
         updateSummary();
+        if (currentTraditionKey === 'pali') saveFieldMapping('pali', frontFields, backFields);
       });
     }
     bl.appendChild(bcb);
