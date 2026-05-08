@@ -620,7 +620,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.19';
+var APP_VERSION = 'v2.20';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -2721,7 +2721,11 @@ function renderCardTable() {
     for (var fi = 0; fi < fields.length; fi++) {
       var td = document.createElement('td');
       td.textContent = card2[fields[fi].key] || '';
-      if (fields[fi].type === 'target_lang') td.className = 'chinese-cell';
+      // Boost size only for Chinese-script target_lang cells; Pāli uses
+      // Latin-with-diacritics, which renders fine at the regular row size.
+      if (fields[fi].type === 'target_lang' && fields[fi].font_category === 'chinese') {
+        td.className = 'chinese-cell';
+      }
       tr.appendChild(td);
     }
     var srcTd = document.createElement('td');
