@@ -302,13 +302,48 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .upload-confirm { display: flex; align-items: center; gap: 12px; background: #fdf5f0; border: 1.5px solid #c4956a; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; font-size: 0.88rem; color: var(--text); }
 .upload-confirm .confirm-text { flex: 1; }
 .upload-confirm .btn { padding: 5px 12px; font-size: 0.82rem; }
+
+/* Tradition picker (initial screen) */
+.tradition-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+@media (max-width: 600px) { .tradition-picker { grid-template-columns: 1fr; } }
+.trad-card {
+  background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius);
+  padding: 28px 20px; cursor: pointer; text-align: center;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.trad-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 14px rgba(44,36,24,0.10); }
+.trad-card.disabled { opacity: 0.55; cursor: not-allowed; }
+.trad-card.disabled:hover { border-color: var(--border); transform: none; box-shadow: none; }
+.trad-card h2 { font-size: 1.3rem; margin-bottom: 4px; color: var(--accent); }
+.trad-card .trad-script { font-size: 1.1rem; color: var(--text); margin: 6px 0 10px; font-style: italic; }
+.trad-card .trad-stats { font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; }
+.trad-card .trad-status { font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+.pick-section { margin-top: 24px; }
+.pick-section h2 { font-size: 1.05rem; color: var(--text-muted); font-weight: 500; margin-bottom: 10px; }
+.switch-link { color: var(--accent); cursor: pointer; font-size: 0.85rem; text-decoration: none; }
+.switch-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- SCREEN 1: Landing -->
-  <div id="screen-landing" class="screen active">
+  <!-- SCREEN 0: Tradition Picker (initial) -->
+  <div id="screen-pick" class="screen active">
+    <div class="landing-header">
+      <a class="known-corner known-corner-a" id="known-corner-a-pick" onclick="navigateTo('known');switchKnownViewerMode('A')">
+        <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a-pick">0</span><span class="kc-total" id="kc-total-a-pick"></span>
+      </a>
+      <a class="known-corner known-corner-b" id="known-corner-b-pick" onclick="navigateTo('known');switchKnownViewerMode('B')">
+        <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b-pick">0</span><span class="kc-total" id="kc-total-b-pick"></span>
+      </a>
+      <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag-pick"></span></h1>
+      <p>Choose a liturgical tradition to begin.</p>
+    </div>
+    <div class="tradition-picker" id="tradition-picker"></div>
+  </div>
+
+  <!-- SCREEN 1: Landing (sets browser, scoped to picked tradition) -->
+  <div id="screen-landing" class="screen">
     <div class="landing-header">
       <a class="known-corner known-corner-a" id="known-corner-a" onclick="navigateTo('known');switchKnownViewerMode('A')">
         <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a">0</span><span class="kc-total" id="kc-total-a"></span>
@@ -317,10 +352,11 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b">0</span><span class="kc-total" id="kc-total-b"></span>
       </a>
       <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
-      <p>Select a liturgical tradition to browse card sets, or upload your own flashcard data.</p>
+      <p id="landing-subtitle">Select a liturgical tradition to browse card sets, or upload your own flashcard data.</p>
+      <p style="margin-top:6px"><a class="switch-link" onclick="navigateTo('pick')">&larr; Switch tradition</a></p>
     </div>
     <div class="manage-bar">
-      <h2 style="margin-bottom:0">Browse Card Sets</h2>
+      <h2 id="landing-browse-title" style="margin-bottom:0">Browse Card Sets</h2>
       <div style="display:flex;gap:6px">
         <button class="btn btn-outline btn-sm" id="force-refresh-btn" onclick="forceRefreshFromGitHub()" title="Re-fetch latest data files from GitHub, bypassing cache">Refresh</button>
         <button class="btn btn-outline btn-sm" id="manage-toggle-btn" onclick="toggleManageMode()">Manage</button>
@@ -584,7 +620,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.15';
+var APP_VERSION = 'v2.16';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -1349,6 +1385,8 @@ function exportManifest() {
 async function init() {
   try {
     document.getElementById('version-tag').textContent = APP_VERSION;
+    var vp = document.getElementById('version-tag-pick');
+    if (vp) vp.textContent = APP_VERSION;
     var savedGrid = localStorage.getItem('pdf_grid');
     if (savedGrid && GRID_DEFAULTS[savedGrid]) {
       currentGrid = savedGrid;
@@ -1359,6 +1397,7 @@ async function init() {
     loadAccordionState();
     manifest = await loadManifestFromDirectoryCSV();
     applyMgmtOverlay();
+    renderPickScreen();
     renderLanding();
     setupUpload();
     setupImport();
@@ -1368,21 +1407,35 @@ async function init() {
     computeDistinctChineseCount().then(function() { renderProgressStats(); });
     renderProgressStats();
   } catch (e) {
-    document.getElementById('accordion-container').innerHTML =
-      '<p style="color:red">Failed to load flashcard_directory.csv.</p>';
+    var pickerEl = document.getElementById('tradition-picker');
+    if (pickerEl) pickerEl.innerHTML = '<p style="color:red">Failed to load flashcard directory.</p>';
+    var accEl = document.getElementById('accordion-container');
+    if (accEl) accEl.innerHTML = '<p style="color:red">Failed to load flashcard directory.</p>';
     console.error(e);
   }
 }
 
 /* ============================================================
-   LOAD MANIFEST FROM flashcard_directory.csv
-   CSV columns: Language, Section, Name, Rename_to, Alias_Eng, Alias_Ch, section_order
+   LOAD MANIFEST FROM flashcard_directory*.csv
+   Chinese CSV columns: Language, Section, Name, Rename_to, Alias_Eng, Alias_Ch, section_order
+   Pali CSV columns:    Language, Section, Name, Alias, section_order
    ============================================================ */
 async function loadManifestFromDirectoryCSV() {
-  var resp = await fetch('flashcard_directory.csv');
-  if (!resp.ok) throw new Error('flashcard_directory.csv not found');
-  var csvText = await resp.text();
-  var parsed = Papa.parse(csvText.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+  var directoryFiles = ['flashcard_directory.csv', 'flashcard_directory_pali.csv'];
+  var dirTexts = await Promise.all(directoryFiles.map(function(f) {
+    return fetch(f).then(function(r) {
+      if (!r.ok) { console.warn(f + ' not found'); return ''; }
+      return r.text();
+    }).catch(function(e) { console.warn('Failed to fetch ' + f, e); return ''; });
+  }));
+  var combinedRows = [];
+  dirTexts.forEach(function(csvText) {
+    if (!csvText) return;
+    var p = Papa.parse(csvText.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+    (p.data || []).forEach(function(row) { combinedRows.push(row); });
+  });
+  if (combinedRows.length === 0) throw new Error('No flashcard directory rows loaded');
+  var parsed = { data: combinedRows };
 
   // Hardcoded tradition field configs (formerly in manifest.json)
   var TRADITION_CONFIGS = {
@@ -1407,9 +1460,26 @@ async function loadManifestFromDirectoryCSV() {
     },
     pali: {
       display_name: 'P\u0101li Liturgy',
-      available: false,
-      fields: [], meta_fields: {}, default_front: [], default_back: [],
-      tag_field: '', subcategories: {}
+      available: true,
+      fields: [
+        { key: 'pali',              label: 'P\u0101li',         type: 'target_lang',     font_category: 'english' },
+        { key: 'lemma',             label: 'Lemma',             type: 'lemma',           font_category: 'english' },
+        { key: 'english_primary',   label: 'English',           type: 'translation',     font_category: 'english' },
+        { key: 'english_secondary', label: 'English (alt)',     type: 'translation_alt', font_category: 'english' },
+        { key: 'sanskrit',          label: 'Sanskrit',          type: 'reference',       font_category: 'english' },
+        { key: 'sanskrit_root',     label: 'Skt root',          type: 'root',            font_category: 'english' },
+        { key: 'root_meaning',      label: 'Root meaning',      type: 'root_meaning',    font_category: 'english' }
+      ],
+      meta_fields: {
+        pali_conf:   'P\u0101li gloss confidence (1-10)',
+        skt_conf:    'Sanskrit gloss confidence (1-10)',
+        eng_tag:     'Section tag (English)',
+        source_line: 'Original chant line'
+      },
+      default_front: ['pali'],
+      default_back: ['english_primary'],
+      tag_field: 'eng_tag',
+      subcategories: {}
     }
   };
 
@@ -1432,7 +1502,8 @@ async function loadManifestFromDirectoryCSV() {
     var section = (row.Section || '').trim();
     var name = (row.Name || '').trim();
     var renameTo = (row.Rename_to || '').trim();
-    var aliasEng = (row.Alias_Eng || '').trim();
+    // Pali CSV uses a single "Alias" column; Chinese CSV uses Alias_Eng / Alias_Ch.
+    var aliasEng = (row.Alias_Eng || row.Alias || '').trim();
     var aliasCh = (row.Alias_Ch || '').trim();
     var secOrder = parseInt(row.section_order) || 0;
 
@@ -1510,9 +1581,9 @@ async function loadManifestFromDirectoryCSV() {
    HISTORY
    ============================================================ */
 function setupHistory() {
-  history.replaceState({ screen: 'landing' }, '', '');
+  history.replaceState({ screen: 'pick' }, '', '');
   window.addEventListener('popstate', function(e) {
-    showScreen((e.state && e.state.screen) || 'landing');
+    showScreen((e.state && e.state.screen) || 'pick');
   });
 }
 
@@ -1525,8 +1596,69 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('screen-' + name).classList.add('active');
   if (name === 'known') renderKnownViewer();
-  if (name === 'landing') renderProgressStats();
+  if (name === 'pick') { renderPickScreen(); renderProgressStats(); }
+  if (name === 'landing') { renderLanding(); renderProgressStats(); }
   window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   TRADITION PICKER (initial screen)
+   ============================================================ */
+let pickedTraditionKey = null;
+
+function renderPickScreen() {
+  var container = document.getElementById('tradition-picker');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!manifest || !manifest.traditions) return;
+
+  // Display traditions in a stable order: chinese first, pali second, then any others.
+  var preferredOrder = ['chinese', 'pali'];
+  var keys = Object.keys(manifest.traditions);
+  keys.sort(function(a, b) {
+    var ai = preferredOrder.indexOf(a); if (ai === -1) ai = 99;
+    var bi = preferredOrder.indexOf(b); if (bi === -1) bi = 99;
+    return ai - bi;
+  });
+
+  keys.forEach(function(tradKey) {
+    var trad = manifest.traditions[tradKey];
+    var allSets = getAllSets(trad);
+    var setKeys = Object.keys(allSets);
+    var totalCards = 0;
+    setKeys.forEach(function(k) { totalCards += allSets[k].total_cards || 0; });
+
+    var card = document.createElement('div');
+    card.className = 'trad-card' + (trad.available ? '' : ' disabled');
+    var script = tradKey === 'chinese' ? '中文' : (tradKey === 'pali' ? 'Pāli' : '');
+    var statsLine = trad.available
+      ? (setKeys.length + ' set' + (setKeys.length === 1 ? '' : 's') + ' · ' + totalCards + ' cards')
+      : 'Coming soon';
+    card.innerHTML =
+      '<h2>' + trad.display_name + '</h2>' +
+      (script ? '<div class="trad-script">' + script + '</div>' : '') +
+      '<div class="trad-stats">' + statsLine + '</div>';
+    if (trad.available) {
+      (function(tk) {
+        card.addEventListener('click', function() { pickTradition(tk); });
+      })(tradKey);
+    }
+    container.appendChild(card);
+  });
+}
+
+function pickTradition(tradKey) {
+  var trad = manifest && manifest.traditions && manifest.traditions[tradKey];
+  if (!trad || !trad.available) return;
+  // Switching tradition resets cross-tradition selections.
+  if (pickedTraditionKey !== tradKey) {
+    selectedSets = {};
+    isUploadMode = false;
+  }
+  pickedTraditionKey = tradKey;
+  currentTraditionKey = tradKey;
+  currentTradition = trad;
+  navigateTo('landing');
 }
 
 /* ============================================================
@@ -1627,11 +1759,26 @@ function renderLanding() {
   if (manageMode) container.classList.add('manage-mode');
   else container.classList.remove('manage-mode');
 
+  // Update subtitle / browse heading to reflect the picked tradition
+  var titleEl = document.getElementById('landing-browse-title');
+  var subEl = document.getElementById('landing-subtitle');
+  if (pickedTraditionKey && manifest.traditions[pickedTraditionKey]) {
+    var pickedName = manifest.traditions[pickedTraditionKey].display_name;
+    if (titleEl) titleEl.textContent = 'Browse ' + pickedName + ' Sets';
+    if (subEl) subEl.textContent = 'Browsing ' + pickedName + '. Pick sets to study, or upload your own data.';
+  } else {
+    if (titleEl) titleEl.textContent = 'Browse Card Sets';
+    if (subEl) subEl.textContent = 'Select a liturgical tradition to browse card sets, or upload your own flashcard data.';
+  }
+
   for (var tradKey in manifest.traditions) {
+    // When a tradition has been picked from the picker, only render that one.
+    if (pickedTraditionKey && tradKey !== pickedTraditionKey) continue;
     var trad = manifest.traditions[tradKey];
     var tradEl = document.createElement('div');
     var tradStateKey = 'trad:' + tradKey;
-    var tradExpanded = accordionState[tradStateKey] || false;
+    // Auto-expand the picked tradition for convenience
+    var tradExpanded = pickedTraditionKey ? true : (accordionState[tradStateKey] || false);
     tradEl.className = 'accordion-tradition' + (trad.available ? '' : ' disabled') + (tradExpanded ? ' expanded' : '');
 
     var allTradSets = getAllSets(trad);
@@ -3011,20 +3158,27 @@ function renderProgressStats() {
   var totalCards = getTotalCardCount();
   var totalStr = totalCards > 0 ? '/' + totalCards : '';
 
-  var cornerA = document.getElementById('known-corner-a');
-  var cornerB = document.getElementById('known-corner-b');
-
-  if (knownA > 0) {
-    cornerA.style.display = 'flex';
-    document.getElementById('kc-count-a').textContent = knownA;
-    document.getElementById('kc-total-a').textContent = totalStr;
-  } else { cornerA.style.display = 'none'; }
-
-  if (knownB > 0) {
-    cornerB.style.display = 'flex';
-    document.getElementById('kc-count-b').textContent = knownB;
-    document.getElementById('kc-total-b').textContent = totalStr;
-  } else { cornerB.style.display = 'none'; }
+  // Update known corner counters on both the picker and landing screens
+  function setCorner(suffix, count, total) {
+    var corner = document.getElementById('known-corner-a' + suffix);
+    var cornerB = document.getElementById('known-corner-b' + suffix);
+    if (corner) {
+      if (count.A > 0) {
+        corner.style.display = 'flex';
+        document.getElementById('kc-count-a' + suffix).textContent = count.A;
+        document.getElementById('kc-total-a' + suffix).textContent = total;
+      } else { corner.style.display = 'none'; }
+    }
+    if (cornerB) {
+      if (count.B > 0) {
+        cornerB.style.display = 'flex';
+        document.getElementById('kc-count-b' + suffix).textContent = count.B;
+        document.getElementById('kc-total-b' + suffix).textContent = total;
+      } else { cornerB.style.display = 'none'; }
+    }
+  }
+  setCorner('',      { A: knownA, B: knownB }, totalStr);
+  setCorner('-pick', { A: knownA, B: knownB }, totalStr);
 }
 
 /* ============================================================
