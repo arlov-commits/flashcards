@@ -303,47 +303,13 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .upload-confirm .confirm-text { flex: 1; }
 .upload-confirm .btn { padding: 5px 12px; font-size: 0.82rem; }
 
-/* Tradition picker (initial screen) */
-.tradition-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
-@media (max-width: 600px) { .tradition-picker { grid-template-columns: 1fr; } }
-.trad-card {
-  background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius);
-  padding: 28px 20px; cursor: pointer; text-align: center;
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-.trad-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 14px rgba(44,36,24,0.10); }
-.trad-card.disabled { opacity: 0.55; cursor: not-allowed; }
-.trad-card.disabled:hover { border-color: var(--border); transform: none; box-shadow: none; }
-.trad-card h2 { font-size: 1.3rem; margin-bottom: 4px; color: var(--accent); }
-.trad-card .trad-script { font-size: 1.1rem; color: var(--text); margin: 6px 0 10px; font-style: italic; }
-.trad-card .trad-stats { font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; }
-.trad-card .trad-status { font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
-.pick-section { margin-top: 24px; }
-.pick-section h2 { font-size: 1.05rem; color: var(--text-muted); font-weight: 500; margin-bottom: 10px; }
-.switch-link { color: var(--accent); cursor: pointer; font-size: 0.85rem; text-decoration: none; }
-.switch-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- SCREEN 0: Tradition Picker (initial) -->
-  <div id="screen-pick" class="screen active">
-    <div class="landing-header">
-      <a class="known-corner known-corner-a" id="known-corner-a-pick" onclick="openCornerKnownViewer(this)">
-        <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a-pick">0</span><span class="kc-total" id="kc-total-a-pick"></span>
-      </a>
-      <a class="known-corner known-corner-b" id="known-corner-b-pick" onclick="openCornerKnownViewer(this)">
-        <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b-pick">0</span><span class="kc-total" id="kc-total-b-pick"></span>
-      </a>
-      <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag-pick"></span></h1>
-      <p>Choose a liturgical tradition to begin.</p>
-    </div>
-    <div class="tradition-picker" id="tradition-picker"></div>
-  </div>
-
-  <!-- SCREEN 1: Landing (sets browser, scoped to picked tradition) -->
-  <div id="screen-landing" class="screen">
+  <!-- SCREEN 1: Landing (sets browser) -->
+  <div id="screen-landing" class="screen active">
     <div class="landing-header">
       <a class="known-corner known-corner-a" id="known-corner-a" onclick="openCornerKnownViewer(this)">
         <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a">0</span><span class="kc-total" id="kc-total-a"></span>
@@ -352,8 +318,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b">0</span><span class="kc-total" id="kc-total-b"></span>
       </a>
       <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
-      <p id="landing-subtitle">Select a liturgical tradition to browse card sets, or upload your own flashcard data.</p>
-      <p style="margin-top:6px"><a class="switch-link" onclick="navigateTo('pick')">&larr; Switch tradition</a></p>
+      <p id="landing-subtitle">Browse card sets to study, or upload your own flashcard data.</p>
     </div>
     <div class="manage-bar">
       <h2 id="landing-browse-title" style="margin-bottom:0">Browse Card Sets</h2>
@@ -620,7 +585,7 @@ let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.21';
+var APP_VERSION = 'v2.22';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -1385,8 +1350,6 @@ function exportManifest() {
 async function init() {
   try {
     document.getElementById('version-tag').textContent = APP_VERSION;
-    var vp = document.getElementById('version-tag-pick');
-    if (vp) vp.textContent = APP_VERSION;
     var savedGrid = localStorage.getItem('pdf_grid');
     if (savedGrid && GRID_DEFAULTS[savedGrid]) {
       currentGrid = savedGrid;
@@ -1397,7 +1360,12 @@ async function init() {
     loadAccordionState();
     manifest = await loadManifestFromDirectoryCSV();
     applyMgmtOverlay();
-    renderPickScreen();
+    // Chinese is the only tradition: scope the landing to it directly.
+    if (manifest.traditions && manifest.traditions.chinese) {
+      pickedTraditionKey = 'chinese';
+      currentTraditionKey = 'chinese';
+      currentTradition = manifest.traditions.chinese;
+    }
     renderLanding();
     setupUpload();
     setupImport();
@@ -1407,8 +1375,6 @@ async function init() {
     computeDistinctChineseCount().then(function() { renderProgressStats(); });
     renderProgressStats();
   } catch (e) {
-    var pickerEl = document.getElementById('tradition-picker');
-    if (pickerEl) pickerEl.innerHTML = '<p style="color:red">Failed to load flashcard directory.</p>';
     var accEl = document.getElementById('accordion-container');
     if (accEl) accEl.innerHTML = '<p style="color:red">Failed to load flashcard directory.</p>';
     console.error(e);
@@ -1416,12 +1382,11 @@ async function init() {
 }
 
 /* ============================================================
-   LOAD MANIFEST FROM flashcard_directory*.csv
+   LOAD MANIFEST FROM flashcard_directory.csv
    Chinese CSV columns: Language, Section, Name, Rename_to, Alias_Eng, Alias_Ch, section_order
-   Pali CSV columns:    Language, Section, Name, Alias, section_order
    ============================================================ */
 async function loadManifestFromDirectoryCSV() {
-  var directoryFiles = ['flashcard_directory.csv', 'flashcard_directory_pali.csv'];
+  var directoryFiles = ['flashcard_directory.csv'];
   var dirTexts = await Promise.all(directoryFiles.map(function(f) {
     return fetch(f).then(function(r) {
       if (!r.ok) { console.warn(f + ' not found'); return ''; }
@@ -1457,29 +1422,6 @@ async function loadManifestFromDirectoryCSV() {
       default_back: ['english_def'],
       tag_field: 'ch_tag',
       subcategories: {}
-    },
-    pali: {
-      display_name: 'P\u0101li Liturgy',
-      available: true,
-      fields: [
-        { key: 'pali',              label: 'P\u0101li',         type: 'target_lang',     font_category: 'english' },
-        { key: 'lemma',             label: 'Lemma',             type: 'lemma',           font_category: 'english' },
-        { key: 'english_primary',   label: 'English',           type: 'translation',     font_category: 'english' },
-        { key: 'english_secondary', label: 'English (alt)',     type: 'translation_alt', font_category: 'english' },
-        { key: 'sanskrit',          label: 'Sanskrit',          type: 'reference',       font_category: 'english' },
-        { key: 'sanskrit_root',     label: 'Skt root',          type: 'root',            font_category: 'english' },
-        { key: 'sanskrit_meaning',  label: 'Sanskrit meaning',  type: 'root_meaning',    font_category: 'english' },
-        { key: 'source_line',       label: 'Source',            type: 'source',          font_category: 'english' }
-      ],
-      meta_fields: {
-        pali_conf: 'P\u0101li gloss confidence (1-10)',
-        skt_conf:  'Sanskrit gloss confidence (1-10)',
-        eng_tag:   'Section tag (English)'
-      },
-      default_front: ['pali'],
-      default_back: ['english_primary'],
-      tag_field: 'eng_tag',
-      subcategories: {}
     }
   };
 
@@ -1502,8 +1444,7 @@ async function loadManifestFromDirectoryCSV() {
     var section = (row.Section || '').trim();
     var name = (row.Name || '').trim();
     var renameTo = (row.Rename_to || '').trim();
-    // Pali CSV uses a single "Alias" column; Chinese CSV uses Alias_Eng / Alias_Ch.
-    var aliasEng = (row.Alias_Eng || row.Alias || '').trim();
+    var aliasEng = (row.Alias_Eng || '').trim();
     var aliasCh = (row.Alias_Ch || '').trim();
     var secOrder = parseInt(row.section_order) || 0;
 
@@ -1597,70 +1538,14 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('screen-' + name).classList.add('active');
   if (name === 'known') renderKnownViewer();
-  if (name === 'pick') { renderPickScreen(); renderProgressStats(); }
   if (name === 'landing') { renderLanding(); renderProgressStats(); }
   window.scrollTo(0, 0);
 }
 
 /* ============================================================
-   TRADITION PICKER (initial screen)
+   TRADITION SCOPE
    ============================================================ */
 let pickedTraditionKey = null;
-
-function renderPickScreen() {
-  var container = document.getElementById('tradition-picker');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!manifest || !manifest.traditions) return;
-
-  // Display traditions in a stable order: chinese first, pali second, then any others.
-  var preferredOrder = ['chinese', 'pali'];
-  var keys = Object.keys(manifest.traditions);
-  keys.sort(function(a, b) {
-    var ai = preferredOrder.indexOf(a); if (ai === -1) ai = 99;
-    var bi = preferredOrder.indexOf(b); if (bi === -1) bi = 99;
-    return ai - bi;
-  });
-
-  keys.forEach(function(tradKey) {
-    var trad = manifest.traditions[tradKey];
-    var allSets = getAllSets(trad);
-    var setKeys = Object.keys(allSets);
-    var totalCards = 0;
-    setKeys.forEach(function(k) { totalCards += allSets[k].total_cards || 0; });
-
-    var card = document.createElement('div');
-    card.className = 'trad-card' + (trad.available ? '' : ' disabled');
-    var script = tradKey === 'chinese' ? '中文' : (tradKey === 'pali' ? 'Pāli' : '');
-    var statsLine = trad.available
-      ? (setKeys.length + ' set' + (setKeys.length === 1 ? '' : 's') + ' · ' + totalCards + ' cards')
-      : 'Coming soon';
-    card.innerHTML =
-      '<h2>' + trad.display_name + '</h2>' +
-      (script ? '<div class="trad-script">' + script + '</div>' : '') +
-      '<div class="trad-stats">' + statsLine + '</div>';
-    if (trad.available) {
-      (function(tk) {
-        card.addEventListener('click', function() { pickTradition(tk); });
-      })(tradKey);
-    }
-    container.appendChild(card);
-  });
-}
-
-function pickTradition(tradKey) {
-  var trad = manifest && manifest.traditions && manifest.traditions[tradKey];
-  if (!trad || !trad.available) return;
-  // Switching tradition resets cross-tradition selections.
-  if (pickedTraditionKey !== tradKey) {
-    selectedSets = {};
-    isUploadMode = false;
-  }
-  pickedTraditionKey = tradKey;
-  currentTraditionKey = tradKey;
-  currentTradition = trad;
-  navigateTo('landing');
-}
 
 /* ============================================================
    HELPER: resolve all sets from subcategories
@@ -2044,7 +1929,7 @@ function renderLanding() {
 
         // Add category button — IIFE to capture the current tradKey,
         // since `var` in the enclosing for-in loop would otherwise leak the
-        // last-iterated value (e.g. 'pali') into the click handler.
+        // last-iterated value into the click handler.
         (function(tk) {
           var addBtn = document.createElement('button');
           addBtn.className = 'btn btn-outline btn-sm';
@@ -2420,68 +2305,17 @@ function updateKnownBar() {
 /* ============================================================
    CUSTOMIZE SCREEN
    ============================================================ */
-function getSavedFieldMapping(tradKey) {
-  try {
-    var raw = JSON.parse(localStorage.getItem('field_mapping_' + tradKey) || 'null');
-    if (raw && Array.isArray(raw.front) && Array.isArray(raw.back)) return raw;
-  } catch (e) {}
-  return null;
-}
-function saveFieldMapping(tradKey, front, back) {
-  try { localStorage.setItem('field_mapping_' + tradKey, JSON.stringify({ front: front, back: back })); }
-  catch (e) {}
-}
-
-// Show / hide customize-screen sections that don't apply to Pali (study mode
-// selector, card design panel). For Pali we always show the field mapping
-// editor with the user's remembered selection.
-function applyTraditionUIForCustomize(isPali) {
-  var modeSelector = document.getElementById('study-mode-selector');
-  var modeHeader = document.getElementById('study-mode-header');
-  var modeSummary = document.getElementById('mode-field-summary');
-  var designToggle = document.getElementById('card-design-toggle-link');
-  var designPanel = document.getElementById('card-design-panel');
-  var fieldMapping = document.getElementById('field-mapping-section');
-
-  var hide = isPali ? 'none' : '';
-  if (modeSelector)  modeSelector.style.display = hide;
-  if (modeHeader)    modeHeader.style.display = hide;
-  if (modeSummary)   modeSummary.style.display = hide;
-  if (designToggle)  designToggle.style.display = hide;
-  if (designPanel) {
-    if (isPali) { designPanel.classList.remove('open'); designPanel.style.display = 'none'; }
-    else designPanel.style.display = '';
-  }
-  if (fieldMapping) {
-    // Pali always shows field mapping; for Chinese, setStudyMode toggles it.
-    if (isPali) fieldMapping.style.display = '';
-  }
-}
-
 async function goToCustomize() {
   if (!currentTradition) return;
   document.getElementById('customize-title').textContent = currentTradition.display_name;
-  var isPali = currentTraditionKey === 'pali';
-  applyTraditionUIForCustomize(isPali);
-
-  if (isPali) {
-    var saved = getSavedFieldMapping('pali');
-    if (saved) { frontFields = saved.front.slice(); backFields = saved.back.slice(); }
-    else {
-      frontFields = (currentTradition.default_front || []).slice();
-      backFields  = (currentTradition.default_back  || []).slice();
-    }
-    studyMode = 'C'; // custom field mapping, no A/B
-  } else {
-    studyMode = 'A';
-  }
+  studyMode = 'A';
 
   navigateTo('customize');
   await loadCards();
   applyKnownToCards();
   renderModeButtons();
   renderFieldMapping();
-  if (!isPali) renderCardDesignInputs();
+  renderCardDesignInputs();
   renderCardTable();
 }
 
@@ -2633,7 +2467,6 @@ function renderFieldMapping() {
         if (fcb.checked) { if (frontFields.indexOf(f.key) === -1) frontFields.push(f.key); }
         else { frontFields = frontFields.filter(function(k) { return k !== f.key; }); }
         updateSummary();
-        if (currentTraditionKey === 'pali') saveFieldMapping('pali', frontFields, backFields);
       });
     }
     fl.appendChild(fcb);
@@ -2650,7 +2483,6 @@ function renderFieldMapping() {
         if (bcb.checked) { if (backFields.indexOf(f.key) === -1) backFields.push(f.key); }
         else { backFields = backFields.filter(function(k) { return k !== f.key; }); }
         updateSummary();
-        if (currentTraditionKey === 'pali') saveFieldMapping('pali', frontFields, backFields);
       });
     }
     bl.appendChild(bcb);
@@ -2682,9 +2514,7 @@ function renderCardTable() {
   }
   var displayCards = unknowns.concat(knowns);
 
-  // Pali exposes source_line as a regular selectable field, so the
-  // standalone Source column would be redundant — hide it for Pali.
-  var showSourceCol = currentTraditionKey !== 'pali';
+  var showSourceCol = true;
   var thead = document.getElementById('card-table-head');
   var thRow = '<tr><th style="width:36px;text-align:center"><input type="checkbox" id="select-all-cb" onchange="selectAllCards(this.checked)" checked></th>' +
     fields.map(function(f) { return '<th>' + f.label + '</th>'; }).join('') +
@@ -2725,8 +2555,6 @@ function renderCardTable() {
     for (var fi = 0; fi < fields.length; fi++) {
       var td = document.createElement('td');
       td.textContent = card2[fields[fi].key] || '';
-      // Boost size only for Chinese-script target_lang cells; Pāli uses
-      // Latin-with-diacritics, which renders fine at the regular row size.
       if (fields[fi].type === 'target_lang' && fields[fi].font_category === 'chinese') {
         td.className = 'chinese-cell';
       }
@@ -3209,14 +3037,8 @@ function getTotalCardCount() {
   return _distinctChineseCount || 0;
 }
 
-// Pali uses a single 'P' known mode (no Type A / Type B split).
-// Chinese uses 'A' and 'B'. effectiveKnownMode() resolves the active
-// mode for the current tradition context.
-function isPaliContext() {
-  return currentTraditionKey === 'pali' || pickedTraditionKey === 'pali';
-}
+// Chinese uses two known modes, 'A' and 'B'.
 function effectiveKnownMode() {
-  if (currentTraditionKey === 'pali') return 'P';
   return studyMode === 'C' ? 'A' : studyMode;
 }
 function openCornerKnownViewer(cornerEl) {
@@ -3228,60 +3050,38 @@ function openCornerKnownViewer(cornerEl) {
 function renderProgressStats() {
   var knownA = getKnownList('A').size;
   var knownB = getKnownList('B').size;
-  var knownP = getKnownList('P').size;
   var uploads = getSavedUploads().length;
   var el = document.getElementById('progress-stats');
   var parts = [];
   if (knownA) parts.push(knownA + ' known (Type A)');
   if (knownB) parts.push(knownB + ' known (Type B)');
-  if (knownP) parts.push(knownP + ' Pāli known');
   if (uploads) parts.push(uploads + ' upload' + (uploads > 1 ? 's' : ''));
   el.textContent = parts.length ? parts.join(' · ') : 'No progress saved yet.';
 
-  // Update known corner counters
+  // Update known corner counters: Type A left, Type B right.
   var totalCards = getTotalCardCount();
   var totalStr = totalCards > 0 ? '/' + totalCards : '';
-  var paliCtx = isPaliContext();
 
-  function setCorner(suffix) {
-    var cornerA = document.getElementById('known-corner-a' + suffix);
-    var cornerB = document.getElementById('known-corner-b' + suffix);
-    var labelA = cornerA && cornerA.querySelector('.kc-label');
-    if (paliCtx) {
-      // Pali: single "Known" corner on the left, hide right corner.
-      if (cornerB) cornerB.style.display = 'none';
-      if (cornerA) {
-        if (knownP > 0) {
-          cornerA.style.display = 'flex';
-          if (labelA) labelA.textContent = 'Known';
-          document.getElementById('kc-count-a' + suffix).textContent = knownP;
-          document.getElementById('kc-total-a' + suffix).textContent = totalStr;
-          cornerA.dataset.kmode = 'P';
-        } else { cornerA.style.display = 'none'; }
-      }
-    } else {
-      // Chinese (or unpicked): Type A left, Type B right.
-      if (cornerA) {
-        if (labelA) labelA.textContent = 'Type A';
-        cornerA.dataset.kmode = 'A';
-        if (knownA > 0) {
-          cornerA.style.display = 'flex';
-          document.getElementById('kc-count-a' + suffix).textContent = knownA;
-          document.getElementById('kc-total-a' + suffix).textContent = totalStr;
-        } else { cornerA.style.display = 'none'; }
-      }
-      if (cornerB) {
-        cornerB.dataset.kmode = 'B';
-        if (knownB > 0) {
-          cornerB.style.display = 'flex';
-          document.getElementById('kc-count-b' + suffix).textContent = knownB;
-          document.getElementById('kc-total-b' + suffix).textContent = totalStr;
-        } else { cornerB.style.display = 'none'; }
-      }
-    }
+  var cornerA = document.getElementById('known-corner-a');
+  var cornerB = document.getElementById('known-corner-b');
+  var labelA = cornerA && cornerA.querySelector('.kc-label');
+  if (cornerA) {
+    if (labelA) labelA.textContent = 'Type A';
+    cornerA.dataset.kmode = 'A';
+    if (knownA > 0) {
+      cornerA.style.display = 'flex';
+      document.getElementById('kc-count-a').textContent = knownA;
+      document.getElementById('kc-total-a').textContent = totalStr;
+    } else { cornerA.style.display = 'none'; }
   }
-  setCorner('');
-  setCorner('-pick');
+  if (cornerB) {
+    cornerB.dataset.kmode = 'B';
+    if (knownB > 0) {
+      cornerB.style.display = 'flex';
+      document.getElementById('kc-count-b').textContent = knownB;
+      document.getElementById('kc-total-b').textContent = totalStr;
+    } else { cornerB.style.display = 'none'; }
+  }
 }
 
 /* ============================================================
@@ -3296,21 +3096,15 @@ function switchKnownViewerMode(mode) {
 }
 
 function renderKnownViewer() {
-  // Render tabs dynamically: Pali ('P') is single-mode, Chinese has Type A/B.
+  // Chinese has two known modes: Type A and Type B.
   var tabsEl = document.getElementById('known-mode-tabs');
-  var modes = (knownViewerMode === 'P')
-    ? [{ key: 'P', label: 'Known' }]
-    : [{ key: 'A', label: 'Type A' }, { key: 'B', label: 'Type B' }];
+  var modes = [{ key: 'A', label: 'Type A' }, { key: 'B', label: 'Type B' }];
   if (tabsEl) {
-    if (modes.length === 1) {
-      tabsEl.style.display = 'none';
-    } else {
-      tabsEl.style.display = '';
-      tabsEl.innerHTML = modes.map(function(m) {
-        return '<button class="known-mode-tab' + (m.key === knownViewerMode ? ' active' : '') +
-               '" data-kmode="' + m.key + '" onclick="switchKnownViewerMode(\'' + m.key + '\')">' + m.label + '</button>';
-      }).join('');
-    }
+    tabsEl.style.display = '';
+    tabsEl.innerHTML = modes.map(function(m) {
+      return '<button class="known-mode-tab' + (m.key === knownViewerMode ? ' active' : '') +
+             '" data-kmode="' + m.key + '" onclick="switchKnownViewerMode(\'' + m.key + '\')">' + m.label + '</button>';
+    }).join('');
   }
   var modeLabel = (modes.find(function(m) { return m.key === knownViewerMode; }) || { label: knownViewerMode }).label;
 
