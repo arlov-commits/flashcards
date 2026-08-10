@@ -132,18 +132,6 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .set-item .set-count { color: var(--text-muted); font-size: 0.78rem; font-weight: 400; white-space: nowrap; margin-left: 6px; }
 .total-count { font-size: 0.95rem; color: var(--text-muted); margin: 8px 0 16px; }
 
-/* Upload area */
-.upload-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 24px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; margin-top: 16px; background: var(--bg-card); }
-.upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: #faf5f0; }
-.upload-area p { color: var(--text-muted); font-size: 0.9rem; margin-top: 8px; }
-.upload-area input[type="file"] { display: none; }
-
-/* My uploads list */
-.upload-item { display: flex; align-items: center; gap: 12px; background: var(--bg-card); border: 1.5px solid var(--border-light); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; }
-.upload-item .set-info { flex: 1; }
-.upload-item .set-name { font-weight: 600; font-size: 0.9rem; }
-.upload-item .set-tag { color: var(--text-muted); font-size: 0.8rem; }
-
 /* Study mode selector */
 .mode-selector { display: flex; gap: 0; margin: 16px 0; border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .mode-btn { flex: 1; padding: 12px 16px; text-align: center; cursor: pointer; background: var(--bg-card); border: none; font-size: 0.9rem; font-weight: 500; color: var(--text); transition: background 0.2s; }
@@ -298,11 +286,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .manage-mode .subcat-manage { display: flex; }
 .inline-edit { border: 1px solid var(--accent); border-radius: 4px; padding: 2px 6px; font-size: inherit; font-weight: inherit; color: var(--text); background: #fff; outline: none; }
 
-/* Upload delete confirmation */
-.upload-confirm { display: flex; align-items: center; gap: 12px; background: #fdf5f0; border: 1.5px solid #c4956a; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; font-size: 0.88rem; color: var(--text); }
-.upload-confirm .confirm-text { flex: 1; }
-.upload-confirm .btn { padding: 5px 12px; font-size: 0.82rem; }
-
 </style>
 </head>
 <body>
@@ -318,7 +301,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b">0</span><span class="kc-total" id="kc-total-b"></span>
       </a>
       <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
-      <p id="landing-subtitle">Browse card sets to study, or upload your own flashcard data.</p>
+      <p id="landing-subtitle">Browse card sets to study.</p>
     </div>
     <div class="manage-bar">
       <h2 id="landing-browse-title" style="margin-bottom:0">Browse Card Sets</h2>
@@ -337,18 +320,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     <div id="set-total" class="total-count" style="display:none"></div>
     <div class="btn-row" id="landing-actions" style="display:none">
       <button class="btn btn-primary" id="btn-to-customize" disabled onclick="goToCustomize()">Customize &amp; Download</button>
-    </div>
-
-    <div id="my-uploads-section" style="display:none">
-      <h2 style="margin-top:32px">My Uploads</h2>
-      <div id="my-uploads-list"></div>
-    </div>
-
-    <h2 style="margin-top:32px">Upload Your Own</h2>
-    <div id="upload-area" class="upload-area">
-      <strong>Drop a file here or click to browse</strong>
-      <p>Accepts .csv files with header row</p>
-      <input type="file" id="upload-input" accept=".csv,.xlsx">
     </div>
 
     <div class="progress-section">
@@ -581,11 +552,10 @@ let allCards = [];
 let frontFields = [];
 let backFields = [];
 let fontDataCache = {};
-let isUploadMode = false;
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.22';
+var APP_VERSION = 'v2.23';
 let manageMode = false;
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
@@ -674,7 +644,6 @@ function removeFromKnown(mode, chineseValue) {
 
 
 function getDeckLabelForCard(card) {
-  if (isUploadMode) return currentTradition ? currentTradition.display_name : 'Upload';
   if (!currentTradition) return 'Unknown';
   var allSets = getAllSets(currentTradition);
   var si = allSets[card._setKey];
@@ -687,16 +656,6 @@ function getCardSourceLabel(card) {
   var ch  = (card.ch_tag  || '').toString().trim();
   if (eng && ch) return eng + ' (' + ch + ')';
   return eng || ch || '';
-}
-
-function getSavedUploads() {
-  try {
-    return JSON.parse(localStorage.getItem('user_uploads') || '[]');
-  } catch (e) { return []; }
-}
-
-function saveUploads(uploads) {
-  localStorage.setItem('user_uploads', JSON.stringify(uploads));
 }
 
 function loadCardDesign() {
@@ -1367,7 +1326,6 @@ async function init() {
       currentTradition = manifest.traditions.chinese;
     }
     renderLanding();
-    setupUpload();
     setupImport();
     setupHistory();
     setupGlobalSearch();
@@ -1579,7 +1537,6 @@ function selectAllInTradition(tradKey, checked) {
     currentTradition = trad;
     selectedSets = {};
     Object.keys(allSets).forEach(function(k) { selectedSets[k] = true; });
-    isUploadMode = false;
   } else {
     if (currentTraditionKey === tradKey) {
       Object.keys(allSets).forEach(function(k) { delete selectedSets[k]; });
@@ -1600,7 +1557,6 @@ function selectAllInSubcat(tradKey, subcatKey, checked) {
       selectedSets = {};
     }
     Object.keys(subcat.sets).forEach(function(k) { selectedSets[k] = true; });
-    isUploadMode = false;
   } else {
     if (currentTraditionKey === tradKey) {
       Object.keys(subcat.sets).forEach(function(k) { delete selectedSets[k]; });
@@ -1645,16 +1601,16 @@ function renderLanding() {
   if (manageMode) container.classList.add('manage-mode');
   else container.classList.remove('manage-mode');
 
-  // Update subtitle / browse heading to reflect the picked tradition
+  // Update subtitle / browse heading to reflect the tradition
   var titleEl = document.getElementById('landing-browse-title');
   var subEl = document.getElementById('landing-subtitle');
   if (pickedTraditionKey && manifest.traditions[pickedTraditionKey]) {
     var pickedName = manifest.traditions[pickedTraditionKey].display_name;
     if (titleEl) titleEl.textContent = 'Browse ' + pickedName + ' Sets';
-    if (subEl) subEl.textContent = 'Browsing ' + pickedName + '. Pick sets to study, or upload your own data.';
+    if (subEl) subEl.textContent = 'Browsing ' + pickedName + '. Pick sets to study.';
   } else {
     if (titleEl) titleEl.textContent = 'Browse Card Sets';
-    if (subEl) subEl.textContent = 'Select a liturgical tradition to browse card sets, or upload your own flashcard data.';
+    if (subEl) subEl.textContent = 'Browse card sets to study.';
   }
 
   for (var tradKey in manifest.traditions) {
@@ -1810,7 +1766,6 @@ function renderLanding() {
                 selectedSets[sk] = true;
               } else { delete selectedSets[sk]; }
               el.classList.toggle('checked', checkbox.checked);
-              isUploadMode = false;
               syncLevelSelectCheckboxes();
               updateSetTotal();
             });
@@ -1945,7 +1900,6 @@ function renderLanding() {
     container.appendChild(tradEl);
   }
 
-  renderMyUploads();
   syncLevelSelectCheckboxes();
   updateSetTotal();
 }
@@ -1963,260 +1917,6 @@ function updateSetTotal() {
   for (var i = 0; i < keys.length; i++) { if (allSets[keys[i]]) total += allSets[keys[i]].total_cards; }
   totalEl.textContent = total + ' cards selected';
   totalEl.style.display = 'block'; actionsEl.style.display = 'flex'; btn.disabled = false;
-}
-
-/* ============================================================
-   MY UPLOADS (localStorage persistence)
-   ============================================================ */
-function renderMyUploads() {
-  var uploads = getSavedUploads();
-  var section = document.getElementById('my-uploads-section');
-  var list = document.getElementById('my-uploads-list');
-  list.innerHTML = '';
-  if (uploads.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-
-  uploads.forEach(function(u, idx) {
-    var item = document.createElement('div');
-    item.className = 'upload-item';
-    item.innerHTML = '<div class="set-info"><div class="set-name">' + u.name + '</div>' +
-      '<div class="set-tag">' + u.cardCount + ' cards</div></div>';
-
-    var openBtn = document.createElement('button');
-    openBtn.className = 'btn btn-outline btn-sm';
-    openBtn.textContent = 'Open';
-    openBtn.addEventListener('click', function() { openSavedUpload(idx); });
-    item.appendChild(openBtn);
-
-    var delBtn = document.createElement('button');
-    delBtn.className = 'btn btn-danger btn-sm';
-    delBtn.textContent = 'Delete';
-    delBtn.addEventListener('click', function() { deleteSavedUpload(idx); });
-    item.appendChild(delBtn);
-
-    list.appendChild(item);
-  });
-}
-
-function openSavedUpload(idx) {
-  var uploads = getSavedUploads();
-  var u = uploads[idx];
-  if (!u) return;
-  loadUploadedData(u.csvText, u.name);
-}
-
-function deleteSavedUpload(idx) {
-  // Transform the row into an inline confirmation
-  var list = document.getElementById('my-uploads-list');
-  var items = list.children;
-  if (!items[idx]) return;
-
-  var item = items[idx];
-  var uploads = getSavedUploads();
-  var u = uploads[idx];
-
-  // Parse this upload's cards to find chinese values
-  var clean = u.csvText.replace(/^\uFEFF/, '');
-  var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
-  var headers = parsed.meta.fields || [];
-  var chineseCol = headers.find(function(h) { return ['chinese','hanzi','character'].indexOf(h.toLowerCase()) !== -1; });
-  var uploadChineseValues = new Set();
-  if (chineseCol) {
-    parsed.data.forEach(function(row) {
-      var v = (row[chineseCol] || '').trim();
-      if (v) uploadChineseValues.add(v);
-    });
-  }
-
-  var hasKnownCards = false;
-  if (uploadChineseValues.size > 0) {
-    var knownA = getKnownList('A');
-    var knownB = getKnownList('B');
-    uploadChineseValues.forEach(function(ch) {
-      if (knownA.has(ch) || knownB.has(ch)) hasKnownCards = true;
-    });
-  }
-
-  item.className = 'upload-confirm';
-  if (hasKnownCards) {
-    item.innerHTML = '<div class="confirm-text">Delete <strong>' + u.name + '</strong> and remove its cards from "already learned"?</div>' +
-      '<button class="btn btn-primary btn-sm" onclick="confirmDeleteUpload(' + idx + ', true)">Yes, remove learned</button>' +
-      '<button class="btn btn-secondary btn-sm" onclick="confirmDeleteUpload(' + idx + ', false)">Keep learned</button>' +
-      '<button class="btn btn-outline btn-sm" onclick="renderMyUploads()">Cancel</button>';
-  } else {
-    item.innerHTML = '<div class="confirm-text">Delete <strong>' + u.name + '</strong>?</div>' +
-      '<button class="btn btn-primary btn-sm" onclick="confirmDeleteUpload(' + idx + ', false)">Delete</button>' +
-      '<button class="btn btn-outline btn-sm" onclick="renderMyUploads()">Cancel</button>';
-  }
-}
-
-async function confirmDeleteUpload(idx, removeLearnedCards) {
-  var uploads = getSavedUploads();
-  var u = uploads[idx];
-
-  if (removeLearnedCards && u) {
-    // Parse this upload to get its chinese values
-    var clean = u.csvText.replace(/^\uFEFF/, '');
-    var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
-    var headers = parsed.meta.fields || [];
-    var chineseCol = headers.find(function(h) { return ['chinese','hanzi','character'].indexOf(h.toLowerCase()) !== -1; });
-    var uploadChars = new Set();
-    if (chineseCol) {
-      parsed.data.forEach(function(row) {
-        var v = (row[chineseCol] || '').trim();
-        if (v) uploadChars.add(v);
-      });
-    }
-
-    // Collect chinese values from ALL other sources
-    var otherChars = new Set();
-
-    // Other uploads
-    uploads.forEach(function(other, oi) {
-      if (oi === idx) return;
-      var c2 = other.csvText.replace(/^\uFEFF/, '');
-      var p2 = Papa.parse(c2, { header: true, skipEmptyLines: true });
-      var h2 = p2.meta.fields || [];
-      var cc2 = h2.find(function(h) { return ['chinese','hanzi','character'].indexOf(h.toLowerCase()) !== -1; });
-      if (cc2) { p2.data.forEach(function(row) { var v = (row[cc2] || '').trim(); if (v) otherChars.add(v); }); }
-    });
-
-    // Manifest CSVs — fetch all sets to check for shared characters
-    if (manifest) {
-      var fetches = [];
-      for (var tk in manifest.traditions) {
-        var trad = manifest.traditions[tk];
-        if (!trad.available) continue;
-        var allSets = getAllSets(trad);
-        var chKey = '';
-        for (var fi = 0; fi < (trad.fields || []).length; fi++) {
-          if (trad.fields[fi].type === 'target_lang') { chKey = trad.fields[fi].key; break; }
-        }
-        if (!chKey) continue;
-        for (var sk in allSets) {
-          (function(file, key) {
-            fetches.push(
-              fetch(file).then(function(r) { return r.text(); }).then(function(csv) {
-                var p = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
-                p.data.forEach(function(row) { var v = (row[key] || '').trim(); if (v) otherChars.add(v); });
-              }).catch(function() {})
-            );
-          })(allSets[sk].file, chKey);
-        }
-      }
-      await Promise.all(fetches);
-    }
-
-    // Remove from known lists only chars exclusive to this upload
-    uploadChars.forEach(function(ch) {
-      if (!otherChars.has(ch)) {
-        removeFromKnown('A', ch);
-        removeFromKnown('B', ch);
-      }
-    });
-  }
-
-  uploads.splice(idx, 1);
-  saveUploads(uploads);
-  renderMyUploads();
-  renderProgressStats();
-}
-
-/* ============================================================
-   FILE UPLOAD
-   ============================================================ */
-function setupUpload() {
-  var uploadArea = document.getElementById('upload-area');
-  var fileInput = document.getElementById('upload-input');
-
-  uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.classList.add('dragover'); });
-  uploadArea.addEventListener('dragleave', function() { uploadArea.classList.remove('dragover'); });
-  uploadArea.addEventListener('drop', function(e) {
-    e.preventDefault(); uploadArea.classList.remove('dragover');
-    if (e.dataTransfer.files.length) handleUploadedFile(e.dataTransfer.files[0]);
-  });
-  uploadArea.addEventListener('click', function() { fileInput.click(); });
-  fileInput.addEventListener('change', function() { if (fileInput.files.length) handleUploadedFile(fileInput.files[0]); fileInput.value = ''; });
-}
-
-function handleUploadedFile(file) {
-  var name = file.name.toLowerCase();
-  if (name.endsWith('.csv')) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var text = e.target.result;
-      // Save to localStorage
-      var uploads = getSavedUploads();
-      var clean = text.replace(/^\uFEFF/, '');
-      var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
-      uploads.push({ name: file.name, csvText: text, cardCount: parsed.data.length, savedAt: Date.now() });
-      saveUploads(uploads);
-      renderMyUploads();
-      loadUploadedData(text, file.name);
-    };
-    reader.readAsText(file);
-  } else if (name.endsWith('.xlsx')) {
-    alert('XLSX support requires SheetJS. Please convert to CSV first.');
-  } else {
-    alert('Please upload a .csv file.');
-  }
-}
-
-function loadUploadedData(text, filename) {
-  var clean = text.replace(/^\uFEFF/, '');
-  var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
-  if (!parsed.data.length || !parsed.meta.fields || parsed.meta.fields.length < 2) {
-    alert('Could not parse the file.'); return;
-  }
-  var headers = parsed.meta.fields;
-  // Meta columns to exclude from content fields
-  var metaCols = ['include','multichar','ch_tag','eng_tag','frequency'];
-  var fields = headers
-    .filter(function(h) { return metaCols.indexOf(h.toLowerCase()) === -1; })
-    .map(function(h) {
-      return { key: h, label: h.charAt(0).toUpperCase() + h.slice(1).replace(/_/g, ' '), type: 'translation', font_category: 'english' };
-    });
-  for (var i = 0; i < fields.length; i++) {
-    var k = fields[i].key.toLowerCase();
-    if (k === 'chinese' || k === 'hanzi' || k === 'character') { fields[i].type = 'target_lang'; fields[i].font_category = 'chinese'; }
-    else if (k === 'pinyin' || k === 'romanization' || k === 'romanized') { fields[i].type = 'romanization'; }
-  }
-
-  isUploadMode = true;
-  currentTraditionKey = '_upload';
-  currentTradition = {
-    display_name: filename,
-    fields: fields,
-    default_front: fields.length >= 2 ? [fields[0].key, fields.length > 2 ? fields[1].key : null].filter(Boolean) : [fields[0].key],
-    default_back: fields.length >= 2 ? [fields[fields.length > 2 ? 2 : 1].key] : [],
-    tag_field: headers.indexOf('ch_tag') !== -1 ? 'ch_tag' : (headers.indexOf('eng_tag') !== -1 ? 'eng_tag' : ''),
-    meta_fields: {}
-  };
-  selectedSets = { _upload: true };
-  allCards = [];
-  var targetField = fields.find(function(f) { return f.type === 'target_lang'; });
-  parsed.data.forEach(function(row, i) {
-    // Handle legacy columns gracefully — just ignore them
-    row.multichar = false;
-    for (var j = 0; j < fields.length; j++) {
-      if (row[fields[j].key] !== undefined) row[fields[j].key] = (row[fields[j].key] || '').trim();
-    }
-    row._setKey = '_upload';
-    row._index = i;
-    row._originalOrder = i;
-    row._included = true;
-    row._chinese = targetField ? (row[targetField.key] || '') : '';
-    allCards.push(row);
-  });
-
-  studyMode = 'A';
-  document.getElementById('customize-title').textContent = filename;
-  navigateTo('customize');
-  applyKnownToCards();
-  renderModeButtons();
-  renderFieldMapping();
-  renderCardDesignInputs();
-  renderCardTable();
 }
 
 /* ============================================================
@@ -2793,7 +2493,7 @@ function renderPerSetTags() {
 
   container.style.display = 'block';
   container.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:4px">Per-set custom tags:</div>';
-  var allSets = isUploadMode ? {} : getAllSets(currentTradition);
+  var allSets = getAllSets(currentTradition);
   keys.forEach(function(sk) {
     var name = allSets[sk] ? allSets[sk].eng_name : sk;
     var row = document.createElement('div');
@@ -2938,7 +2638,6 @@ function exportProgress() {
   var data = {
     known_typeA: JSON.parse(localStorage.getItem('known_typeA') || '[]'),
     known_typeB: JSON.parse(localStorage.getItem('known_typeB') || '[]'),
-    uploads: getSavedUploads(),
     exportedAt: new Date().toISOString()
   };
   var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2978,18 +2677,8 @@ function setupImport() {
         }
         mergeKnownImport('A', data.known_typeA);
         mergeKnownImport('B', data.known_typeB);
-        // Restore uploads (add new ones, skip duplicates by name)
-        if (data.uploads && data.uploads.length) {
-          var current = getSavedUploads();
-          var names = current.map(function(u) { return u.name; });
-          data.uploads.forEach(function(u) {
-            if (names.indexOf(u.name) === -1) { current.push(u); names.push(u.name); }
-          });
-          saveUploads(current);
-        }
-        renderMyUploads();
         renderProgressStats();
-        alert('Progress imported successfully. Known lists merged, uploads restored.');
+        alert('Progress imported successfully. Known lists merged.');
       } catch (err) {
         alert('Failed to import: ' + err.message);
       }
@@ -3050,12 +2739,10 @@ function openCornerKnownViewer(cornerEl) {
 function renderProgressStats() {
   var knownA = getKnownList('A').size;
   var knownB = getKnownList('B').size;
-  var uploads = getSavedUploads().length;
   var el = document.getElementById('progress-stats');
   var parts = [];
   if (knownA) parts.push(knownA + ' known (Type A)');
   if (knownB) parts.push(knownB + ' known (Type B)');
-  if (uploads) parts.push(uploads + ' upload' + (uploads > 1 ? 's' : ''));
   el.textContent = parts.length ? parts.join(' · ') : 'No progress saved yet.';
 
   // Update known corner counters: Type A left, Type B right.
@@ -3616,15 +3303,10 @@ async function generatePDF() {
       }
     }
 
-    var setNames;
-    if (isUploadMode) {
-      setNames = 'custom';
-    } else {
-      var allSets = getAllSets(currentTradition);
-      setNames = Object.keys(selectedSets)
-        .map(function(k) { return allSets[k] ? allSets[k].eng_name.toLowerCase().replace(/\s+/g, '-') : k; })
-        .join('_');
-    }
+    var allSets = getAllSets(currentTradition);
+    var setNames = Object.keys(selectedSets)
+      .map(function(k) { return allSets[k] ? allSets[k].eng_name.toLowerCase().replace(/\s+/g, '-') : k; })
+      .join('_');
     pdf.save('flashcards-' + setNames + '.pdf');
     localStorage.setItem('pdf_grid', currentGrid);
 
