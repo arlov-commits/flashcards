@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chinese Buddhist Language Flashcards 中文佛教語言閃卡</title>
+<title>Chinese Buddhist Language Flashcards 中文佛教語言抽認卡</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='none' stroke='%238b1a1a' stroke-width='5'/><circle cx='50' cy='50' r='9' fill='%238b1a1a'/><line x1='50' y1='8' x2='50' y2='92' stroke='%238b1a1a' stroke-width='4'/><line x1='8' y1='50' x2='92' y2='50' stroke='%238b1a1a' stroke-width='4'/><line x1='20' y1='20' x2='80' y2='80' stroke='%238b1a1a' stroke-width='4'/><line x1='80' y1='20' x2='20' y2='80' stroke='%238b1a1a' stroke-width='4'/></svg>">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -287,7 +287,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b">0</span><span class="kc-total" id="kc-total-b"></span>
       </a>
       <h1>Chinese Buddhist Language Flashcards</h1>
-      <div class="title-zh" lang="zh-Hant">中文佛教語言閃卡</div>
+      <div class="title-zh" lang="zh-Hant">中文佛教語言抽認卡</div>
       <p id="landing-subtitle">Pick sets to study.</p>
     </div>
     <div class="manage-bar">
@@ -507,7 +507,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.25';
+var APP_VERSION = 'v2.26';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
