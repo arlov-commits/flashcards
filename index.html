@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Buddhist Liturgy Flashcards</title>
+<title>Chinese Buddhist Language Flashcards 中文佛教語言閃卡</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='none' stroke='%238b1a1a' stroke-width='5'/><circle cx='50' cy='50' r='9' fill='%238b1a1a'/><line x1='50' y1='8' x2='50' y2='92' stroke='%238b1a1a' stroke-width='4'/><line x1='8' y1='50' x2='92' y2='50' stroke='%238b1a1a' stroke-width='4'/><line x1='20' y1='20' x2='80' y2='80' stroke='%238b1a1a' stroke-width='4'/><line x1='80' y1='20' x2='20' y2='80' stroke='%238b1a1a' stroke-width='4'/></svg>">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -24,11 +24,12 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .screen.active { display: block; }
 .landing-header { text-align: center; padding: 40px 0 24px; position: relative; }
 .landing-header p { color: var(--text-muted); margin-top: 8px; max-width: 500px; margin-left: auto; margin-right: auto; }
-.version-tag { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; vertical-align: super; margin-left: 6px; }
+.title-zh { font-family: 'Noto Serif SC', serif; font-size: 1.5rem; color: var(--accent); font-weight: 700; margin-top: 6px; letter-spacing: 0.06em; }
+.version-tag { position: absolute; top: 10px; right: 2px; font-size: 0.72rem; color: var(--text-muted); font-weight: 400; opacity: 0.7; }
 .known-corner { position: absolute; top: 12px; font-size: 0.78rem; color: var(--accent); cursor: pointer; text-decoration: none; display: none; align-items: center; gap: 3px; }
 .known-corner:hover { text-decoration: underline; }
 .known-corner-a { left: 0; }
-.known-corner-b { right: 0; }
+.known-corner-b { right: 0; top: 34px; }
 .known-corner .kc-label { font-weight: 600; }
 .known-corner .kc-count { font-weight: 700; }
 .known-corner .kc-total { color: var(--text-muted); }
@@ -278,14 +279,16 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <!-- SCREEN 1: Landing (sets browser) -->
   <div id="screen-landing" class="screen active">
     <div class="landing-header">
+      <span class="version-tag" id="version-tag"></span>
       <a class="known-corner known-corner-a" id="known-corner-a" onclick="openCornerKnownViewer(this)">
         <span class="kc-label">Type A</span> <span class="kc-count" id="kc-count-a">0</span><span class="kc-total" id="kc-total-a"></span>
       </a>
       <a class="known-corner known-corner-b" id="known-corner-b" onclick="openCornerKnownViewer(this)">
         <span class="kc-label">Type B</span> <span class="kc-count" id="kc-count-b">0</span><span class="kc-total" id="kc-total-b"></span>
       </a>
-      <h1>Buddhist Liturgy Flashcards<span class="version-tag" id="version-tag"></span></h1>
-      <p id="landing-subtitle">Browse card sets to study.</p>
+      <h1>Chinese Buddhist Language Flashcards</h1>
+      <div class="title-zh" lang="zh-Hant">中文佛教語言閃卡</div>
+      <p id="landing-subtitle">Pick sets to study.</p>
     </div>
     <div class="manage-bar">
       <h2 id="landing-browse-title" style="margin-bottom:0">Browse Card Sets</h2>
@@ -504,7 +507,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.24';
+var APP_VERSION = 'v2.25';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1205,17 +1208,11 @@ function renderLanding() {
   var container = document.getElementById('accordion-container');
   container.innerHTML = '';
 
-  // Update subtitle / browse heading to reflect the tradition
+  // Subtitle / browse heading
   var titleEl = document.getElementById('landing-browse-title');
   var subEl = document.getElementById('landing-subtitle');
-  if (pickedTraditionKey && manifest.traditions[pickedTraditionKey]) {
-    var pickedName = manifest.traditions[pickedTraditionKey].display_name;
-    if (titleEl) titleEl.textContent = 'Browse ' + pickedName + ' Sets';
-    if (subEl) subEl.textContent = 'Browsing ' + pickedName + '. Pick sets to study.';
-  } else {
-    if (titleEl) titleEl.textContent = 'Browse Card Sets';
-    if (subEl) subEl.textContent = 'Browse card sets to study.';
-  }
+  if (titleEl) titleEl.textContent = 'Browse Card Sets';
+  if (subEl) subEl.textContent = 'Pick sets to study.';
 
   for (var tradKey in manifest.traditions) {
     // When a tradition has been picked from the picker, only render that one.
