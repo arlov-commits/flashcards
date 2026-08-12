@@ -179,7 +179,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .field-group label input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Card design panel */
-.card-design-toggle { font-size: 0.9rem; color: var(--accent); cursor: pointer; text-decoration: underline; display: inline-block; margin-bottom: 12px; }
+.card-design-toggle { font-size: 0.78rem; color: var(--text-muted); cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+.card-design-toggle:hover { color: var(--accent); text-decoration: underline; }
+.summary-row { display: flex; align-items: center; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
 .card-design-panel { display: none; }
 .card-design-panel.open { display: block; }
 .design-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
@@ -215,7 +217,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Download & progress section */
 .download-section { margin-top: 24px; }
-.summary-text { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-size: 0.9rem; color: var(--text-muted); margin: 16px 0; }
+.summary-text { flex: 1; min-width: 220px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-size: 0.9rem; color: var(--text-muted); }
 .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 
 /* Loading overlay */
@@ -356,9 +358,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       </table>
     </div>
 
-    <div id="summary-text" class="summary-text"></div>
-
-    <a class="card-design-toggle" id="card-design-toggle-link" onclick="toggleCardDesign()">Card Design</a>
+    <div class="summary-row">
+      <div id="summary-text" class="summary-text"></div>
+      <a class="card-design-toggle" id="card-design-toggle-link" onclick="toggleCardDesign()">⚙ Card design</a>
+    </div>
     <div id="card-design-panel" class="card-design-panel">
       <div class="design-section">
         <h3>Front</h3>
@@ -457,10 +460,8 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <button class="btn btn-outline btn-sm" onclick="this.nextElementSibling.classList.toggle('open')" style="font-size:0.82rem">Download Data ▾</button>
           <div class="export-menu">
             <button onclick="exportData('csv')">CSV</button>
-            <button onclick="exportData('tsv')">TSV</button>
-            <button onclick="exportData('json')">JSON</button>
             <button onclick="exportData('xlsx')">XLSX</button>
-            <button onclick="exportData('anki')">Anki</button>
+            <button onclick="exportData('json')">JSON</button>
             <button onclick="exportData('gsheet')">Google Sheets</button>
           </div>
         </div>
@@ -507,7 +508,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.26';
+var APP_VERSION = 'v2.27';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -951,7 +952,12 @@ async function init() {
 
 /* ============================================================
    LOAD MANIFEST FROM flashcard_directory.csv
-   Chinese CSV columns: Language, Section, Name, Rename_to, Alias_Eng, Alias_Ch, section_order
+   Columns: section, file, english, chinese
+     section — hand-keyed section title (also the data/chinese/<slug>/ folder)
+     file    — CSV filename inside that folder
+     english — English display name for the set
+     chinese — Chinese display subtitle for the set
+   Section order = first-seen order; set order = row order. That's it.
    ============================================================ */
 async function loadManifestFromDirectoryCSV() {
   var directoryFiles = ['flashcard_directory.csv'];
@@ -1003,64 +1009,35 @@ async function loadManifestFromDirectoryCSV() {
     return filename.replace(/\.csv$/i, '').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
   }
 
-  // Track subcategory ordering (first-seen order) and section orders
-  var subcatOrder = {}; // tradKey -> array of subcatKeys in order
-  var setOrderMap = {}; // subcatKey -> array of {setKey, section_order}
+  // Build sections in first-seen order; sets in row order. Object key
+  // insertion order (preserved by JS for string keys) gives us the
+  // display order directly — no separate ordering bookkeeping needed.
+  var tradKey = 'chinese';
+  var trad = TRADITION_CONFIGS[tradKey];
 
   parsed.data.forEach(function(row) {
-    var lang = (row.Language || '').trim();
-    var section = (row.Section || '').trim();
-    var name = (row.Name || '').trim();
-    var renameTo = (row.Rename_to || '').trim();
-    var aliasEng = (row.Alias_Eng || '').trim();
-    var aliasCh = (row.Alias_Ch || '').trim();
-    var secOrder = parseInt(row.section_order) || 0;
+    var section = (row.section || '').trim();
+    var file    = (row.file || '').trim();
+    var english = (row.english || '').trim();
+    var chinese = (row.chinese || '').trim();
 
-    // Skip blank rows or PENDING rows (PENDING may live in Name or Rename_to)
-    if (!lang || !section || !name) return;
-    if (name.toUpperCase() === 'PENDING') return;
-    if (renameTo.toUpperCase() === 'PENDING') return;
-
-    var tradKey = lang.toLowerCase();
-    if (!TRADITION_CONFIGS[tradKey]) return;
-    var trad = TRADITION_CONFIGS[tradKey];
+    if (!section || !file) return; // skip incomplete rows
 
     var subcatKey = sectionToKey(section);
     var dirName = sectionToDirName(section);
     if (!trad.subcategories[subcatKey]) {
       trad.subcategories[subcatKey] = { display_name: section, sets: {} };
-      if (!subcatOrder[tradKey]) subcatOrder[tradKey] = [];
-      subcatOrder[tradKey].push(subcatKey);
     }
 
-    var filename = renameTo || name;
-    var filePath = 'data/' + tradKey + '/' + dirName + '/' + filename;
-    var sKey = setKeyFromFile(filename);
-
+    var sKey = setKeyFromFile(file);
     trad.subcategories[subcatKey].sets[sKey] = {
-      file: filePath,
-      display_tag: aliasCh,
-      eng_name: aliasEng,
+      file: 'data/' + tradKey + '/' + dirName + '/' + file,
+      display_tag: chinese,
+      eng_name: english,
       total_cards: 0,  // populated below
-      active_cards: 0,
-      section_order: secOrder
+      active_cards: 0
     };
-
-    if (!setOrderMap[subcatKey]) setOrderMap[subcatKey] = [];
-    setOrderMap[subcatKey].push({ setKey: sKey, order: secOrder });
   });
-
-  // Sort sets within each subcategory by section_order, re-build in order
-  for (var tk in TRADITION_CONFIGS) {
-    var trad = TRADITION_CONFIGS[tk];
-    for (var sck in trad.subcategories) {
-      var subcat = trad.subcategories[sck];
-      var ordering = (setOrderMap[sck] || []).slice().sort(function(a, b) { return a.order - b.order; });
-      var sortedSets = {};
-      ordering.forEach(function(o) { if (subcat.sets[o.setKey]) sortedSets[o.setKey] = subcat.sets[o.setKey]; });
-      subcat.sets = sortedSets;
-    }
-  }
 
   // Load each CSV in parallel to populate total_cards
   var fetches = [];
@@ -2370,7 +2347,7 @@ function formatGroupDate(isoStr) {
 
 
 /* ============================================================
-   DATA EXPORT (CSV, TSV, JSON, XLSX, Anki, Google Sheets)
+   DATA EXPORT (CSV, XLSX, JSON, Google Sheets) — all with a header row
    ============================================================ */
 function buildSetHierarchy() {
   var map = {};
@@ -2452,60 +2429,121 @@ function exportData(fmt) {
   var baseName = (document.getElementById('customize-title').textContent || 'flashcards').replace(/[^a-zA-Z0-9_-]/g, '_');
 
   if (fmt === 'csv') {
+    // Prefix a UTF-8 BOM so Excel detects the encoding and renders Chinese.
     var csv = toDSV(d.headers, d.rows, ',');
-    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), baseName + '.csv');
-
-  } else if (fmt === 'tsv') {
-    var tsv = toDSV(d.headers, d.rows, '\t');
-    downloadBlob(new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8' }), baseName + '.tsv');
+    downloadBlob(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }), baseName + '.csv');
 
   } else if (fmt === 'json') {
     var json = JSON.stringify(d.rows, null, 2);
     downloadBlob(new Blob([json], { type: 'application/json;charset=utf-8' }), baseName + '.json');
 
-  } else if (fmt === 'anki') {
-    var lines = [];
-    d.rows.forEach(function(r) {
-      lines.push(d.headers.map(function(h) {
-        var v = String(r[h]);
-        if (v.indexOf('\t') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1)
-          return '"' + v.replace(/"/g, '""') + '"';
-        return v;
-      }).join('\t'));
-    });
-    downloadBlob(new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }), baseName + '_anki.txt');
-
   } else if (fmt === 'xlsx') {
     exportXLSX(d, baseName);
 
   } else if (fmt === 'gsheet') {
+    // Google Sheets pastes tab-separated values cleanly (headers included).
     var tsv2 = toDSV(d.headers, d.rows, '\t');
     navigator.clipboard.writeText(tsv2).then(function() {
-      alert('Data copied to clipboard (' + d.rows.length + ' rows). Open Google Sheets and paste (Ctrl+V).');
+      alert('Data copied to clipboard (' + d.rows.length + ' rows, with headers). Open a Google Sheet and paste (Ctrl+V / Cmd+V).');
     }).catch(function() {
-      downloadBlob(new Blob([tsv2], { type: 'text/tab-separated-values;charset=utf-8' }), baseName + '_gsheet.tsv');
-      alert('Clipboard unavailable — downloaded as TSV. Open in Google Sheets via File → Import.');
+      downloadBlob(new Blob(['﻿' + toDSV(d.headers, d.rows, ',')], { type: 'text/csv;charset=utf-8' }), baseName + '.csv');
+      alert('Clipboard unavailable — downloaded a CSV instead. In Google Sheets use File → Import to load it.');
     });
   }
 }
 
-function exportXLSX(d, baseName) {
-  // Minimal XLSX using a single-sheet XML spreadsheet saved as .xlsx-compatible XML
-  var xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += '<?mso-application progid="Excel.Sheet"?>\n';
-  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ';
-  xml += 'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
-  xml += '<Worksheet ss:Name="Flashcards"><Table>\n';
-  xml += '<Row>' + d.headers.map(function(h) {
-    return '<Cell><Data ss:Type="String">' + escapeHtml(h) + '</Data></Cell>';
-  }).join('') + '</Row>\n';
-  d.rows.forEach(function(r) {
-    xml += '<Row>' + d.headers.map(function(h) {
-      return '<Cell><Data ss:Type="String">' + escapeHtml(r[h]) + '</Data></Cell>';
-    }).join('') + '</Row>\n';
+/* CRC-32 (used by the .xlsx ZIP writer). */
+function _crc32(bytes) {
+  var table = _crc32.table;
+  if (!table) {
+    table = _crc32.table = new Uint32Array(256);
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      table[n] = c >>> 0;
+    }
+  }
+  var crc = 0xFFFFFFFF;
+  for (var i = 0; i < bytes.length; i++) crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xFF];
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+/* Build a ZIP archive (STORE / no compression) from [{name, data:Uint8Array}]. */
+function _zip(files) {
+  function u16(n) { return [n & 0xFF, (n >>> 8) & 0xFF]; }
+  function u32(n) { return [n & 0xFF, (n >>> 8) & 0xFF, (n >>> 16) & 0xFF, (n >>> 24) & 0xFF]; }
+  var enc = new TextEncoder();
+  var chunks = [], central = [], offset = 0;
+  var DOSDATE = 0x21; // 1980-01-01, a valid placeholder timestamp
+  files.forEach(function(f) {
+    var nameBytes = enc.encode(f.name);
+    var data = f.data;
+    var crc = _crc32(data);
+    var local = [].concat(
+      u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(DOSDATE),
+      u32(crc), u32(data.length), u32(data.length), u16(nameBytes.length), u16(0)
+    );
+    chunks.push(new Uint8Array(local), nameBytes, data);
+    var cen = [].concat(
+      u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(0), u16(DOSDATE),
+      u32(crc), u32(data.length), u32(data.length),
+      u16(nameBytes.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset)
+    );
+    central.push({ header: new Uint8Array(cen), name: nameBytes });
+    offset += local.length + nameBytes.length + data.length;
   });
-  xml += '</Table></Worksheet></Workbook>';
-  downloadBlob(new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8' }), baseName + '.xls');
+  var centralStart = offset, centralSize = 0;
+  central.forEach(function(c) { chunks.push(c.header, c.name); centralSize += c.header.length + c.name.length; });
+  var end = [].concat(
+    u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
+    u32(centralSize), u32(centralStart), u16(0)
+  );
+  chunks.push(new Uint8Array(end));
+  return new Blob(chunks, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+/* Real OOXML .xlsx: a ZIP of the minimal required XML parts, inline strings. */
+function exportXLSX(d, baseName) {
+  function colLetter(n) { var s = ''; n++; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+  function cell(col, rowNum, val) {
+    return '<c r="' + colLetter(col) + rowNum + '" t="inlineStr"><is><t xml:space="preserve">' + escapeHtml(val == null ? '' : String(val)) + '</t></is></c>';
+  }
+  var rowsXml = '<row r="1">' + d.headers.map(function(h, i) { return cell(i, 1, h); }).join('') + '</row>';
+  d.rows.forEach(function(r, ri) {
+    var rn = ri + 2;
+    rowsXml += '<row r="' + rn + '">' + d.headers.map(function(h, i) { return cell(i, rn, r[h]); }).join('') + '</row>';
+  });
+  var sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + rowsXml + '</sheetData></worksheet>';
+
+  var contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+    '</Types>';
+  var rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+    '</Relationships>';
+  var workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    '<sheets><sheet name="Flashcards" sheetId="1" r:id="rId1"/></sheets></workbook>';
+  var wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+    '</Relationships>';
+
+  var enc = new TextEncoder();
+  var files = [
+    { name: '[Content_Types].xml', data: enc.encode(contentTypes) },
+    { name: '_rels/.rels', data: enc.encode(rels) },
+    { name: 'xl/workbook.xml', data: enc.encode(workbook) },
+    { name: 'xl/_rels/workbook.xml.rels', data: enc.encode(wbRels) },
+    { name: 'xl/worksheets/sheet1.xml', data: enc.encode(sheetXml) }
+  ];
+  downloadBlob(_zip(files), baseName + '.xlsx');
 }
 
 /* ============================================================
