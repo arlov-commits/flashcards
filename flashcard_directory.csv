@@ -15,6 +15,8 @@ Evening Ceremony,meng-shan.csv,Meng Shan,蒙山
 Evening Ceremony,amitabha-praise.csv,Amitabha Praise,佛讚
 Evening Ceremony,puxian-exhortation.csv,Samantabhadra Verse of Exhortation,警眾偈
 Meal,meal-offering.csv,Meal Offering,臨齋儀
-Recitation Session,seeking_rebirth_interjection.csv,Seeking Rebirth in the Pure Land,求生淨土
-Recitation Session,great_xfer_merit.csv,Great Transfer of Merit,大回向
-Recitation Session,bowing_pureland_patriarch.csv,Bowing to Pure Land Patriarchs,淨土禮祖
+Sessions,pumen_pin.csv,Universal Door Chapter of Lotus Sutra,普門品
+Sessions,seeking_rebirth_interjection.csv,Seeking Rebirth in the Pure Land,求生淨土
+Sessions,great_xfer_merit.csv,Great Transfer of Merit,大回向
+Sessions,bowing_pureland_patriarch.csv,Bowing to Pure Land Patriarchs,淨土禮祖
+Repentance,gc_repent.csv,Great Compassion Repentance,大悲懺
