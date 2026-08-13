@@ -179,9 +179,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .field-group label input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Card design panel */
-.card-design-toggle { font-size: 0.78rem; color: var(--text-muted); cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
-.card-design-toggle:hover { color: var(--accent); text-decoration: underline; }
-.summary-row { display: flex; align-items: center; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+.card-design-toggle { position: absolute; top: 8px; right: 10px; display: inline-flex; align-items: center; color: var(--text-muted); cursor: pointer; opacity: 0.65; transition: color 0.15s, opacity 0.15s, transform 0.4s ease; }
+.card-design-toggle:hover { color: var(--accent); opacity: 1; transform: rotate(60deg); }
+.dharma-icon { display: block; }
 .card-design-panel { display: none; }
 .card-design-panel.open { display: block; }
 .design-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
@@ -217,7 +217,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Download & progress section */
 .download-section { margin-top: 24px; }
-.summary-text { flex: 1; min-width: 220px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-size: 0.9rem; color: var(--text-muted); }
+.summary-text { position: relative; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 34px 12px 16px; font-size: 0.9rem; color: var(--text-muted); margin: 16px 0; }
 .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 
 /* Loading overlay */
@@ -358,9 +358,20 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       </table>
     </div>
 
-    <div class="summary-row">
-      <div id="summary-text" class="summary-text"></div>
-      <a class="card-design-toggle" id="card-design-toggle-link" onclick="toggleCardDesign()">⚙ Card design</a>
+    <div id="summary-text" class="summary-text">
+      <span id="summary-text-body"></span>
+      <a class="card-design-toggle" id="card-design-toggle-link" onclick="toggleCardDesign()" title="Card design" aria-label="Card design">
+        <svg class="dharma-icon" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <line x1="12" y1="2.8" x2="12" y2="21.2"/>
+            <line x1="2.8" y1="12" x2="21.2" y2="12"/>
+            <line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/>
+            <line x1="18.5" y1="5.5" x2="5.5" y2="18.5"/>
+          </g>
+        </svg>
+      </a>
     </div>
     <div id="card-design-panel" class="card-design-panel">
       <div class="design-section">
@@ -508,7 +519,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.27';
+var APP_VERSION = 'v2.28';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1799,7 +1810,7 @@ function updateSummary() {
     text += ' [' + fullPages + ' full page' + (fullPages !== 1 ? 's' : '') + ' + ' + extraCards + ' card' + (extraCards !== 1 ? 's' : '') + ']';
   }
   text += ').';
-  document.getElementById('summary-text').textContent = text;
+  document.getElementById('summary-text-body').textContent = text;
 }
 
 function selectAllCards(val) {
