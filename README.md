@@ -62,6 +62,43 @@ the canonical fields. To support another spelling, add one alias there.
 | `frequency`   | `frequency` — occurrence count, orders Type B   |
 | `shared_by`   | `shared_by` — other terms/sections it appears in |
 
+## Anki export
+
+The **To Anki (.apkg)** button on the Customize & Download screen turns the
+current card selection into an Anki deck. The libraries it needs (~1.5 MB of
+WASM) are fetched on the first click only, so the page and the PDF path stay
+fast for anyone who never uses it.
+
+| Anki field  | Card CSV column |
+| ----------- | --------------- |
+| `Chinese`   | `chinese`       |
+| `Pinyin`    | `pinyin`        |
+| `English`   | `english_def`   |
+| `Shared_by` | `shared_by`     |
+
+Each note is tagged with its `eng_tag`, so decks stay filterable by source text
+inside Anki. Rows with an empty `chinese` are skipped and every field is
+trimmed, so legacy CSVs with stray leading spaces export cleanly.
+
+Two constants must never change once shipped:
+
+- the note type id (`ANKI_MODEL_ID` in `index.html`) — a fresh id per export
+  would create a duplicate note type in the user's collection every time and
+  stop styling edits from propagating;
+- the GUID recipe, `ankiHash([chinese, eng_tag])` — hashing term and source
+  section only means a corrected deck **updates in place** on re-import rather
+  than duplicating every note.
+
+### Licensing
+
+The Anki export vendors [genanki-js](https://github.com/infinyte7/genanki-js)
+at `vendor/genanki.js`, which is **AGPL-3.0** (itself derived from
+[mkanki](https://github.com/nornagon/mkanki), AGPL-3.0, and
+[genanki](https://github.com/kerrickstaley/genanki), MIT; it bundles
+[js-sha256](https://github.com/emn178/js-sha256), MIT). Shipping it inside this
+page makes the app a combined work under the AGPL-3.0. The repo is public, so
+the obligation is met — but the app cannot later become closed-source.
+
 ## URLs
 
 Every screen has a shareable URL:
