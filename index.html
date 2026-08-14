@@ -547,7 +547,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.31';
+var APP_VERSION = 'v2.32';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -2714,30 +2714,140 @@ function exportData(fmt) {
    collection and styling edits would stop propagating. */
 var ANKI_MODEL_ID = '1786800000001';
 
-var ANKI_CSS =
-  '.card { font-family: "Times New Roman"; font-size: 40px; line-height: 1.5;\n' +
-  '  text-align: center; background-color: #fdf6e3; color: #47321d; }\n' +
-  '.halfbr { display:block; margin-top:0.3em; }\n' +
-  '.expander { display:block; font-family: "Lora", sans-serif; font-size:18px;\n' +
-  '  font-weight:bold; color:#3258a8; }';
+/* Card template and styling, lifted verbatim from templates/anki-1.2-type-a.txt.
+   Edit that file and re-copy rather than tweaking these strings, so the two
+   never drift apart.
 
-var ANKI_FRONT =
-  '<br>\n' +
-  '<div style=\'font-family: "Times New Roman"; font-size: 50px;\'>{{Chinese}}</div>\n' +
-  '<div style=\'font-family: "Times New Roman"; font-size: 40px;\'>{{Pinyin}}</div>\n' +
-  '<span class="halfbr"></span>';
+   The back template carries its own <script> (the "Shared by" accordion), so
+   the closing tag is written <\/script> — otherwise it would close the inline
+   <script> element in this page instead of ending up in the Anki card. */
+var ANKI_FRONT = `<br>
+<div style='font-family: "Times New Roman"; font-size: 50px;'>{{Chinese}}</div>
+<div style='font-family: "Times New Roman"; font-size: 40px;'>{{Pinyin}}</div>
+<span class="halfbr"></span>`;
 
-/* No <script> in the template, so "Shared by" is rendered plainly rather
-   than behind a collapsed expander that nothing could open. The
-   {{#Shared_by}} conditional still hides the whole block when empty. */
-var ANKI_BACK =
-  '{{FrontSide}}\n' +
-  '<hr>\n' +
-  '<div style=\'font-family: "Courier"; font-size: 28px;\'>{{English}}</div>\n' +
-  '{{#Shared_by}}\n' +
-  '<div class="expander">Shared by</div>\n' +
-  '<div style=\'font-family: "Arial"; font-size: 26px;\'>{{Shared_by}}</div>\n' +
-  '{{/Shared_by}}';
+var ANKI_BACK = `{{FrontSide}}
+<hr>
+
+<div style='font-family: "Courier"; font-size: 28px;'>{{English}}</div>
+<a href="intent://x-callback-url/df?hw={{text:Chinese}}#Intent;scheme=plecoapi;package=com.pleco.chinesesystem;launchFlags=0x10000000;end" style="position:fixed; bottom:12px; right:12px; font-size:14px; text-decoration:none; opacity:0.4;">📖</a>
+<a href="https://hanzicraft.com/character/{{text:Chinese}}" style="position:fixed; bottom:12px; left:12px; font-size:14px; text-decoration:none; opacity:0.4;">📕</a>
+<br>
+<span class="halfbr"></span>
+{{#Shared_by}}
+<!-- Context Expander -->
+<div id="contextToggle" class="expander">Shared by ▸</div>
+<!-- Context Section -->
+<div id="contextSection" style="display:none;">
+<span class="halfbr"></span>
+
+<div style='font-family: "Arial"; font-size: 26px;'>{{Shared_by}}</div>
+</div>
+{{/Shared_by}}
+
+
+
+
+<script>
+(function(){
+  var contextToggle = document.getElementById('contextToggle');
+  var contextSection = document.getElementById('contextSection');
+
+  if (!contextToggle || !contextSection) return;
+
+  function toggleContext() {
+    var isHidden = contextSection.style.display === 'none';
+
+    if (isHidden) {
+      contextSection.style.display = 'block';
+      contextToggle.textContent = 'Shared by ▾';
+      contextToggle.classList.add('expanded');
+    } else {
+      contextSection.style.display = 'none';
+      contextToggle.textContent = 'Shared by ▸';
+      contextToggle.classList.remove('expanded');
+    }
+  }
+
+  contextToggle.addEventListener('click', toggleContext);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'j' || e.key === 'J') {
+      toggleContext();
+      e.preventDefault();
+    }
+  });
+})();
+<\/script>`;
+
+var ANKI_CSS = `.card { font-family: "Times New Roman"; font-size: 40px; line-height: 1.5; text-align: center;     background-color: #fdf6e3;  
+    color: #47321d;    }
+
+.halfbr { display:block; margin-top:0.3em; }
+
+.expander-blue {
+  cursor: pointer;
+  color: #1e5eff;
+  font-weight: 600;
+  user-select: none;
+  padding: 4px 0;
+}
+
+.expander-blue.expanded {
+  color: #3a7bff;
+}
+
+.cshared {
+  color: #2b2b2b;
+  font-size: 0.95em;
+}
+
+
+.thinhr {
+  border: none;
+  border-top: 1px solid #000;  /* you can swap #000 for your preferred divider color */
+  margin-top: 0.5em;           /* space above */
+  margin-bottom: 0.5em;        /* space below */
+}
+
+
+.expander {
+  display: block;           /* or inline-block, up to you */
+  font-family: "Lora", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+
+  color: #3258a8;           /* light blue = More */
+  transition: color 0.2s ease;
+}
+
+.expander.expanded {
+  color: #3258a8;           /* dark blue = Less */
+}
+
+/* Morphology version, different colors */
+.expander-morph {
+  display: block;
+  font-family: "Lora", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  color: #A04000; /* default Source ▸ (orange, example) */
+}
+
+.expander-morph.expanded {
+  color: #78411d; /* Source ▾ (darker orange, example) */
+}`;
 
 var SQLJS_BASE = 'https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/';
 var ANKI_SCRIPTS = [

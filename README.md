@@ -80,6 +80,26 @@ Each note is tagged with its `eng_tag`, so decks stay filterable by source text
 inside Anki. Rows with an empty `chinese` are skipped and every field is
 trimmed, so legacy CSVs with stray leading spaces export cleanly.
 
+### Card template
+
+The note type's front, back, and CSS live in `templates/anki-1.2-type-a.txt`
+and are compiled into `index.html` verbatim. **Edit that file and re-copy the
+three sections** rather than editing the strings in `index.html`, so the two
+cannot drift apart.
+
+The back of the card carries:
+
+- a 📖 Pleco link (`intent://`, Android only — inert elsewhere) and a 📕
+  [HanziCraft](https://hanzicraft.com) link, both pinned to the bottom corners;
+- a **Shared by** accordion, collapsed by default, toggled by click or by
+  pressing <kbd>J</kbd>. Only some CSVs carry `shared_by`; the
+  `{{#Shared_by}}` conditional drops the whole block on notes without it, so
+  there is no stray expander to click.
+
+That back template contains its own `<script>`. Inside `index.html` its closing
+tag must stay written as `<\/script>`, or it ends the page's own inline script
+instead of the Anki card's.
+
 Two constants must never change once shipped:
 
 - the note type id (`ANKI_MODEL_ID` in `index.html`) — a fresh id per export
