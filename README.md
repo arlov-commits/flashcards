@@ -151,8 +151,30 @@ page count is visible before committing. Nothing leaves the browser until the
 download button is pressed, and the whole block resets on the next visit to
 the screen.
 
-A persistent site nav (**Home · Instructions · Methodology**) sits above every
-screen, outside the screen containers, and highlights the current one.
+A persistent site nav (**Home · Quiz · Instructions · Methodology**) sits above
+every screen, outside the screen containers, and highlights the current one.
+
+## The Quiz screen
+
+A single-pass self-test over the global card index (`#/quiz`), with no
+scheduling — the page says so and points at the Anki export. Four controls:
+pool (known / new), type (A / B), order (random / by deck), and an optional
+single deck. While playing, those four render as chips above the card next to a
+live known count for the current type, re-read from storage after every change
+and flashed via a CSS animation so the movement is visible.
+
+The card mirrors the Anki note type — same palette (`#fdf6e3` on `#47321d`),
+fonts and sizes, and the same collapsed **Shared by** expander.
+
+The two pools differ in consequence, which is the whole point of the screen:
+
+| Pool | Got it | Missed it | Manual |
+| ---- | ------ | --------- | ------ |
+| **Known** | nothing | `removeFromKnown()` — the term returns to your next deck | — |
+| **New** | nothing | nothing | **+ Add to known** records that one card |
+
+Terms are de-duplicated across liturgies, so a character shared by several sets
+is asked once and attributed to the first set it appears in.
 
 ### Marking cards as known
 
@@ -190,6 +212,7 @@ Every screen has a shareable URL:
 | `#/cards/evening-ceremony` | Customize, one whole section |
 | `#/cards/heart_sutra+gc_repent` | Customize, specific sets |
 | `#/known/a`, `#/known/b` | Known-cards viewer |
+| `#/quiz` | Quiz |
 | `#/instructions` | Instructions |
 | `#/methodology` | Methodology |
 

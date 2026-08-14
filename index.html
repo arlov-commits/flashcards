@@ -126,6 +126,79 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
 .nav-bar .back-link { color: var(--accent); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 .nav-bar .back-link:hover { text-decoration: underline; }
+/* ---------- Quiz ---------- */
+.quiz-setup { max-width: 46rem; }
+.quiz-opt { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.quiz-opt-label { width: 56px; flex: none; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text-muted); }
+.quiz-opt select { font-size: 0.85rem; padding: 6px 10px; border: 1.5px solid var(--border);
+  border-radius: var(--radius); background: var(--bg-card); color: var(--text); max-width: 22rem; }
+.seg { display: flex; gap: 0; flex: 1 1 320px; border: 1.5px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; background: var(--bg-card); }
+.seg-btn { flex: 1; border: none; background: transparent; cursor: pointer; padding: 8px 12px;
+  font-family: inherit; color: var(--text); text-align: center; border-left: 1px solid var(--border-light); }
+.seg-btn:first-child { border-left: none; }
+.seg-btn:hover { background: rgba(139,26,26,0.06); }
+.seg-btn.active { background: var(--accent); color: #fff; }
+.seg-title { display: block; font-weight: 700; font-size: 0.88rem; }
+.seg-sub { display: block; font-size: 0.72rem; opacity: 0.75; margin-top: 1px; }
+.seg-slim { flex: 0 1 240px; }
+.seg-slim .seg-btn { font-size: 0.85rem; font-weight: 600; padding: 7px 12px; }
+.quiz-start-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
+.quiz-available { font-size: 0.85rem; color: var(--text-muted); }
+
+.quiz-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  flex-wrap: wrap; margin-bottom: 14px; }
+.quiz-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.quiz-chip { font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 3px 9px; border-radius: 999px; border: 1.5px solid var(--border); color: var(--text-muted);
+  background: var(--bg-card); }
+.quiz-chip.is-pool-known { border-color: var(--accent); color: #fff; background: var(--accent); }
+.quiz-chip.is-pool-new { border-color: var(--accent-light); color: #6b4a25; background: #f6e9d8; }
+.quiz-meta { display: flex; align-items: center; gap: 14px; font-size: 0.85rem; color: var(--text-muted); }
+.quiz-progress { font-variant-numeric: tabular-nums; }
+.quiz-known strong { font-variant-numeric: tabular-nums; color: var(--text); }
+.quiz-known.bump { animation: quizBump 0.5s ease; }
+@keyframes quizBump {
+  0%   { transform: scale(1);    color: var(--text-muted); }
+  30%  { transform: scale(1.22); color: var(--accent); }
+  100% { transform: scale(1);    color: var(--text-muted); }
+}
+.quiz-known.bump strong { color: var(--accent); }
+
+/* The quiz card mirrors the Anki note type (templates/anki-1.2-type-a.txt):
+   same palette, same fonts, same sizes, so practising here looks like
+   reviewing there. */
+.qcard { background: #fdf6e3; color: #47321d; border: 1px solid var(--border);
+  border-radius: var(--radius); text-align: center; padding: 28px 20px; line-height: 1.5;
+  font-family: "Times New Roman", Times, serif; min-height: 220px;
+  display: flex; flex-direction: column; justify-content: center; }
+.qcard .q-chinese { font-family: "Noto Serif SC", "Times New Roman", serif; font-size: 50px; }
+.qcard .q-pinyin  { font-size: 40px; }
+.qcard .q-halfbr  { display: block; margin-top: 0.3em; }
+.qcard hr { border: none; border-top: 1px solid rgba(71,50,29,0.35); margin: 14px auto; width: 70%; }
+.qcard .q-english { font-family: "Courier New", Courier, monospace; font-size: 28px; }
+.qcard .q-expander { display: block; font-family: "Lora", sans-serif; font-size: 18px;
+  font-weight: bold; cursor: pointer; user-select: none; color: #3258a8; margin-top: 10px; }
+.qcard .q-shared { font-family: Arial, sans-serif; font-size: 26px; margin-top: 6px; }
+.qcard .q-deck { font-size: 13px; color: rgba(71,50,29,0.6); margin-top: 14px;
+  font-family: 'Segoe UI', system-ui, sans-serif; }
+.qcard .q-prompt { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem;
+  color: rgba(71,50,29,0.55); margin-top: 16px; }
+
+.quiz-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.quiz-score { margin-top: 12px; font-size: 0.85rem; color: var(--text-muted); }
+.quiz-hint { margin-top: 6px; font-size: 0.76rem; color: var(--text-muted); font-style: italic; }
+.quiz-flash { font-size: 0.85rem; margin-top: 10px; padding: 8px 12px; border-radius: var(--radius);
+  background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
+.quiz-summary { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; max-width: 46rem; }
+.quiz-summary h3 { font-size: 1.1rem; color: var(--accent); margin-bottom: 8px; }
+.quiz-summary p { font-size: 0.9rem; margin-bottom: 6px; }
+.btn-danger { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
+.btn-success { background: transparent; border: 1.5px solid #2f6b3f; color: #2f6b3f; }
+.btn-success:hover { background: rgba(47,107,63,0.08); }
+/* ---------- end Quiz ---------- */
 /* Instructions & Methodology prose */
 .doc { max-width: 42rem; }
 .doc h2 { font-size: 1.4rem; color: var(--accent); margin-bottom: 12px; }
@@ -332,6 +405,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
        on all of them, including the landing page. -->
   <nav class="site-nav" id="site-nav">
     <a class="nav-btn" data-nav="landing" onclick="navigateTo('landing')">Home</a>
+    <a class="nav-btn" data-nav="quiz" onclick="navigateTo('quiz')">Quiz</a>
     <a class="nav-btn" data-nav="instructions" onclick="navigateTo('instructions')">Instructions</a>
     <a class="nav-btn" data-nav="methodology" onclick="navigateTo('methodology')">Methodology</a>
   </nav>
@@ -575,6 +649,92 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     </div>
   </div>
 
+  <!-- SCREEN: Quiz -->
+  <div id="screen-quiz" class="screen">
+    <div class="doc" style="max-width:46rem">
+      <h2>Quiz</h2>
+      <p class="doc-note" style="margin-bottom:16px">
+        A quick self-test, not a study system. It shows each card once, in one pass,
+        with no scheduling behind it. For real spaced repetition &mdash; intervals
+        that grow as you get things right, and a review history that survives
+        &mdash; build a deck on the
+        <a href="#/" onclick="navigateTo('landing');return false;">card sets</a> page
+        and press <strong>To Anki (.apkg)</strong>.
+      </p>
+    </div>
+
+    <div id="quiz-setup" class="quiz-setup">
+      <div class="quiz-opt">
+        <span class="quiz-opt-label">Cards</span>
+        <div class="seg" id="quiz-pool">
+          <button class="seg-btn active" data-pool="known" onclick="setQuizOption('pool','known')">
+            <span class="seg-title">Known</span><span class="seg-sub">Cards you have marked known</span>
+          </button>
+          <button class="seg-btn" data-pool="new" onclick="setQuizOption('pool','new')">
+            <span class="seg-title">New</span><span class="seg-sub">Everything you have not</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="quiz-opt">
+        <span class="quiz-opt-label">Type</span>
+        <div class="seg" id="quiz-type">
+          <button class="seg-btn active" data-type="A" onclick="setQuizOption('type','A')">
+            <span class="seg-title">Type A</span><span class="seg-sub">Chinese + pinyin front</span>
+          </button>
+          <button class="seg-btn" data-type="B" onclick="setQuizOption('type','B')">
+            <span class="seg-title">Type B</span><span class="seg-sub">Chinese only front</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="quiz-opt">
+        <span class="quiz-opt-label">Order</span>
+        <div class="seg seg-slim" id="quiz-order">
+          <button class="seg-btn active" data-order="random" onclick="setQuizOption('order','random')">Random</button>
+          <button class="seg-btn" data-order="deck" onclick="setQuizOption('order','deck')">By deck</button>
+        </div>
+      </div>
+
+      <div class="quiz-opt">
+        <span class="quiz-opt-label">Deck</span>
+        <select id="quiz-deck" onchange="setQuizOption('deck', this.value)"></select>
+      </div>
+
+      <div class="quiz-start-row">
+        <button class="btn btn-primary" id="quiz-start-btn" onclick="startQuiz()">Start quiz</button>
+        <span id="quiz-available" class="quiz-available"></span>
+      </div>
+    </div>
+
+    <!-- Playing -->
+    <div id="quiz-play" style="display:none">
+      <div class="quiz-bar">
+        <div class="quiz-chips" id="quiz-chips"></div>
+        <div class="quiz-meta">
+          <span id="quiz-progress" class="quiz-progress"></span>
+          <span class="quiz-known" id="quiz-known">Known <span id="quiz-known-type">A</span>:
+            <strong id="quiz-known-count">0</strong></span>
+        </div>
+      </div>
+
+      <div class="qcard" id="quiz-card"></div>
+
+      <div class="quiz-actions" id="quiz-actions"></div>
+      <div class="quiz-score" id="quiz-score"></div>
+      <div class="quiz-hint">Space or Enter reveals the answer, then 1 = got it, 2 = missed it.</div>
+      <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="endQuiz()">End quiz</button>
+    </div>
+
+    <!-- Finished -->
+    <div id="quiz-done" style="display:none">
+      <div class="quiz-summary" id="quiz-summary"></div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-primary" onclick="endQuiz()">Back to quiz options</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SCREEN: Instructions -->
   <div id="screen-instructions" class="screen">
     <div class="doc">
@@ -723,6 +883,42 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           rebuild the whole set instead, tick the checkbox in the table&rsquo;s header
           row to re-select every card. (That only puts them back in the deck; they stay
           marked known until you clear them in the known-cards viewer.)
+        </p>
+      </details>
+
+      <details class="doc-detail">
+        <summary>The Quiz page</summary>
+        <p>
+          <strong>Quiz</strong> in the top bar is a quick self-test over the cards you
+          have marked known, or over the ones you have not. It shows each card once,
+          in one pass, with nothing scheduling the repeats. It is a way to shuffle
+          cards between the two piles by feel, not a study system &mdash; that is what
+          the Anki deck is for.
+        </p>
+        <p>
+          Four choices sit at the top: which pile (<strong>Known</strong> or
+          <strong>New</strong>), which type (<strong>A</strong> or <strong>B</strong>,
+          exactly as on the card sets page), the order (random or grouped by deck),
+          and a single deck if you want to narrow it. While a quiz is running those
+          four are shown as chips above the card, so it is always clear what you are
+          being asked, alongside a live count of your known list for that type.
+        </p>
+        <p>
+          <strong>Known pile &mdash; missing a card removes it.</strong> Press
+          &ldquo;Missed it&rdquo; and that character comes off your known list for the
+          current type. The counter above the card drops immediately, and the term
+          reappears in the next deck you build. Getting one right changes nothing.
+        </p>
+        <p>
+          <strong>New pile &mdash; nothing is recorded unless you say so.</strong>
+          Right and wrong are just a score there; neither touches your known list. If
+          a card turns out to be one you already know, press
+          <strong>+ Add to known</strong> on that card and it moves across, again with
+          the counter updating as you watch.
+        </p>
+        <p>
+          Keyboard: <kbd>Space</kbd> or <kbd>Enter</kbd> reveals the answer, then
+          <kbd>1</kbd> for got it and <kbd>2</kbd> for missed it.
         </p>
       </details>
 
@@ -939,7 +1135,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.37';
+var APP_VERSION = 'v2.38';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1181,7 +1377,8 @@ function buildGlobalCardIndex() {
                   _setLabel: si.eng_name || sk,
                   _setTag: si.display_tag || '',
                   eng_tag: (row.eng_tag || '').trim(),
-                  ch_tag:  (row.ch_tag  || '').trim()
+                  ch_tag:  (row.ch_tag  || '').trim(),
+                  shared_by: (row.shared_by || '').trim()
                 };
                 for (var fi = 0; fi < fieldList.length; fi++) {
                   entry[fieldList[fi].key] = (row[fieldList[fi].key] || '').trim();
@@ -1633,6 +1830,7 @@ function routePathForScreen(name) {
   if (name === 'known') return 'known/' + String(knownViewerMode || 'A').toLowerCase();
   if (name === 'methodology') return 'methodology';
   if (name === 'instructions') return 'instructions';
+  if (name === 'quiz') return 'quiz';
   return '';
 }
 
@@ -1651,6 +1849,7 @@ function parseRoute() {
   if (parts[0] === 'known')  return { screen: 'known', mode: (parts[1] || 'a').toUpperCase() === 'B' ? 'B' : 'A' };
   if (parts[0] === 'methodology') return { screen: 'methodology' };
   if (parts[0] === 'instructions') return { screen: 'instructions' };
+  if (parts[0] === 'quiz') return { screen: 'quiz' };
   return { screen: 'landing' };
 }
 
@@ -1661,6 +1860,7 @@ async function applyRoute() {
 
   if (r.screen === 'methodology')  { showScreen('methodology'); return; }
   if (r.screen === 'instructions') { showScreen('instructions'); return; }
+  if (r.screen === 'quiz')         { showScreen('quiz'); return; }
 
   if (r.screen === 'known') {
     knownViewerMode = r.mode;
@@ -1707,6 +1907,7 @@ function showScreen(name) {
     a.classList.toggle('active', a.dataset.nav === name);
   });
   if (name === 'known') renderKnownViewer();
+  if (name === 'quiz') openQuiz();
   if (name === 'landing') { renderLanding(); renderProgressStats(); }
   window.scrollTo(0, 0);
 }
@@ -4003,6 +4204,297 @@ async function generatePDF() {
     overlay.classList.remove('active');
   }
 }
+
+/* ============================================================
+   QUIZ
+
+   A single-pass self-test over the global card index, kept
+   deliberately simple: no scheduling, no history. Two pools with
+   different consequences —
+
+     known  : failing a card removes it from the known list, so the
+              term comes back in your next Anki deck.
+     new    : purely performative. Nothing is recorded unless the user
+              presses "Add to known" on a card.
+
+   The known counter in the quiz bar is the live view of that: it is
+   re-read from storage after every change and flashes when it moves.
+   ============================================================ */
+var quiz = {
+  pool: 'known', type: 'A', order: 'random', deck: '',
+  cards: [], idx: 0, revealed: false, right: 0, wrong: 0,
+  changed: 0, running: false, flash: ''
+};
+
+function quizPoolCards() {
+  if (!globalCardIndex) return [];
+  var known = getKnownList(quiz.type);
+
+  // De-duplicate by term: the same character occurs in several liturgies and
+  // should be asked once, attributed to the first set it appears in.
+  var seen = {};
+  var out = [];
+  globalCardIndex.forEach(function(e) {
+    var ch = (e.chinese || '').trim();
+    if (!ch || seen[ch]) return;
+    var isKnown = known.has(ch);
+    if (quiz.pool === 'known' ? !isKnown : isKnown) return;
+    seen[ch] = true;
+    out.push(e);
+  });
+  return out;
+}
+
+function quizDeckOptions() {
+  var counts = {};
+  quizPoolCards().forEach(function(e) {
+    var d = e._setLabel || 'Unknown';
+    counts[d] = (counts[d] || 0) + 1;
+  });
+  return Object.keys(counts).sort().map(function(d) { return { deck: d, n: counts[d] }; });
+}
+
+function quizSelectedCards() {
+  var cards = quizPoolCards();
+  if (quiz.deck) cards = cards.filter(function(e) { return (e._setLabel || 'Unknown') === quiz.deck; });
+  return cards;
+}
+
+function setQuizOption(key, value) {
+  quiz[key] = value;
+  if (key === 'pool' || key === 'type') quiz.deck = '';   // deck lists differ per pool
+  ['pool', 'type', 'order'].forEach(function(k) {
+    document.querySelectorAll('#quiz-' + k + ' .seg-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset[k] === quiz[k]);
+    });
+  });
+  renderQuizSetup();
+}
+
+function renderQuizSetup() {
+  var sel = document.getElementById('quiz-deck');
+  if (sel) {
+    var opts = quizDeckOptions();
+    var total = opts.reduce(function(a, o) { return a + o.n; }, 0);
+    sel.innerHTML = '<option value="">All decks (' + total + ')</option>' +
+      opts.map(function(o) {
+        return '<option value="' + escapeHtml(o.deck) + '">' + escapeHtml(o.deck) + ' (' + o.n + ')</option>';
+      }).join('');
+    sel.value = quiz.deck;
+    if (sel.value !== quiz.deck) { quiz.deck = ''; sel.value = ''; }
+  }
+  var n = quizSelectedCards().length;
+  var avail = document.getElementById('quiz-available');
+  if (avail) {
+    avail.textContent = n
+      ? n + ' card' + (n === 1 ? '' : 's') + ' in this quiz'
+      : (quiz.pool === 'known'
+          ? 'No known cards yet for Type ' + quiz.type + ' — mark some known, or quiz the new pile.'
+          : 'Nothing left: every card is already known for Type ' + quiz.type + '.');
+  }
+  var btn = document.getElementById('quiz-start-btn');
+  if (btn) btn.disabled = n === 0;
+}
+
+async function openQuiz() {
+  document.getElementById('quiz-play').style.display = 'none';
+  document.getElementById('quiz-done').style.display = 'none';
+  document.getElementById('quiz-setup').style.display = '';
+  quiz.running = false;
+  var avail = document.getElementById('quiz-available');
+  if (avail) avail.textContent = 'Loading cards…';
+  await buildGlobalCardIndex();
+  renderQuizSetup();
+}
+
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function startQuiz() {
+  var cards = quizSelectedCards().slice();
+  if (!cards.length) return;
+  if (quiz.order === 'random') shuffle(cards);
+  else cards.sort(function(a, b) {
+    var d = (a._setLabel || '').localeCompare(b._setLabel || '');
+    return d !== 0 ? d : 0;   // stable: within a deck, keep index (liturgy) order
+  });
+
+  quiz.cards = cards;
+  quiz.idx = 0; quiz.revealed = false; quiz.right = 0; quiz.wrong = 0; quiz.changed = 0;
+  quiz.running = true; quiz.flash = '';
+  document.getElementById('quiz-setup').style.display = 'none';
+  document.getElementById('quiz-done').style.display = 'none';
+  document.getElementById('quiz-play').style.display = '';
+  renderQuizChips();
+  renderQuizCard();
+}
+
+function renderQuizChips() {
+  var el = document.getElementById('quiz-chips');
+  if (!el) return;
+  el.innerHTML =
+    '<span class="quiz-chip ' + (quiz.pool === 'known' ? 'is-pool-known' : 'is-pool-new') + '">' +
+      (quiz.pool === 'known' ? 'Known cards' : 'New cards') + '</span>' +
+    '<span class="quiz-chip">Type ' + quiz.type + '</span>' +
+    '<span class="quiz-chip">' + (quiz.order === 'random' ? 'Random' : 'By deck') + '</span>' +
+    '<span class="quiz-chip">' + escapeHtml(quiz.deck || 'All decks') + '</span>';
+  document.getElementById('quiz-known-type').textContent = quiz.type;
+  updateQuizKnownCount(false);
+}
+
+/* Re-read the count from storage rather than tracking it, so the number can
+   never drift from what is actually stored. `bump` flashes it. */
+function updateQuizKnownCount(bump) {
+  var el = document.getElementById('quiz-known-count');
+  if (!el) return;
+  var wrap = document.getElementById('quiz-known');
+  el.textContent = getKnownList(quiz.type).size;
+  if (bump && wrap) {
+    wrap.classList.remove('bump');
+    void wrap.offsetWidth;          // restart the animation
+    wrap.classList.add('bump');
+  }
+}
+
+function quizCurrent() { return quiz.cards[quiz.idx]; }
+
+function renderQuizCard() {
+  var c = quizCurrent();
+  if (!c) return finishQuiz();
+
+  document.getElementById('quiz-progress').textContent = (quiz.idx + 1) + ' / ' + quiz.cards.length;
+
+  var showPinyinFront = quiz.type === 'A';
+  var html = '<div class="q-chinese" lang="zh-Hant">' + escapeHtml(c.chinese || '') + '</div>';
+  if (showPinyinFront) html += '<div class="q-pinyin">' + escapeHtml(c.pinyin || '') + '</div>';
+  html += '<span class="q-halfbr"></span>';
+
+  if (quiz.revealed) {
+    html += '<hr>';
+    if (!showPinyinFront) html += '<div class="q-pinyin">' + escapeHtml(c.pinyin || '') + '</div>';
+    html += '<div class="q-english">' + escapeHtml(c.english_def || '') + '</div>';
+    if ((c.shared_by || '').trim()) {
+      html += '<div class="q-expander" onclick="toggleQuizShared()">Shared by &#9656;</div>' +
+              '<div class="q-shared" id="quiz-shared" style="display:none">' + escapeHtml(c.shared_by) + '</div>';
+    }
+    html += '<div class="q-deck">' + escapeHtml(c._setLabel || '') + '</div>';
+  } else {
+    html += '<div class="q-prompt">' + (showPinyinFront ? 'What does it mean?' : 'How is it read, and what does it mean?') + '</div>';
+  }
+  document.getElementById('quiz-card').innerHTML = html;
+
+  var actions = document.getElementById('quiz-actions');
+  if (!quiz.revealed) {
+    actions.innerHTML = '<button class="btn btn-primary" onclick="revealQuizCard()">Show answer</button>';
+  } else if (quiz.pool === 'known') {
+    actions.innerHTML =
+      '<button class="btn btn-success" onclick="answerQuiz(true)">&#10003; Got it</button>' +
+      '<button class="btn btn-danger" onclick="answerQuiz(false)">&#10007; Missed it &mdash; remove from known</button>';
+  } else {
+    actions.innerHTML =
+      '<button class="btn btn-success" onclick="answerQuiz(true)">&#10003; Got it</button>' +
+      '<button class="btn btn-danger" onclick="answerQuiz(false)">&#10007; Missed it</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="addCurrentQuizCardToKnown(this)">+ Add to known</button>';
+  }
+
+  var score = document.getElementById('quiz-score');
+  var line = quiz.right + ' right · ' + quiz.wrong + ' missed';
+  score.innerHTML = escapeHtml(line) + (quiz.flash ? '<div class="quiz-flash">' + quiz.flash + '</div>' : '');
+}
+
+function toggleQuizShared() {
+  var el = document.getElementById('quiz-shared');
+  if (!el) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  var t = document.querySelector('#quiz-card .q-expander');
+  if (t) t.innerHTML = open ? 'Shared by &#9656;' : 'Shared by &#9662;';
+}
+
+function revealQuizCard() {
+  if (!quiz.running || quiz.revealed) return;
+  quiz.revealed = true;
+  renderQuizCard();
+}
+
+function answerQuiz(gotIt) {
+  if (!quiz.running || !quiz.revealed) return;
+  var c = quizCurrent();
+  quiz.flash = '';
+
+  if (gotIt) {
+    quiz.right++;
+  } else {
+    quiz.wrong++;
+    // Only the known pool has a consequence: a term you could not produce
+    // goes back into circulation for the next deck you build.
+    if (quiz.pool === 'known' && c && c.chinese) {
+      removeFromKnown(quiz.type, c.chinese);
+      quiz.changed++;
+      quiz.flash = escapeHtml(c.chinese) + ' removed from your Type ' + quiz.type +
+                   ' known list — it will be back in your next deck.';
+      updateQuizKnownCount(true);
+      renderProgressStats();
+    }
+  }
+  quiz.idx++;
+  quiz.revealed = false;
+  renderQuizCard();
+}
+
+function addCurrentQuizCardToKnown(btn) {
+  var c = quizCurrent();
+  if (!c || !c.chinese) return;
+  addToKnown(quiz.type, [c.chinese], c._setLabel || 'Quiz');
+  quiz.changed++;
+  updateQuizKnownCount(true);
+  renderProgressStats();
+  if (btn) { btn.disabled = true; btn.textContent = '✓ Added to known'; }
+  var score = document.getElementById('quiz-score');
+  if (score) {
+    score.innerHTML = escapeHtml(quiz.right + ' right · ' + quiz.wrong + ' missed') +
+      '<div class="quiz-flash">' + escapeHtml(c.chinese) + ' added to your Type ' + quiz.type +
+      ' known list — it will be left out of your next deck.</div>';
+  }
+}
+
+function finishQuiz() {
+  quiz.running = false;
+  document.getElementById('quiz-play').style.display = 'none';
+  document.getElementById('quiz-done').style.display = '';
+  var total = quiz.right + quiz.wrong;
+  var pct = total ? Math.round((quiz.right / total) * 100) : 0;
+  var changed = '';
+  if (quiz.changed) {
+    changed = '<p>' + quiz.changed + ' card' + (quiz.changed === 1 ? '' : 's') +
+      ' moved in or out of your Type ' + quiz.type + ' known list. Your next Anki deck reflects that.</p>';
+  }
+  document.getElementById('quiz-summary').innerHTML =
+    '<h3>Quiz finished</h3>' +
+    '<p>' + quiz.right + ' of ' + total + ' right (' + pct + '%), over the ' +
+      (quiz.pool === 'known' ? 'known' : 'new') + ' pile in Type ' + quiz.type + '.</p>' +
+    changed +
+    '<p style="color:var(--text-muted)">One pass, no scheduling. Anki is where this turns into ' +
+      'actual retention — build a deck from the card sets page.</p>';
+}
+
+function endQuiz() {
+  quiz.running = false;
+  openQuiz();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (_currentScreen !== 'quiz' || !quiz.running) return;
+  if (e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (!quiz.revealed && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); revealQuizCard(); }
+  else if (quiz.revealed && (e.key === '1' || e.key === 'Enter')) { e.preventDefault(); answerQuiz(true); }
+  else if (quiz.revealed && e.key === '2') { e.preventDefault(); answerQuiz(false); }
+});
 
 /* ============================================================
    BOOT
