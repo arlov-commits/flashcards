@@ -352,33 +352,32 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .doc-detail > *:not(summary) { margin-left: 2px; }
 .doc a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .doc a:hover { color: var(--text); }
-/* One row at every width. The labels shrink before the row ever wraps, and
-   overflow-x is the last-resort valve on a very narrow phone rather than a
-   second line that pushes the page down. */
-.site-nav { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;
-  padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-light);
-  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.site-nav::-webkit-scrollbar { display: none; }
-.nav-btn { display: inline-block; flex: 0 0 auto; white-space: nowrap;
-  padding: 4px 12px; font-size: 0.82rem; font-weight: 600;
-  color: var(--accent); background: var(--bg-card); border: 1.5px solid var(--border);
-  border-radius: var(--radius); cursor: pointer; text-decoration: none; line-height: 1.5; }
-.nav-btn:hover { border-color: var(--accent); background: rgba(139,26,26,0.06); }
-.nav-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* A menu stripe, edge to edge: the bar itself is full-bleed, its items sit in
+   divide the whole of it evenly between them. One row at every width — the
+   labels shrink rather than wrap. */
+.site-nav { width: 100%; background: var(--bg-card);
+  border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 rgba(44,36,24,0.04); }
+/* The items span the viewport, not the 800px content column — the stripe is
+   the full width of the window at any size. */
+.site-nav-inner { width: 100%; display: flex; align-items: stretch; }
+.nav-btn { flex: 1 1 0; min-width: 0; text-align: center; white-space: nowrap;
+  padding: 13px 8px; font-size: 0.86rem; font-weight: 600; letter-spacing: 0.01em;
+  color: var(--text-muted); background: transparent; cursor: pointer; text-decoration: none;
+  line-height: 1.2; border: none; border-right: 1px solid var(--border-light);
+  border-bottom: 3px solid transparent; transition: color 0.14s, background 0.14s, border-color 0.14s; }
+.nav-btn:last-child { border-right: none; }
+.nav-btn:hover { color: var(--accent); background: rgba(139,26,26,0.05); }
+.nav-btn.active { color: var(--accent); background: rgba(139,26,26,0.07);
+  border-bottom-color: var(--accent); }
 @media (max-width: 700px) {
-  /* Five labels, ~39 characters, have to clear a 320px screen: tighten the
-     buttons and reclaim the container's side padding for the bar itself. */
   .container { padding-left: 10px; padding-right: 10px; }
-  .site-nav { gap: 4px; }
-  .nav-btn { padding: 4px 7px; font-size: 0.63rem; letter-spacing: -0.01em; }
+  .nav-btn { padding: 11px 4px; font-size: 0.72rem; }
 }
 @media (max-width: 420px) {
-  .site-nav { gap: 3px; }
-  .nav-btn { padding: 4px 5px; font-size: 0.60rem; }
+  .nav-btn { padding: 10px 2px; font-size: 0.63rem; letter-spacing: -0.01em; }
 }
 @media (max-width: 340px) {
-  .site-nav { gap: 2px; }
-  .nav-btn { padding: 3px 4px; font-size: 0.57rem; }
+  .nav-btn { padding: 10px 1px; font-size: 0.58rem; }
 }
 
 /* Set selection */
@@ -555,17 +554,19 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 </style>
 </head>
 <body>
-<div class="container">
-
-  <!-- Persistent site navigation. Lives outside the screens so it is present
-       on all of them, including the landing page. -->
-  <nav class="site-nav" id="site-nav">
+<!-- Persistent site navigation. Outside .container so the stripe reaches both
+     edges of the viewport, with its items held to the content column inside. -->
+<nav class="site-nav" id="site-nav">
+  <div class="site-nav-inner">
     <a class="nav-btn" data-nav="landing" onclick="navigateTo('landing')">Home</a>
     <a class="nav-btn" data-nav="instructions" onclick="navigateTo('instructions')">Instructions</a>
     <a class="nav-btn" data-nav="methodology" onclick="navigateTo('methodology')">Methodology</a>
     <a class="nav-btn" data-nav="feedback" onclick="navigateTo('feedback')">Feedback</a>
     <a class="nav-btn" data-nav="quiz" onclick="navigateTo('quiz')">Quiz</a>
-  </nav>
+  </div>
+</nav>
+
+<div class="container">
 
   <!-- SCREEN 1: Landing (sets browser) -->
   <div id="screen-landing" class="screen active">
@@ -1339,7 +1340,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v3.3';
+var APP_VERSION = 'v3.4';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {

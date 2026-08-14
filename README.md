@@ -152,11 +152,15 @@ download button is pressed, and the whole block resets on the next visit to
 the screen.
 
 A persistent site nav (**Home · Instructions · Methodology · Feedback · Quiz**)
-sits above every screen, outside the screen containers, and highlights the
-current one. It never wraps to a second row: the buttons tighten through
-breakpoints at 700px, 420px and 340px, and a test measures `scrollWidth`
-against `clientWidth` at seven real device widths from 320px up to confirm
-nothing is clipped.
+sits above every screen as a full-bleed menu stripe. It lives **outside
+`.container`** so the bar reaches both edges of the window, and its five items
+`flex: 1` to divide that whole width between them — no fixed-width pills. The
+current page is marked with an accent underline and a tinted cell.
+
+It never wraps: labels tighten through breakpoints at 700px, 420px and 340px.
+A test measures, at seven real device widths from 320px up, that the stripe
+spans the viewport, that the items span it too, that they fill the row with no
+gap, and that nothing is clipped.
 
 ## Card identity: Chinese + Pinyin
 
