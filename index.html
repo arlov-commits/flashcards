@@ -519,7 +519,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.29';
+var APP_VERSION = 'v2.30';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -660,6 +660,78 @@ function saveMgmtDone(setKey, typeA, typeB) {
   saveMgmt(m);
 }
 
+function stripDiacritics(s) {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+/* ============================================================
+   CARD CSV LOADING
+
+   Card CSVs are authored by hand and their column names have drifted
+   over time. The current preferred header is:
+
+     Character, Pīnyīn, English, eng_tag, shared_by, ch_tag
+
+   Older files use the legacy header (chinese, pinyin, english_def,
+   ch_tag, eng_tag, frequency) and must keep working. Rather than
+   special-casing formats, every incoming column name is normalised
+   (diacritics stripped, lower-cased, punctuation removed) and matched
+   against the alias table below, then copied onto the canonical key the
+   rest of the app reads. Adding a new spelling = adding one alias.
+   ============================================================ */
+var CARD_FIELD_ALIASES = {
+  chinese:     ['chinese', 'character', 'characters', 'hanzi', 'term', 'word', '漢字', '汉字'],
+  pinyin:      ['pinyin', 'romanization', 'romanized', 'reading'],
+  english_def: ['english_def', 'english', 'definition', 'meaning', 'translation', 'gloss'],
+  ch_tag:      ['ch_tag', 'chinese_tag'],
+  eng_tag:     ['eng_tag', 'english_tag'],
+  frequency:   ['frequency', 'freq'],
+  shared_by:   ['shared_by']
+};
+
+function normalizeHeaderName(h) {
+  return stripDiacritics(String(h == null ? '' : h))
+    .toLowerCase().replace(/[^a-z0-9一-鿿]/g, '');
+}
+
+var _cardAliasLookup = null;
+function cardAliasLookup() {
+  if (_cardAliasLookup) return _cardAliasLookup;
+  _cardAliasLookup = {};
+  for (var canon in CARD_FIELD_ALIASES) {
+    _cardAliasLookup[normalizeHeaderName(canon)] = canon;
+    CARD_FIELD_ALIASES[canon].forEach(function(alias) {
+      _cardAliasLookup[normalizeHeaderName(alias)] = canon;
+    });
+  }
+  return _cardAliasLookup;
+}
+
+/* Copy aliased columns onto their canonical keys. Existing canonical
+   values always win, so a legacy file that already has the right column
+   names is passed through untouched. */
+function normalizeCardRow(row) {
+  var lookup = cardAliasLookup();
+  for (var raw in row) {
+    if (!Object.prototype.hasOwnProperty.call(row, raw)) continue;
+    var canon = lookup[normalizeHeaderName(raw)];
+    if (!canon || canon === raw) continue;
+    if (row[canon] === undefined || row[canon] === '') row[canon] = row[raw];
+  }
+  return row;
+}
+
+/* Fetch + parse one card CSV. Throws on a bad response so a missing file
+   surfaces as an error instead of silently parsing the host's 404 page
+   into a deck full of blank rows. */
+async function fetchCardRows(file) {
+  var resp = await fetch(file);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status + ' fetching ' + file);
+  var text = await resp.text();
+  var parsed = Papa.parse(text.replace(/^﻿/, ''), { header: true, skipEmptyLines: true });
+  return (parsed.data || []).map(normalizeCardRow);
+}
+
 /* ============================================================
    GLOBAL SEARCH — front-page search over every card in every
    available deck. Index is built lazily on first use and cached.
@@ -667,10 +739,6 @@ function saveMgmtDone(setKey, typeA, typeB) {
 let globalCardIndex = null;
 let globalCardIndexPromise = null;
 let globalSearchDebounce = null;
-
-function stripDiacritics(s) {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '');
-}
 
 function buildGlobalCardIndex() {
   if (globalCardIndex) return Promise.resolve(globalCardIndex);
@@ -686,9 +754,8 @@ function buildGlobalCardIndex() {
       for (var setKey in sets) {
         (function(sk, si, fieldList, tradKey) {
           tasks.push(
-            fetch(si.file).then(function(r) { return r.text(); }).then(function(csv) {
-              var parsed = Papa.parse(csv.replace(/^﻿/, ''), { header: true, skipEmptyLines: true });
-              parsed.data.forEach(function(row) {
+            fetchCardRows(si.file).then(function(rows) {
+              rows.forEach(function(row) {
                 var entry = {
                   _tradKey: tradKey,
                   _setKey: sk,
@@ -894,9 +961,7 @@ async function toggleDone(setKey, type, btnEl) {
 
   if (si && si.file) {
     try {
-      var resp = await fetch(si.file);
-      var csvText = await resp.text();
-      var parsed = Papa.parse(csvText.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
+      var doneRows = await fetchCardRows(si.file);
       var trad2 = manifest.traditions[tradKey];
       var chKey = '';
       for (var fi = 0; fi < (trad2.fields || []).length; fi++) {
@@ -904,7 +969,7 @@ async function toggleDone(setKey, type, btnEl) {
       }
       if (chKey) {
         var chars = [];
-        parsed.data.forEach(function(row) {
+        doneRows.forEach(function(row) {
           var v = (row[chKey] || '').trim();
           if (v) chars.push(v);
         });
@@ -951,6 +1016,8 @@ async function init() {
     setupImport();
     setupHistory();
     setupGlobalSearch();
+    // Honour a deep link (#/cards/..., #/known/b) on first paint.
+    await applyRoute();
     // Compute distinct Chinese char count then update stats
     computeDistinctChineseCount().then(function() { renderProgressStats(); });
     renderProgressStats();
@@ -963,11 +1030,15 @@ async function init() {
 
 /* ============================================================
    LOAD MANIFEST FROM flashcard_directory.csv
-   Columns: section, file, english, chinese
-     section — hand-keyed section title (also the data/chinese/<slug>/ folder)
+   Columns: section, file, english, chinese[, folder]
+     section — hand-keyed section title; also names the data/chinese/<slug>/
+               folder the files live in, unless `folder` overrides it
      file    — CSV filename inside that folder
      english — English display name for the set
      chinese — Chinese display subtitle for the set
+     folder  — OPTIONAL. Set this when the display title and the folder on
+               disk differ (e.g. after renaming a section without moving
+               files). Leave blank to use the slug of `section`.
    Section order = first-seen order; set order = row order. That's it.
    ============================================================ */
 async function loadManifestFromDirectoryCSV() {
@@ -1001,7 +1072,9 @@ async function loadManifestFromDirectoryCSV() {
         include: 'Default selection state (1=selected, 0=deselected)',
         multichar: 'Compound term flag (bold pinyin in PDF)',
         ch_tag: 'Chinese name of liturgy section',
-        eng_tag: 'English key for liturgy section'
+        eng_tag: 'English key for liturgy section',
+        shared_by: 'Other sections this term also appears in',
+        frequency: 'Occurrence count (used to order Type B)'
       },
       default_front: ['chinese', 'pinyin'],
       default_back: ['english_def'],
@@ -1031,11 +1104,14 @@ async function loadManifestFromDirectoryCSV() {
     var file    = (row.file || '').trim();
     var english = (row.english || '').trim();
     var chinese = (row.chinese || '').trim();
+    var folder  = (row.folder || '').trim();
 
     if (!section || !file) return; // skip incomplete rows
 
     var subcatKey = sectionToKey(section);
-    var dirName = sectionToDirName(section);
+    // `folder` wins when present so a section can be retitled without
+    // moving any files on disk; otherwise fall back to the section slug.
+    var dirName = folder ? sectionToDirName(folder) : sectionToDirName(section);
     if (!trad.subcategories[subcatKey]) {
       trad.subcategories[subcatKey] = { display_name: section, sets: {} };
     }
@@ -1060,11 +1136,15 @@ async function loadManifestFromDirectoryCSV() {
       for (var setK in sets2) {
         (function(setInfo) {
           fetches.push(
-            fetch(setInfo.file).then(function(r) { return r.text(); }).then(function(csv) {
-              var p = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
-              setInfo.total_cards = p.data.length;
-              setInfo.active_cards = p.data.length;
-            }).catch(function(err) { console.warn('Failed to load', setInfo.file, err); })
+            fetchCardRows(setInfo.file).then(function(rows) {
+              setInfo.total_cards = rows.length;
+              setInfo.active_cards = rows.length;
+            }).catch(function(err) {
+              // Leave the count at 0 and flag it, so a missing/renamed file
+              // reads as an obvious "0 cards" rather than a plausible number.
+              setInfo.missing = true;
+              console.error('Card file could not be loaded:', setInfo.file, err);
+            })
           );
         })(sets2[setK]);
       }
@@ -1076,23 +1156,132 @@ async function loadManifestFromDirectoryCSV() {
 }
 
 /* ============================================================
-   HISTORY
+   ROUTING — every screen has a real, shareable URL slug.
+
+   Hash routing is used deliberately: the app is served as a static file
+   from GitHub Pages, which cannot rewrite deep paths back to index.html,
+   so `/cards/heart-sutra` would 404 on reload while `#/cards/heart-sutra`
+   always resolves.
+
+     #/                       landing (set browser)
+     #/cards/<selection>      customize & download
+     #/known/a | #/known/b    known-cards viewer
+
+   <selection> stays human-readable AND resolvable — no opaque digest —
+   so a pasted link always rebuilds the exact same selection:
+     all                      every set
+     <section-slug>           every set in one section  (e.g. evening-ceremony)
+     key1+key2+key3           an arbitrary set of decks
    ============================================================ */
+function slugify(s) {
+  return String(s == null ? '' : s).toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+/* Describe the current selection as the shortest readable slug. */
+function buildSelectionSlug() {
+  var keys = Object.keys(selectedSets).filter(function(k) { return selectedSets[k]; });
+  if (!keys.length || !currentTradition) return '';
+  var allSets = getAllSets(currentTradition);
+  var allKeys = Object.keys(allSets);
+  if (keys.length === allKeys.length && allKeys.every(function(k) { return selectedSets[k]; })) return 'all';
+
+  var subs = currentTradition.subcategories || {};
+  for (var sck in subs) {
+    var sectionKeys = Object.keys(subs[sck].sets || {});
+    if (sectionKeys.length && sectionKeys.length === keys.length &&
+        sectionKeys.every(function(k) { return selectedSets[k]; })) {
+      return slugify(subs[sck].display_name);
+    }
+  }
+  return keys.slice().sort().join('+');
+}
+
+/* Inverse of buildSelectionSlug. Returns an array of set keys, or null. */
+function resolveSelectionSlug(slug) {
+  if (!slug || !currentTradition) return null;
+  var allSets = getAllSets(currentTradition);
+  if (slug === 'all') return Object.keys(allSets);
+
+  var subs = currentTradition.subcategories || {};
+  for (var sck in subs) {
+    if (slugify(subs[sck].display_name) === slug) {
+      var inSection = Object.keys(subs[sck].sets || {});
+      if (inSection.length) return inSection;
+    }
+  }
+  var picked = slug.split('+').filter(function(k) { return k && allSets[k]; });
+  return picked.length ? picked : null;
+}
+
+function routePathForScreen(name) {
+  if (name === 'customize') return 'cards/' + buildSelectionSlug();
+  if (name === 'known') return 'known/' + String(knownViewerMode || 'A').toLowerCase();
+  return '';
+}
+
+/* pushState/replaceState never fire hashchange or popstate, so updating
+   the URL here cannot re-enter the router. */
+function setRoute(path, replace) {
+  var url = location.pathname + location.search + '#/' + path;
+  if (replace) history.replaceState({ path: path }, '', url);
+  else history.pushState({ path: path }, '', url);
+}
+
+function parseRoute() {
+  var parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (!parts.length) return { screen: 'landing' };
+  if (parts[0] === 'cards')  return { screen: 'customize', slug: decodeURIComponent(parts[1] || '') };
+  if (parts[0] === 'known')  return { screen: 'known', mode: (parts[1] || 'a').toUpperCase() === 'B' ? 'B' : 'A' };
+  return { screen: 'landing' };
+}
+
+/* Render whatever the URL currently says. Used for first paint, for
+   back/forward, and for hand-edited URLs. */
+async function applyRoute() {
+  var r = parseRoute();
+
+  if (r.screen === 'known') {
+    knownViewerMode = r.mode;
+    showScreen('known');
+    switchKnownViewerMode(r.mode);
+    return;
+  }
+
+  if (r.screen === 'customize') {
+    var keys = resolveSelectionSlug(r.slug);
+    if (!keys) { setRoute('', true); showScreen('landing'); return; }
+    var unchanged = _currentScreen === 'customize' &&
+      Object.keys(selectedSets).length === keys.length &&
+      keys.every(function(k) { return selectedSets[k]; });
+    if (unchanged) { showScreen('customize'); return; }
+    selectedSets = {};
+    keys.forEach(function(k) { selectedSets[k] = true; });
+    await openCustomize();
+    return;
+  }
+
+  showScreen('landing');
+}
+
 function setupHistory() {
-  history.replaceState({ screen: 'pick' }, '', '');
-  window.addEventListener('popstate', function(e) {
-    showScreen((e.state && e.state.screen) || 'pick');
-  });
+  window.addEventListener('popstate', function() { applyRoute(); });
+  window.addEventListener('hashchange', function() { applyRoute(); });
 }
 
 function navigateTo(screen) {
-  history.pushState({ screen: screen }, '', '');
+  setRoute(routePathForScreen(screen));
   showScreen(screen);
 }
 
+let _currentScreen = null;
+
 function showScreen(name) {
+  var el = document.getElementById('screen-' + name);
+  if (!el) { name = 'landing'; el = document.getElementById('screen-landing'); }
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-  document.getElementById('screen-' + name).classList.add('active');
+  el.classList.add('active');
+  _currentScreen = name;
   if (name === 'known') renderKnownViewer();
   if (name === 'landing') { renderLanding(); renderProgressStats(); }
   window.scrollTo(0, 0);
@@ -1467,12 +1656,23 @@ function updateKnownBar() {
 /* ============================================================
    CUSTOMIZE SCREEN
    ============================================================ */
+/* Entered by clicking "Customize & Download": push the URL for the current
+   selection, then render. */
 async function goToCustomize() {
+  if (!currentTradition) return;
+  setRoute(routePathForScreen('customize'));
+  await openCustomize();
+}
+
+/* Render the customize screen for whatever is in `selectedSets`. Kept
+   separate from goToCustomize so the router can restore a deep link
+   without pushing a duplicate history entry. */
+async function openCustomize() {
   if (!currentTradition) return;
   document.getElementById('customize-title').textContent = currentTradition.display_name;
   studyMode = 'A';
 
-  navigateTo('customize');
+  showScreen('customize');
   await loadCards();
   applyKnownToCards();
   renderModeButtons();
@@ -1498,11 +1698,9 @@ async function loadCards() {
     if (!setInfo) continue;
     (function(sk, si) {
       loadPromises.push(
-        fetch(si.file).then(function(r) { return r.text(); }).then(function(csvText) {
-          var clean = csvText.replace(/^\uFEFF/, '');
-          var parsed = Papa.parse(clean, { header: true, skipEmptyLines: true });
+        fetchCardRows(si.file).then(function(parsedRows) {
           var rows = [];
-          parsed.data.forEach(function(row, i) {
+          parsedRows.forEach(function(row, i) {
             // Handle both old (with include/multichar) and new format gracefully
             row.multichar = false; // deprecated, ignore
             for (var j = 0; j < fields.length; j++) {
@@ -1515,6 +1713,9 @@ async function loadCards() {
             rows.push(row);
           });
           loadedBySet[sk] = rows;
+        }).catch(function(err) {
+          loadedBySet[sk] = [];
+          console.error('Could not load cards for "' + (si.eng_name || sk) + '":', si.file, err);
         })
       );
     })(setKey, setInfo);
@@ -2168,9 +2369,8 @@ async function computeDistinctChineseCount() {
     for (var sk in sets) {
       (function(file, key) {
         fetches.push(
-          fetch(file).then(function(r) { return r.text(); }).then(function(csv) {
-            var parsed = Papa.parse(csv.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
-            parsed.data.forEach(function(row) {
+          fetchCardRows(file).then(function(rows) {
+            rows.forEach(function(row) {
               var v = (row[key] || '').trim();
               if (v) allChars.add(v);
             });
@@ -2194,6 +2394,7 @@ function effectiveKnownMode() {
 }
 function openCornerKnownViewer(cornerEl) {
   var mode = (cornerEl && cornerEl.dataset && cornerEl.dataset.kmode) || 'A';
+  knownViewerMode = mode;          // so the route carries the right tab
   navigateTo('known');
   switchKnownViewerMode(mode);
 }
@@ -2241,6 +2442,9 @@ function switchKnownViewerMode(mode) {
   document.querySelectorAll('.known-mode-tab').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.kmode === mode);
   });
+  // Keep the URL in step with the visible tab, without stacking history
+  // entries for what is really just a filter toggle.
+  if (_currentScreen === 'known') setRoute('known/' + String(mode).toLowerCase(), true);
   renderKnownViewer();
 }
 
