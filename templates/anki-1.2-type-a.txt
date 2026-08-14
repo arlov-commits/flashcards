@@ -13,8 +13,9 @@ BACK
 <hr>
 
 <div style='font-family: "Courier"; font-size: 28px;'>{{English}}</div>
-<a href="intent://x-callback-url/df?hw={{text:Chinese}}#Intent;scheme=plecoapi;package=com.pleco.chinesesystem;launchFlags=0x10000000;end" style="position:fixed; bottom:12px; right:12px; font-size:14px; text-decoration:none; opacity:0.4;">📖</a>
+<a id="plecoLink" data-hw="{{text:Chinese}}" href="#" style="position:fixed; bottom:12px; right:12px; font-size:14px; text-decoration:none; opacity:0.4;">📖</a>
 <a href="https://hanzicraft.com/character/{{text:Chinese}}" style="position:fixed; bottom:12px; left:12px; font-size:14px; text-decoration:none; opacity:0.4;">📕</a>
+<div id="plecoMsg" class="dictmsg"></div>
 <br>
 <span class="halfbr"></span>
 {{#Shared_by}}
@@ -61,6 +62,69 @@ BACK
     }
   });
 })();
+
+
+(function(){
+  var link = document.getElementById('plecoLink');
+  var msg  = document.getElementById('plecoMsg');
+  if (!link || !msg) return;
+
+  var ua = navigator.userAgent || '';
+  var isAndroid = /Android/i.test(ua);
+  // iPadOS 13+ reports itself as a Mac, so check for a touch screen too.
+  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+              (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+
+  var hw = encodeURIComponent(link.getAttribute('data-hw') || '');
+  var hideTimer;
+
+  function show(html) {
+    msg.innerHTML = html;
+    msg.style.display = 'block';
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function(){ msg.style.display = 'none'; }, 6000);
+  }
+
+  // Point the link at whichever scheme this platform understands. Android
+  // gets the intent:// wrapper with a browser fallback; iOS gets plecoapi://
+  // directly. Desktop keeps href="#" and shows a note instead.
+  if (isAndroid) {
+    link.href = 'intent://x-callback-url/df?hw=' + hw +
+      '#Intent;scheme=plecoapi;package=com.pleco.chinesesystem' +
+      ';S.browser_fallback_url=https%3A%2F%2Fwww.pleco.com%2F' +
+      ';launchFlags=0x10000000;end';
+  } else if (isIOS) {
+    link.href = 'plecoapi://x-callback-url/df?hw=' + hw + '&sec=dict';
+  }
+
+  link.addEventListener('click', function(e) {
+    if (!isAndroid && !isIOS) {
+      e.preventDefault();
+      show('Pleco is only available on mobile. Use 📕 for HanziCraft in a browser.');
+      return;
+    }
+    if (!hw) { e.preventDefault(); return; }
+
+    // Nothing tells us whether a custom scheme actually resolved, so treat
+    // "still on screen a moment later" as "Pleco is not installed". Android
+    // has browser_fallback_url and needs no timer.
+    if (!isIOS) return;
+
+    var left = false;
+    function onLeave() { left = true; }
+    document.addEventListener('visibilitychange', onLeave);
+    window.addEventListener('pagehide', onLeave);
+
+    setTimeout(function() {
+      document.removeEventListener('visibilitychange', onLeave);
+      window.removeEventListener('pagehide', onLeave);
+      if (!left && !document.hidden) {
+        show('Pleco does not seem to be installed. ' +
+             '<a href="https://apps.apple.com/us/app/pleco-chinese-dictionary/id341922306">Get Pleco</a>');
+      }
+    }, 1500);
+  });
+})();
 </script>
 
 
@@ -71,6 +135,25 @@ CSS
     color: #47321d;    }
 
 .halfbr { display:block; margin-top:0.3em; }
+
+.dictmsg {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  max-width: 86%;
+  font-family: "Lora", sans-serif;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #47321d;
+  background: #f3e7cc;
+  border: 1px solid #d9c9a3;
+  border-radius: 6px;
+  padding: 7px 11px;
+}
+
+.dictmsg a { color: #3258a8; }
 
 .expander-blue {
   cursor: pointer;

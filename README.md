@@ -80,6 +80,11 @@ Each note is tagged with its `eng_tag`, so decks stay filterable by source text
 inside Anki. Rows with an empty `chinese` are skipped and every field is
 trimmed, so legacy CSVs with stray leading spaces export cleanly.
 
+The deck is named after the selected set (`Amitabha Sutra`) when the selection
+is a single set, and `Buddhist Liturgy` when it mixes several. The name is a
+plain, un-nested default shown in an editable field before download — nest it
+under a parent with `::` yourself if you want that.
+
 ### Card template
 
 The note type's front, back, and CSS live in `templates/anki-1.2-type-a.txt`
@@ -89,8 +94,14 @@ cannot drift apart.
 
 The back of the card carries:
 
-- a 📖 Pleco link (`intent://`, Android only — inert elsewhere) and a 📕
-  [HanziCraft](https://hanzicraft.com) link, both pinned to the bottom corners;
+- a 📖 Pleco link and a 📕 [HanziCraft](https://hanzicraft.com) link, pinned to
+  the bottom corners. The Pleco link is built per platform by the card's own
+  script: Android gets the `intent://` wrapper (with a `browser_fallback_url`
+  to pleco.com), iOS gets `plecoapi://x-callback-url/df?hw=…&sec=dict`, and
+  desktop gets a note saying Pleco is mobile-only rather than a dead link. On
+  iOS nothing reports whether a custom scheme resolved, so the card assumes
+  Pleco is missing if the page is still on screen 1.5 s later and offers an App
+  Store link;
 - a **Shared by** accordion, collapsed by default, toggled by click or by
   pressing <kbd>J</kbd>. Only some CSVs carry `shared_by`; the
   `{{#Shared_by}}` conditional drops the whole block on notes without it, so
@@ -118,6 +129,19 @@ at `vendor/genanki.js`, which is **AGPL-3.0** (itself derived from
 [js-sha256](https://github.com/emn178/js-sha256), MIT). Shipping it inside this
 page makes the app a combined work under the AGPL-3.0. The repo is public, so
 the obligation is met — but the app cannot later become closed-source.
+
+## The Customize & Download screen
+
+The download section is Anki-first: the **To Anki (.apkg)** button and deck
+name come immediately after the card table. Everything else lives behind
+**Download Data**, which offers the card data (CSV, XLSX, JSON, Google Sheets)
+and the printable flashcard PDFs (4×4, 4×5, 5×5) as two groups of the same
+menu.
+
+Picking a PDF grid switches the grid, generates the PDF, and reveals the
+print-only controls — the page-count pill, the card design gear, and a
+re-download button — so someone exporting to Anki never sees print settings
+they don't need. They stay hidden again on the next visit to the screen.
 
 ## URLs
 

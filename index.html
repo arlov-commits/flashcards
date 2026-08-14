@@ -82,6 +82,9 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
   color: var(--text);
 }
 .export-menu button:hover { background: rgba(154,121,72,0.08); }
+.export-menu-label { padding: 6px 14px 3px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-muted); border-top: 1px solid var(--border-light); margin-top: 4px; }
+.export-menu-label:first-child { border-top: none; margin-top: 0; }
 
 /* Accordion */
 .accordion-section { margin-top: 16px; }
@@ -220,7 +223,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Download & progress section */
 .download-section { margin-top: 24px; }
-.anki-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-light); }
+.anki-block { margin-top: 8px; }
+.data-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-light); }
+#print-options { margin-top: 4px; }
 .anki-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .anki-row input { flex: 1 1 240px; min-width: 180px; font-size: 0.85rem; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--bg-card); color: var(--text); }
 .anki-error { margin-top: 8px; font-size: 0.82rem; color: var(--accent); background: rgba(139,26,26,0.07); border: 1px solid rgba(139,26,26,0.25); border-radius: var(--radius); padding: 8px 12px; }
@@ -369,126 +374,8 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       </table>
     </div>
 
-    <div id="summary-text" class="summary-text">
-      <span id="summary-text-body"></span>
-      <a class="card-design-toggle" id="card-design-toggle-link" onclick="toggleCardDesign()" title="Card design" aria-label="Card design">
-        <svg class="dharma-icon" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <line x1="12" y1="2.8" x2="12" y2="21.2"/>
-            <line x1="2.8" y1="12" x2="21.2" y2="12"/>
-            <line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/>
-            <line x1="18.5" y1="5.5" x2="5.5" y2="18.5"/>
-          </g>
-        </svg>
-      </a>
-    </div>
-    <div id="card-design-panel" class="card-design-panel">
-      <div class="design-section">
-        <h3>Front</h3>
-        <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
-          <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span><span></span>
-        </div>
-        <div id="design-front-fields"></div>
-      </div>
-
-      <div class="design-section">
-        <h3>Divider</h3>
-        <div class="tag-setting-row">
-          <label><input type="checkbox" id="design-divider-show" onchange="updateCardDesign()"> Show divider</label>
-          <span style="margin-left:8px">Color</span>
-          <input type="color" id="design-divider-color" value="#c8c8c8" onchange="updateCardDesign()" style="width:32px;height:24px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;">
-          <span>Width</span>
-          <input type="number" id="design-divider-thickness" min="0.1" max="3" step="0.1" style="width:52px" onchange="updateCardDesign()">
-        </div>
-        <div class="tag-setting-row">
-          <span>Gap above</span>
-          <input type="number" id="design-divider-gap-above" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
-          <span style="margin-left:8px">Gap below</span>
-          <input type="number" id="design-divider-gap-below" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
-        </div>
-      </div>
-
-      <div class="design-section">
-        <h3>Back</h3>
-        <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
-          <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span><span></span>
-        </div>
-        <div id="design-back-fields"></div>
-      </div>
-
-      <div class="design-section">
-        <h3>Source Tag (back of card)</h3>
-        <div class="tag-setting-row">
-          <span class="tag-label">Source</span>
-          <select id="design-tag-source" onchange="updateCardDesign()">
-            <option value="ch_tag">Chinese tag (ch_tag)</option>
-            <option value="eng_tag">English tag (eng_tag)</option>
-            <option value="custom">Custom text</option>
-            <option value="none">None</option>
-          </select>
-        </div>
-        <div id="tag-custom-row" class="tag-setting-row" style="display:none">
-          <span class="tag-label">Text</span>
-          <input type="text" id="design-tag-custom-text" placeholder="Enter custom tag..." onchange="updateCardDesign()">
-        </div>
-        <div id="tag-per-set" class="tag-setting-row" style="display:none"></div>
-        <div class="tag-setting-row">
-          <span class="tag-label">Font</span>
-          <select id="design-tag-font" onchange="updateCardDesign()">
-            <option value="NotoSerifSC">Noto Serif SC</option>
-            <option value="NotoSansSC">Noto Sans SC</option>
-            <option value="Lora">Lora</option>
-            <option value="Cinzel">Cinzel</option>
-            <option value="TimesNewRoman">Times New Roman</option>
-          </select>
-          <span style="margin-left:4px">Size</span>
-          <input type="number" id="design-tag-size" min="4" max="20" onchange="updateCardDesign()">
-          <label><input type="checkbox" id="design-tag-bold" onchange="updateCardDesign()"> B</label>
-        </div>
-      </div>
-
-      <div class="design-section">
-        <h3>Preview</h3>
-        <div class="card-preview-wrap">
-          <div class="card-preview-col">
-            <div class="preview-side-label">Front</div>
-            <div class="card-preview-box" id="preview-front"></div>
-          </div>
-          <div class="card-preview-col">
-            <div class="preview-side-label">Back</div>
-            <div class="card-preview-box" id="preview-back"></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-outline btn-sm" onclick="setCardDesignAsDefault()">Set as default</button>
-        <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
-      </div>
-    </div>
-
     <div class="download-section">
       <h2>Download</h2>
-      <div style="display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="generatePDF()">Download PDF</button>
-        <select id="pdf-grid-select" onchange="onGridChange()" style="font-size:0.82rem;padding:4px 8px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--bg-card);color:var(--text);cursor:pointer">
-          <option value="4x4">4 × 4 (16 cards)</option>
-          <option value="4x5">4 × 5 (20 cards)</option>
-          <option value="5x5">5 × 5 (25 cards)</option>
-        </select>
-        <div class="export-dropdown" style="position:relative;display:inline-block">
-          <button class="btn btn-outline btn-sm" onclick="this.nextElementSibling.classList.toggle('open')" style="font-size:0.82rem">Download Data ▾</button>
-          <div class="export-menu">
-            <button onclick="exportData('csv')">CSV</button>
-            <button onclick="exportData('xlsx')">XLSX</button>
-            <button onclick="exportData('json')">JSON</button>
-            <button onclick="exportData('gsheet')">Google Sheets</button>
-          </div>
-        </div>
-      </div>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Checked cards will be added to your known list.</p>
 
       <div class="anki-block">
         <div class="anki-row">
@@ -496,15 +383,140 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <input type="text" id="anki-deck-name" placeholder="Deck name" aria-label="Anki deck name" oninput="ankiDeckNameEdited = true">
         </div>
         <div id="anki-error" class="anki-error" style="display:none"></div>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">A spaced-repetition deck of the selected cards. Anki nests decks on <code>::</code>, and you can rename it after importing.</p>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">A spaced-repetition deck of the selected cards. You can rename it after importing.</p>
         <details class="anki-help">
           <summary>First time? Set up Anki</summary>
           <ul>
-            <li><strong>Desktop &amp; Android:</strong> Anki (Windows/Mac/Linux) and AnkiDroid are free.</li>
-            <li><strong>iPhone &amp; iPad:</strong> AnkiMobile is a one-time $24.99 purchase. Free alternatives are AnkiWeb in a browser (online only), or a third-party <code>.apkg</code> importer.</li>
-            <li><strong>After downloading:</strong> tap or open the <code>.apkg</code> file and Anki imports it.</li>
+            <li><strong>Windows, macOS &amp; Linux:</strong> <a href="https://apps.ankiweb.net/" target="_blank" rel="noopener">Anki</a> is free.</li>
+            <li><strong>Android:</strong> <a href="https://play.google.com/store/apps/details?id=com.ichi2.anki&amp;hl=en_US" target="_blank" rel="noopener">AnkiDroid</a> is free.</li>
+            <li><strong>iPhone &amp; iPad:</strong> <a href="https://apps.apple.com/us/app/ankimobile-flashcards/id373493387" target="_blank" rel="noopener">AnkiMobile</a> is a one-time $24.99 purchase. Free alternatives are AnkiWeb in a browser (online only), or a third-party <code>.apkg</code> importer.</li>
+            <li><strong>After downloading:</strong> tap or open the <code>.apkg</code> file and Anki imports it. If your device asks what to open it with, choose <strong>Open with Anki</strong>.</li>
           </ul>
         </details>
+      </div>
+
+      <div class="data-block">
+        <div class="export-dropdown" style="position:relative;display:inline-block">
+          <button class="btn btn-outline btn-sm" onclick="this.nextElementSibling.classList.toggle('open')" style="font-size:0.82rem">Download Data &#9662;</button>
+          <div class="export-menu">
+            <div class="export-menu-label">Card data</div>
+            <button onclick="exportData('csv')">CSV</button>
+            <button onclick="exportData('xlsx')">XLSX</button>
+            <button onclick="exportData('json')">JSON</button>
+            <button onclick="exportData('gsheet')">Google Sheets</button>
+            <div class="export-menu-label">Printable flashcards (PDF)</div>
+            <button onclick="exportData('pdf:4x4')">4 &times; 4 (16 cards)</button>
+            <button onclick="exportData('pdf:4x5')">4 &times; 5 (20 cards)</button>
+            <button onclick="exportData('pdf:5x5')">5 &times; 5 (25 cards)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Print-only controls: the page-count pill, the card design gear and a
+           re-download button. Hidden until a PDF grid is picked from the menu
+           above, so the Anki path stays uncluttered. -->
+      <div id="print-options" style="display:none">
+      <div id="summary-text" class="summary-text">
+        <span id="summary-text-body"></span>
+        <a class="card-design-toggle" id="card-design-toggle-link" onclick="toggleCardDesign()" title="Card design" aria-label="Card design">
+          <svg class="dharma-icon" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="12" y1="2.8" x2="12" y2="21.2"/>
+              <line x1="2.8" y1="12" x2="21.2" y2="12"/>
+              <line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/>
+              <line x1="18.5" y1="5.5" x2="5.5" y2="18.5"/>
+            </g>
+          </svg>
+        </a>
+      </div>
+      <div id="card-design-panel" class="card-design-panel">
+        <div class="design-section">
+          <h3>Front</h3>
+          <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
+            <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span><span></span>
+          </div>
+          <div id="design-front-fields"></div>
+        </div>
+
+        <div class="design-section">
+          <h3>Divider</h3>
+          <div class="tag-setting-row">
+            <label><input type="checkbox" id="design-divider-show" onchange="updateCardDesign()"> Show divider</label>
+            <span style="margin-left:8px">Color</span>
+            <input type="color" id="design-divider-color" value="#c8c8c8" onchange="updateCardDesign()" style="width:32px;height:24px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;">
+            <span>Width</span>
+            <input type="number" id="design-divider-thickness" min="0.1" max="3" step="0.1" style="width:52px" onchange="updateCardDesign()">
+          </div>
+          <div class="tag-setting-row">
+            <span>Gap above</span>
+            <input type="number" id="design-divider-gap-above" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
+            <span style="margin-left:8px">Gap below</span>
+            <input type="number" id="design-divider-gap-below" min="0" max="10" step="0.5" style="width:52px" onchange="updateCardDesign()">
+          </div>
+        </div>
+
+        <div class="design-section">
+          <h3>Back</h3>
+          <div class="design-row" style="border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px;font-weight:600;font-size:0.8rem;color:var(--text-muted)">
+            <span></span><span>Font</span><span>Size</span><span>B</span><span>I</span><span></span>
+          </div>
+          <div id="design-back-fields"></div>
+        </div>
+
+        <div class="design-section">
+          <h3>Source Tag (back of card)</h3>
+          <div class="tag-setting-row">
+            <span class="tag-label">Source</span>
+            <select id="design-tag-source" onchange="updateCardDesign()">
+              <option value="ch_tag">Chinese tag (ch_tag)</option>
+              <option value="eng_tag">English tag (eng_tag)</option>
+              <option value="custom">Custom text</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div id="tag-custom-row" class="tag-setting-row" style="display:none">
+            <span class="tag-label">Text</span>
+            <input type="text" id="design-tag-custom-text" placeholder="Enter custom tag..." onchange="updateCardDesign()">
+          </div>
+          <div id="tag-per-set" class="tag-setting-row" style="display:none"></div>
+          <div class="tag-setting-row">
+            <span class="tag-label">Font</span>
+            <select id="design-tag-font" onchange="updateCardDesign()">
+              <option value="NotoSerifSC">Noto Serif SC</option>
+              <option value="NotoSansSC">Noto Sans SC</option>
+              <option value="Lora">Lora</option>
+              <option value="Cinzel">Cinzel</option>
+              <option value="TimesNewRoman">Times New Roman</option>
+            </select>
+            <span style="margin-left:4px">Size</span>
+            <input type="number" id="design-tag-size" min="4" max="20" onchange="updateCardDesign()">
+            <label><input type="checkbox" id="design-tag-bold" onchange="updateCardDesign()"> B</label>
+          </div>
+        </div>
+
+        <div class="design-section">
+          <h3>Preview</h3>
+          <div class="card-preview-wrap">
+            <div class="card-preview-col">
+              <div class="preview-side-label">Front</div>
+              <div class="card-preview-box" id="preview-front"></div>
+            </div>
+            <div class="card-preview-col">
+              <div class="preview-side-label">Back</div>
+              <div class="card-preview-box" id="preview-back"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="setCardDesignAsDefault()">Set as default</button>
+          <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
+        </div>
+      </div>
+        <button class="btn btn-outline btn-sm" onclick="generatePDF()">Download <span id="print-grid-label">4 &times; 4</span> PDF again</button>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Checked cards will be added to your known list.</p>
       </div>
     </div>
   </div>
@@ -547,7 +559,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.32';
+var APP_VERSION = 'v2.33';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1026,11 +1038,7 @@ async function init() {
   try {
     document.getElementById('version-tag').textContent = APP_VERSION;
     var savedGrid = localStorage.getItem('pdf_grid');
-    if (savedGrid && GRID_DEFAULTS[savedGrid]) {
-      currentGrid = savedGrid;
-      var sel = document.getElementById('pdf-grid-select');
-      if (sel) sel.value = currentGrid;
-    }
+    if (savedGrid && GRID_DEFAULTS[savedGrid]) currentGrid = savedGrid;
     loadCardDesign();
     loadAccordionState();
     manifest = await loadManifestFromDirectoryCSV();
@@ -1708,6 +1716,7 @@ async function openCustomize() {
   renderCardDesignInputs();
   renderCardTable();
   refreshAnkiDeckName(true);
+  hidePrintOptions();
 }
 
 async function loadCards() {
@@ -2013,12 +2022,25 @@ function updateCardCount() {
   document.getElementById('card-count').textContent = text;
 }
 
-function onGridChange() {
-  var sel = document.getElementById('pdf-grid-select');
-  currentGrid = sel ? sel.value : '4x4';
+/* Switch to a print grid and reveal the print-only controls. The page-count
+   pill and the card design gear stay hidden until the user actually asks for
+   a printable PDF, so the Anki path is the uncluttered default. */
+function showPrintOptions(grid) {
+  currentGrid = GRID_DEFAULTS[grid] ? grid : '4x4';
   loadCardDesign();
   renderCardDesignInputs();
   updateSummary();
+  var label = document.getElementById('print-grid-label');
+  if (label) label.innerHTML = currentGrid.split('x').join(' &times; ');
+  var panel = document.getElementById('print-options');
+  if (panel) panel.style.display = '';
+}
+
+function hidePrintOptions() {
+  var panel = document.getElementById('print-options');
+  if (panel) panel.style.display = 'none';
+  var design = document.getElementById('card-design-panel');
+  if (design) design.classList.remove('open');
 }
 
 function getGridCardsPerPage() {
@@ -2668,6 +2690,14 @@ document.addEventListener('click', function(e) {
 
 function exportData(fmt) {
   document.querySelectorAll('.export-menu').forEach(function(m) { m.classList.remove('open'); });
+
+  // "pdf:4x4" and friends: switch grid, show the print controls, then print.
+  if (fmt.indexOf('pdf:') === 0) {
+    showPrintOptions(fmt.slice(4));
+    generatePDF();
+    return;
+  }
+
   var d = getExportRows();
   if (d.rows.length === 0) { alert('No cards selected to export.'); return; }
   var baseName = (document.getElementById('customize-title').textContent || 'flashcards').replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -2730,8 +2760,9 @@ var ANKI_BACK = `{{FrontSide}}
 <hr>
 
 <div style='font-family: "Courier"; font-size: 28px;'>{{English}}</div>
-<a href="intent://x-callback-url/df?hw={{text:Chinese}}#Intent;scheme=plecoapi;package=com.pleco.chinesesystem;launchFlags=0x10000000;end" style="position:fixed; bottom:12px; right:12px; font-size:14px; text-decoration:none; opacity:0.4;">📖</a>
+<a id="plecoLink" data-hw="{{text:Chinese}}" href="#" style="position:fixed; bottom:12px; right:12px; font-size:14px; text-decoration:none; opacity:0.4;">📖</a>
 <a href="https://hanzicraft.com/character/{{text:Chinese}}" style="position:fixed; bottom:12px; left:12px; font-size:14px; text-decoration:none; opacity:0.4;">📕</a>
+<div id="plecoMsg" class="dictmsg"></div>
 <br>
 <span class="halfbr"></span>
 {{#Shared_by}}
@@ -2778,12 +2809,94 @@ var ANKI_BACK = `{{FrontSide}}
     }
   });
 })();
+
+
+(function(){
+  var link = document.getElementById('plecoLink');
+  var msg  = document.getElementById('plecoMsg');
+  if (!link || !msg) return;
+
+  var ua = navigator.userAgent || '';
+  var isAndroid = /Android/i.test(ua);
+  // iPadOS 13+ reports itself as a Mac, so check for a touch screen too.
+  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+              (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+
+  var hw = encodeURIComponent(link.getAttribute('data-hw') || '');
+  var hideTimer;
+
+  function show(html) {
+    msg.innerHTML = html;
+    msg.style.display = 'block';
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function(){ msg.style.display = 'none'; }, 6000);
+  }
+
+  // Point the link at whichever scheme this platform understands. Android
+  // gets the intent:// wrapper with a browser fallback; iOS gets plecoapi://
+  // directly. Desktop keeps href="#" and shows a note instead.
+  if (isAndroid) {
+    link.href = 'intent://x-callback-url/df?hw=' + hw +
+      '#Intent;scheme=plecoapi;package=com.pleco.chinesesystem' +
+      ';S.browser_fallback_url=https%3A%2F%2Fwww.pleco.com%2F' +
+      ';launchFlags=0x10000000;end';
+  } else if (isIOS) {
+    link.href = 'plecoapi://x-callback-url/df?hw=' + hw + '&sec=dict';
+  }
+
+  link.addEventListener('click', function(e) {
+    if (!isAndroid && !isIOS) {
+      e.preventDefault();
+      show('Pleco is only available on mobile. Use 📕 for HanziCraft in a browser.');
+      return;
+    }
+    if (!hw) { e.preventDefault(); return; }
+
+    // Nothing tells us whether a custom scheme actually resolved, so treat
+    // "still on screen a moment later" as "Pleco is not installed". Android
+    // has browser_fallback_url and needs no timer.
+    if (!isIOS) return;
+
+    var left = false;
+    function onLeave() { left = true; }
+    document.addEventListener('visibilitychange', onLeave);
+    window.addEventListener('pagehide', onLeave);
+
+    setTimeout(function() {
+      document.removeEventListener('visibilitychange', onLeave);
+      window.removeEventListener('pagehide', onLeave);
+      if (!left && !document.hidden) {
+        show('Pleco does not seem to be installed. ' +
+             '<a href="https://apps.apple.com/us/app/pleco-chinese-dictionary/id341922306">Get Pleco</a>');
+      }
+    }, 1500);
+  });
+})();
 <\/script>`;
 
 var ANKI_CSS = `.card { font-family: "Times New Roman"; font-size: 40px; line-height: 1.5; text-align: center;     background-color: #fdf6e3;  
     color: #47321d;    }
 
 .halfbr { display:block; margin-top:0.3em; }
+
+.dictmsg {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  max-width: 86%;
+  font-family: "Lora", sans-serif;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #47321d;
+  background: #f3e7cc;
+  border: 1px solid #d9c9a3;
+  border-radius: 6px;
+  padding: 7px 11px;
+}
+
+.dictmsg a { color: #3258a8; }
 
 .expander-blue {
   cursor: pointer;
@@ -2957,18 +3070,16 @@ function buildApkg(rows, opts) {
   return ankiPackageToBytes(pkg);
 }
 
-/* Anki nests decks on "::". One set selected reads as a subdeck of the
-   liturgy; anything mixed goes in the top-level deck. Users can rename
-   inside Anki afterwards, so this only needs to be a sane default. */
+/* One set selected names the deck after that set; a mixed selection falls
+   back to the collection name. Flat, not nested under a parent deck — users
+   can rename or re-nest inside Anki, so this only needs a sane default. */
 function deriveAnkiDeckName() {
-  var base = 'Buddhist Liturgy';
   var setKeys = {};
   allCards.forEach(function(c) { if (c._included) setKeys[c._setKey] = true; });
   var keys = Object.keys(setKeys);
-  if (keys.length !== 1 || !currentTradition) return base;
+  if (keys.length !== 1 || !currentTradition) return 'Buddhist Liturgy';
   var si = getAllSets(currentTradition)[keys[0]];
-  var name = si && si.eng_name ? si.eng_name : keys[0];
-  return base + '::' + name;
+  return (si && si.eng_name) ? si.eng_name : keys[0];
 }
 
 /* Strip quotes and control characters out of whatever the user typed —
