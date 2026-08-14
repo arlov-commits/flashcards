@@ -152,9 +152,30 @@ page count is visible before committing. Nothing leaves the browser until the
 download button is pressed, and the whole block resets on the next visit to
 the screen.
 
-Every screen carries **Home** and **Methodology** buttons in its top bar;
-Methodology is also linked from the landing page and has its own URL
-(`#/methodology`).
+A persistent site nav (**Home · Instructions · Methodology**) sits above every
+screen, outside the screen containers, and highlights the current one.
+
+### Marking cards as known
+
+**Building an Anki deck is what records progress.** `exportToAnki()` calls
+`markExportedAsKnown()` after the download, adding every exported card to the
+known list for the current mode, attributed to the set it came from, then
+refreshes the table. Printing a PDF and downloading card data deliberately do
+**not** touch the known list — this moved off `generatePDF()` when the app
+became Anki-first.
+
+### Study modes
+
+Only **Type A** and **Type B** are offered. Mode `C` (custom field mapping)
+still exists in `setStudyMode()` and `effectiveKnownMode()` so old state cannot
+break the screen, but no button selects it.
+
+Type B sorts by the `frequency` column, which is worth knowing about before
+relying on it: only 4 of the 21 card CSVs carry that column (1,064 of 4,489
+rows), the counts are per-liturgy rather than corpus-wide, rows without a value
+sort last, and the comparison runs **ascending**, so lower counts come first.
+It is a different front side, not a "commonest first" syllabus. The
+Instructions screen says so plainly.
 
 ## URLs
 
@@ -167,6 +188,7 @@ Every screen has a shareable URL:
 | `#/cards/evening-ceremony` | Customize, one whole section |
 | `#/cards/heart_sutra+gc_repent` | Customize, specific sets |
 | `#/known/a`, `#/known/b` | Known-cards viewer |
+| `#/instructions` | Instructions |
 | `#/methodology` | Methodology |
 
 Selections stay readable and resolvable, so a pasted link rebuilds the same

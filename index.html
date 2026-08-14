@@ -126,11 +126,29 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
 .nav-bar .back-link { color: var(--accent); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 .nav-bar .back-link:hover { text-decoration: underline; }
-.nav-bar .nav-links { display: flex; gap: 8px; align-items: center; }
+/* Instructions & Methodology prose */
+.doc { max-width: 42rem; }
+.doc h2 { font-size: 1.4rem; color: var(--accent); margin-bottom: 12px; }
+.doc h3 { font-size: 1.02rem; margin: 22px 0 6px; color: var(--text); }
+.doc h4 { font-size: 0.92rem; margin: 16px 0 4px; color: var(--text); }
+.doc p { margin-bottom: 10px; font-size: 0.93rem; }
+.doc .doc-lede { font-size: 1rem; color: var(--text); border-left: 3px solid var(--accent-light);
+  padding-left: 14px; margin-bottom: 14px; }
+.doc .doc-note { background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 14px; font-size: 0.88rem; color: var(--text-muted); }
+.doc .ui-quote { background: var(--bg-card); border: 1px solid var(--border-light);
+  border-radius: 4px; padding: 1px 6px; font-size: 0.88em; white-space: nowrap; }
+.doc-detail { border-top: 1px solid var(--border-light); padding: 10px 0; }
+.doc-detail > summary { cursor: pointer; font-weight: 600; color: var(--accent); font-size: 0.95rem; }
+.doc-detail[open] > summary { margin-bottom: 8px; }
+.doc-detail > *:not(summary) { margin-left: 2px; }
+.site-nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-light); }
 .nav-btn { display: inline-block; padding: 4px 12px; font-size: 0.82rem; font-weight: 600;
   color: var(--accent); background: var(--bg-card); border: 1.5px solid var(--border);
   border-radius: var(--radius); cursor: pointer; text-decoration: none; line-height: 1.5; }
 .nav-btn:hover { border-color: var(--accent); background: rgba(139,26,26,0.06); }
+.nav-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* Set selection */
 .set-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
@@ -232,7 +250,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .data-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 #print-options { margin-top: 4px; }
 .anki-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.anki-row input { flex: 1 1 240px; min-width: 180px; font-size: 0.85rem; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--bg-card); color: var(--text); }
+.anki-row input { flex: 1 1 auto; min-width: 160px; font-size: 0.85rem; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--bg-card); color: var(--text); }
+.deck-name-field { display: flex; align-items: center; gap: 8px; flex: 1 1 260px; min-width: 220px; cursor: text; }
+.deck-name-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.deck-name-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-style: italic; }
 .anki-error { margin-top: 8px; font-size: 0.82rem; color: var(--accent); background: rgba(139,26,26,0.07); border: 1px solid rgba(139,26,26,0.25); border-radius: var(--radius); padding: 8px 12px; }
 .anki-help { margin-top: 10px; font-size: 0.82rem; color: var(--text-muted); }
 .anki-help summary { cursor: pointer; font-weight: 600; color: var(--accent); }
@@ -305,6 +326,14 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 <body>
 <div class="container">
 
+  <!-- Persistent site navigation. Lives outside the screens so it is present
+       on all of them, including the landing page. -->
+  <nav class="site-nav" id="site-nav">
+    <a class="nav-btn" data-nav="landing" onclick="navigateTo('landing')">Home</a>
+    <a class="nav-btn" data-nav="instructions" onclick="navigateTo('instructions')">Instructions</a>
+    <a class="nav-btn" data-nav="methodology" onclick="navigateTo('methodology')">Methodology</a>
+  </nav>
+
   <!-- SCREEN 1: Landing (sets browser) -->
   <div id="screen-landing" class="screen active">
     <div class="landing-header">
@@ -321,7 +350,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     </div>
     <div class="manage-bar">
       <h2 id="landing-browse-title" style="margin-bottom:0">Browse Card Sets</h2>
-      <a class="nav-btn" onclick="navigateTo('methodology')">Methodology</a>
     </div>
     <div id="global-search-bar">
       <input type="search" id="global-search-input" placeholder="Search all cards (Chinese, pinyin, or English — any substring)…" autocomplete="off">
@@ -348,10 +376,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <!-- SCREEN 2: Customize -->
   <div id="screen-customize" class="screen">
     <div class="nav-bar">
-      <div class="nav-links">
-        <a class="nav-btn" onclick="navigateTo('landing')">Home</a>
-        <a class="nav-btn" onclick="navigateTo('methodology')">Methodology</a>
-      </div>
       <span id="customize-title"></span>
     </div>
 
@@ -364,10 +388,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <button class="mode-btn" data-mode="B" onclick="setStudyMode('B')">
         <span class="mode-label">Type B</span>
         <span class="mode-desc">Chinese only front</span>
-      </button>
-      <button class="mode-btn" data-mode="C" onclick="setStudyMode('C')">
-        <span class="mode-label">Custom</span>
-        <span class="mode-desc">Choose fields</span>
       </button>
     </div>
     <div id="mode-field-summary" style="font-size:0.85rem;color:var(--text-muted);margin:-8px 0 12px;"></div>
@@ -395,10 +415,14 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <div class="anki-block">
         <div class="anki-row">
           <button class="btn btn-primary" id="anki-btn" onclick="exportToAnki()">To Anki (.apkg)</button>
-          <input type="text" id="anki-deck-name" placeholder="Deck name" aria-label="Anki deck name" oninput="ankiDeckNameEdited = true">
+          <label class="deck-name-field" title="You can also rename the deck inside Anki later.">
+            <span class="deck-name-label">Deck name</span>
+            <input type="text" id="anki-deck-name" aria-label="Anki deck name" oninput="ankiDeckNameEdited = true">
+          </label>
         </div>
+        <p class="deck-name-hint">Editable — and you can rename it inside Anki later.</p>
         <div id="anki-error" class="anki-error" style="display:none"></div>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">A spaced-repetition deck of the selected cards. You can rename it after importing.</p>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">A spaced-repetition deck of the selected cards. Exporting also marks them as known, so your next deck starts where this one left off.</p>
         <details class="anki-help">
           <summary>First time? Set up Anki</summary>
           <p class="anki-help-intro">Anki is the app that studies these cards with you. Install it first, then open the file you download here. Find your device below.</p>
@@ -541,7 +565,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
         </div>
       </div>
-        <p id="print-note" style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Checked cards will be added to your known list.</p>
+        <p id="print-note" style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Printing does not change your known list.</p>
       </div>
       <div id="data-download-row" style="display:none;margin-top:10px">
         <button class="btn btn-primary" id="data-download-btn" onclick="downloadSelectedFormat()">Download</button>
@@ -549,27 +573,280 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     </div>
   </div>
 
+  <!-- SCREEN: Instructions -->
+  <div id="screen-instructions" class="screen">
+    <div class="doc">
+      <h2>How to Use This App</h2>
+
+      <p class="doc-lede">
+        Pick the liturgy sets you want to study, glance down the card list and mark
+        anything you already recognise, then press <strong>To Anki (.apkg)</strong>
+        and open the file that downloads. That is the whole app.
+      </p>
+
+      <p class="doc-lede">
+        Building a deck also records those cards as known, so the next deck you build
+        from the same material contains only what you have not covered yet. Everything
+        below is optional reading &mdash; open a section if you want the detail.
+      </p>
+
+      <details class="doc-detail">
+        <summary>Study modes: Type A and Type B</summary>
+        <p>
+          The mode decides what appears on the front of a card, and it is more
+          consequential than it looks.
+        </p>
+        <p>
+          <strong>Type A</strong> &mdash; Chinese and pinyin on the front, English on
+          the back. The reading is given to you; you are learning what a term means,
+          not how to pronounce it. Cards follow the order of the liturgy.
+        </p>
+        <p>
+          <strong>Type B</strong> &mdash; Chinese alone on the front, pinyin and
+          English on the back. Cold recognition: you must supply both the sound and
+          the sense.
+        </p>
+        <p>
+          Type A and Type B keep <strong>separate records of what you know</strong>.
+          This is deliberate. Recognising <span lang="zh-Hant">手</span> with pinyin
+          sitting underneath it is a different skill from recognising it cold, and the
+          app does not treat one as evidence of the other. Most students work a set in
+          Type A first and return to it later in Type B.
+        </p>
+        <p class="doc-note">
+          <strong>On Type B ordering.</strong> Type B sorts by the <code>frequency</code>
+          column in the card files, but that column exists in only 4 of the 21 sets
+          (1,064 of 4,489 rows), and its counts are per-liturgy rather than
+          corpus-wide. Rows without a value sort to the end, and the sort runs from
+          the lowest number upward. In practice, then, Type B is not a
+          &ldquo;commonest characters first&rdquo; ordering for most sets &mdash;
+          treat it as a different front side, not a different syllabus.
+        </p>
+      </details>
+
+      <details class="doc-detail">
+        <summary>The known list</summary>
+        <p>
+          The app remembers every character you have marked as known, separately for
+          each mode. This record is what keeps your decks from filling up with
+          material you have already worked through.
+        </p>
+
+        <h4>Known cards are unchecked, not hidden</h4>
+        <p>
+          When you open the customize screen, anything on your known list is
+          automatically <em>unchecked</em> &mdash; it will not go into your deck &mdash;
+          but it stays visible in the table, greyed, sorted to the bottom. The counter
+          above the table reads, for example,
+          <span class="ui-quote">615 of 812 cards selected &nbsp;·&nbsp; 192 already
+          known</span>. Nothing is ever removed from view, and re-checking any row puts
+          it straight back into the deck.
+        </p>
+
+        <h4>Scan before you download</h4>
+        <p>
+          Take a minute with the card list before you build a deck. For anything you
+          already recognise, press the button in the <strong>Known</strong> column: it
+          fills with a check mark, the row unchecks itself and drops to the bottom.
+          This is the single most useful habit in the app. A deck of 600 cards where
+          you already know 200 of them is a deck you will abandon; the same deck
+          trimmed to the 400 you actually need is one you will finish.
+        </p>
+
+        <h4>Building an Anki deck marks its cards as known</h4>
+        <p>
+          When you export to Anki, every card in that deck is added to your known list
+          for the current mode. The reasoning is that a card you have put into Anki is
+          a card you are working on, and the next deck you build should start where
+          this one left off. It is why the same set produces a shorter deck each time
+          you return to it.
+        </p>
+        <p>
+          Downloading a printable PDF or the raw card data does <strong>not</strong>
+          touch your known list. Only the Anki export does.
+        </p>
+
+        <h4>A set you have mostly finished</h4>
+        <p>
+          Selecting a set whose terms are nearly all on your known list is not an
+          error, and the app will not warn you. You will see almost every row greyed
+          and unchecked, a count along the lines of
+          <span class="ui-quote">3 of 105 cards selected &nbsp;·&nbsp; 102 already
+          known</span>, and a very short deck at the end of it. That is the system
+          working: the three cards left are the three you have not yet covered. To
+          rebuild the whole set instead, tick the checkbox in the table&rsquo;s header
+          row to re-select every card. (That only puts them back in the deck; they stay
+          marked known until you clear them in the known-cards viewer.)
+        </p>
+      </details>
+
+      <details class="doc-detail">
+        <summary>Reviewing what you know</summary>
+        <p>
+          When you have marked anything as known, counters appear in the upper corners
+          of the home screen &mdash; Type A on the left, Type B on the right &mdash;
+          each showing your total against the size of the corpus. Click either one to
+          open the known-cards viewer.
+        </p>
+        <p>
+          The viewer has a tab per mode and groups your characters into study sessions:
+          entries added to the same set within ten minutes of each other are shown
+          together with their date. It is a record of what you covered and when. Each
+          group has a <strong>Remove group</strong> control, so if a session was marked
+          known prematurely &mdash; or an export swept in more than you meant it to
+          &mdash; you can put those characters back into circulation, and they will
+          reappear, checked, the next time you build a deck from that set.
+        </p>
+      </details>
+
+      <details class="doc-detail">
+        <summary>Where your progress is stored</summary>
+        <p>
+          Your known lists live in your browser&rsquo;s local storage on the device you
+          are using. Nothing is uploaded, there is no account, and no one else can see
+          what you have studied.
+        </p>
+        <p>
+          The trade-off is that this record is local. It does not follow you to another
+          device or another browser, and it can be lost if you clear your browsing data
+          or if the browser reclaims storage from sites it considers inactive. Use
+          <strong>Export Progress</strong> on the home screen to save a copy, and
+          <strong>Import Progress</strong> to restore it or carry it to another device.
+        </p>
+        <p>
+          Nothing else in the app depends on it &mdash; your decks, once downloaded,
+          are yours permanently, and Anki keeps its own review history independently.
+        </p>
+      </details>
+
+      <details class="doc-detail">
+        <summary>Building the deck</summary>
+        <p>
+          <strong>To Anki (.apkg)</strong> turns your current selection into an Anki
+          deck. The first click takes a moment while the necessary tools load; after
+          that it is immediate. Open the downloaded file and Anki imports it, with the
+          card layout, fonts, and source tags already in place.
+        </p>
+        <p>
+          The deck is named after the set you selected, with its Chinese title
+          &mdash; <span class="ui-quote">Heart Sutra <span lang="zh-Hant">心經</span></span>
+          &mdash; or, if you combined several sets, after those sets joined with
+          &ldquo;&amp;&rdquo;. You can edit the name in the field beside the button
+          before downloading, or rename the deck inside Anki afterwards. Re-importing a
+          corrected deck later updates your existing cards rather than duplicating
+          them, so your review history survives.
+        </p>
+        <p>
+          Under <strong>Download Data</strong> you will also find printable
+          double-sided flashcard PDFs and the raw card data as CSV, XLSX, JSON, or
+          Google Sheets. Choosing a format there does not download it &mdash; it
+          reveals a download button, and for the PDFs the page count and the card
+          design controls, so you can see what you are about to get.
+        </p>
+      </details>
+
+      <details class="doc-detail">
+        <summary>Sharing a selection</summary>
+        <p>
+          Every screen has its own address, so a link you copy reproduces what you were
+          looking at: a whole section, a specific combination of sets, or the
+          known-cards viewer. Sending someone the link to a set gives them the same
+          starting point you had &mdash; though not your known list, which stays on
+          your device.
+        </p>
+      </details>
+    </div>
+  </div>
+
   <!-- SCREEN 3: Methodology -->
   <div id="screen-methodology" class="screen">
-    <div class="nav-bar">
-      <div class="nav-links">
-        <a class="nav-btn" onclick="navigateTo('landing')">Home</a>
-      </div>
-      <span>Methodology</span>
-    </div>
-    <div id="methodology-body">
+    <div class="doc">
       <h2>Methodology</h2>
-      <p style="color:var(--text-muted);margin-top:8px">Coming soon.</p>
+
+      <p class="doc-lede">
+        This deck is a study apparatus built on the published English translations of
+        the City of Ten Thousand Buddhas and the Dharma Realm Buddhist Association.
+        Its purpose is to give students of the liturgy a term-level entry point into
+        texts they already chant.
+      </p>
+
+      <h3>Sources</h3>
+      <p>
+        Chinese text and English translation are taken from the CTTB / DRBA editions
+        of each liturgy. The English glosses are not machine translations. Each gloss
+        is drawn from the published rendering of the line in which the term occurs,
+        so that the vocabulary a student learns here is the vocabulary they encounter
+        in the hall. Where a term has no isolable counterpart in the published
+        English, a plain lexical gloss is supplied and marked by its brevity; no
+        interpretive translation has been introduced.
+      </p>
+
+      <h3>Segmentation</h3>
+      <p>
+        Each liturgy is segmented at more than one level. A single character receives
+        an entry where it carries independent meaning. Compounds of two or more
+        characters receive their own entries, so that <span lang="zh-Hant">香</span>
+        and <span lang="zh-Hant">讚</span> appear alongside
+        <span lang="zh-Hant">香讚</span>. Phonetic transliterations of Sanskrit proper
+        names — <span lang="zh-Hant">阿彌陀佛</span>, <span lang="zh-Hant">舍利子</span>
+        — are retained whole, since their constituent syllables carry no independent
+        sense. Dhāraṇī are excluded from the vocabulary entirely.
+      </p>
+
+      <h3>Alignment</h3>
+      <p>
+        Terms were aligned to their published English renderings with the assistance
+        of large language models (Gemini and Claude). Their function was
+        correspondence-finding between two existing texts rather than translation.
+        Source transcriptions were checked against the printed editions, and readings
+        that were ambiguous in the source were verified against page images before
+        entry.
+      </p>
+
+      <h3>Interpretive scope</h3>
+      <p>Two properties of the method should be understood before use.</p>
+      <p>
+        First, the CTTB / DRBA translations are frequently interpretive rather than
+        strictly literal, and are rendered at the level of the line. A gloss therefore
+        records how a term was translated in that passage, which is not always the
+        same as its lexical range.
+      </p>
+      <p>
+        Second, because compounds are decomposed into their constituents, a
+        constituent character may inherit the sense of the compound in which it
+        appeared. <span lang="zh-Hant">天女</span> is rendered &ldquo;goddess&rdquo; as
+        a unit; the published English contains no separate word answering to
+        <span lang="zh-Hant">女</span>, and the entry for <span lang="zh-Hant">女</span>
+        accordingly reflects the compound&rsquo;s sense rather than the
+        character&rsquo;s general meaning. This is a consequence of segmentation
+        rather than an error in the underlying translation, and the compound entry is
+        always present alongside it.
+      </p>
+      <p>
+        Typographical errors occur at a low rate across the corpus. Corrections are
+        welcome.
+      </p>
+
+      <h3>Recommended use</h3>
+      <p>
+        These entries are intended as an index to the liturgy, not as a lexicon. For
+        each unfamiliar character, consult Pleco to establish the term&rsquo;s fuller
+        range of senses, then use <em>Edit Note</em> in Anki to record whichever
+        glosses are useful. The deck is designed to be annotated.
+      </p>
+      <p>
+        Students are advised to install a Buddhist lexicon in Pleco before beginning.
+        In Pleco: <strong>Menu sidebar &rarr; Add-ons &rarr; Dictionaries &rarr; All
+        Free Dictionaries</strong>; <em>A Dictionary of Chinese Buddhist Terms</em>
+        appears partway down the list. Once installed, reorder it above the general
+        dictionaries so that Buddhist senses are returned first.
+      </p>
     </div>
   </div>
 
   <!-- SCREEN 3: Known Viewer -->
   <div id="screen-known" class="screen">
     <div class="nav-bar">
-      <div class="nav-links">
-        <a class="nav-btn" onclick="navigateTo('landing')">Home</a>
-        <a class="nav-btn" onclick="navigateTo('methodology')">Methodology</a>
-      </div>
       <span>Known Characters</span>
     </div>
     <div class="known-mode-tabs" id="known-mode-tabs">
@@ -604,7 +881,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.34';
+var APP_VERSION = 'v2.35';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1299,6 +1576,7 @@ function routePathForScreen(name) {
   if (name === 'customize') return 'cards/' + buildSelectionSlug();
   if (name === 'known') return 'known/' + String(knownViewerMode || 'A').toLowerCase();
   if (name === 'methodology') return 'methodology';
+  if (name === 'instructions') return 'instructions';
   return '';
 }
 
@@ -1316,6 +1594,7 @@ function parseRoute() {
   if (parts[0] === 'cards')  return { screen: 'customize', slug: decodeURIComponent(parts[1] || '') };
   if (parts[0] === 'known')  return { screen: 'known', mode: (parts[1] || 'a').toUpperCase() === 'B' ? 'B' : 'A' };
   if (parts[0] === 'methodology') return { screen: 'methodology' };
+  if (parts[0] === 'instructions') return { screen: 'instructions' };
   return { screen: 'landing' };
 }
 
@@ -1324,7 +1603,8 @@ function parseRoute() {
 async function applyRoute() {
   var r = parseRoute();
 
-  if (r.screen === 'methodology') { showScreen('methodology'); return; }
+  if (r.screen === 'methodology')  { showScreen('methodology'); return; }
+  if (r.screen === 'instructions') { showScreen('instructions'); return; }
 
   if (r.screen === 'known') {
     knownViewerMode = r.mode;
@@ -1367,6 +1647,9 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   el.classList.add('active');
   _currentScreen = name;
+  document.querySelectorAll('#site-nav .nav-btn').forEach(function(a) {
+    a.classList.toggle('active', a.dataset.nav === name);
+  });
   if (name === 'known') renderKnownViewer();
   if (name === 'landing') { renderLanding(); renderProgressStats(); }
   window.scrollTo(0, 0);
@@ -1677,14 +1960,16 @@ function setStudyMode(mode) {
     frontFields = [targetKey, romanKey].filter(Boolean);
     backFields = [transKey].filter(Boolean);
     mappingEl.style.display = 'none';
-    summaryEl.textContent = 'Front: Chinese + Pinyin · Back: English';
+    summaryEl.innerHTML = 'Front: Chinese + Pinyin<br>Back: English';
   } else if (mode === 'B') {
     frontFields = [targetKey].filter(Boolean);
     backFields = [romanKey, transKey].filter(Boolean);
     mappingEl.style.display = 'none';
-    summaryEl.textContent = 'Front: Chinese · Back: Pinyin + English';
+    summaryEl.innerHTML = 'Front: Chinese<br>Back: Pinyin + English';
   } else {
-    // Custom — keep current fields, show mapping editor
+    // Mode 'C' (custom fields) is no longer offered in the UI, but the field
+    // mapping editor and effectiveKnownMode() still understand it, so a saved
+    // state or an old link cannot break the screen.
     mappingEl.style.display = '';
     summaryEl.textContent = '';
   }
@@ -1759,11 +2044,11 @@ async function openCustomize() {
 
   showScreen('customize');
   await loadCards();
-  applyKnownToCards();
-  renderModeButtons();
-  renderFieldMapping();
   renderCardDesignInputs();
-  renderCardTable();
+  // setStudyMode does the rest — buttons, field mapping, ordering, the known
+  // list, the table, and the "Front: … / Back: …" summary — so that summary is
+  // present on arrival rather than only after the first mode click.
+  setStudyMode('A');
   refreshAnkiDeckName(true);
   resetDataFormat();
 }
@@ -3238,6 +3523,25 @@ function setAnkiError(msg) {
   box.style.display = '';
 }
 
+/* Building an Anki deck is what records progress: the cards you exported are
+   the cards you are now working on, so the next deck you build starts where
+   this one left off. Entries are attributed to the set each card came from so
+   the known-cards viewer can group them. (Printing a PDF deliberately does
+   not do this — a printout is not a commitment to study.) */
+function markExportedAsKnown(rows) {
+  var byDeck = {};
+  rows.forEach(function(c) {
+    if (!c._chinese) return;
+    var deck = getDeckLabelForCard(c);
+    if (!byDeck[deck]) byDeck[deck] = [];
+    byDeck[deck].push(c._chinese);
+  });
+  var added = false;
+  for (var deck in byDeck) { addToKnown(effectiveKnownMode(), byDeck[deck], deck); added = true; }
+  if (added) renderProgressStats();
+  return added;
+}
+
 async function exportToAnki() {
   var btn = document.getElementById('anki-btn');
   var input = document.getElementById('anki-deck-name');
@@ -3258,6 +3562,9 @@ async function exportToAnki() {
     var bytes = await buildApkg(rows, { deckName: deckName });
     var filename = (slugify(deckName) || 'anki-deck') + '.apkg';
     downloadBlob(new Blob([bytes], { type: 'application/apkg' }), filename);
+    markExportedAsKnown(rows);
+    applyKnownToCards();
+    renderCardTable();
   } catch (err) {
     console.error('Anki export failed:', err);
     setAnkiError('Anki export failed: ' + (err && err.message ? err.message : err) +
@@ -3637,21 +3944,8 @@ async function generatePDF() {
     pdf.save('flashcards-' + setNames + '.pdf');
     localStorage.setItem('pdf_grid', currentGrid);
 
-    // Add all printed cards to known list for current study mode
-    // Group by deck so each card is attributed to its own deck
-    var cardsByDeck = {};
-    cards.forEach(function(c) {
-      if (!c._chinese) return;
-      var deck = getDeckLabelForCard(c);
-      if (!cardsByDeck[deck]) cardsByDeck[deck] = [];
-      cardsByDeck[deck].push(c._chinese);
-    });
-    var addedAny = false;
-    for (var deckName in cardsByDeck) {
-      addToKnown(effectiveKnownMode(), cardsByDeck[deckName], deckName);
-      addedAny = true;
-    }
-    if (addedAny) renderProgressStats();
+    // Printing no longer marks anything known — building the Anki deck does.
+    // See markExportedAsKnown().
 
   } catch (err) {
     console.error('PDF generation error:', err);
