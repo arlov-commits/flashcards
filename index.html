@@ -484,6 +484,24 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .deck-name-field { display: flex; align-items: center; gap: 8px; flex: 1 1 260px; min-width: 220px; cursor: text; }
 .deck-name-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
 .deck-name-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+.anki-split { margin-top: 12px; font-size: 0.84rem; }
+.anki-split > summary { cursor: pointer; color: var(--text-muted); font-weight: 600;
+  list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+.anki-split > summary::-webkit-details-marker { display: none; }
+.anki-split > summary::before { content: '\25B8'; font-size: 0.8em; transition: transform 0.15s; }
+.anki-split[open] > summary::before { transform: rotate(90deg); }
+.anki-split > summary:hover { color: var(--accent); }
+.anki-split-body { margin-top: 10px; padding: 12px 14px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: var(--radius); }
+.anki-split-list { margin-top: 10px; }
+.anki-split-row { display: flex; align-items: center; gap: 12px; padding: 7px 0;
+  border-top: 1px solid var(--border-light); }
+.anki-split-row:first-child { border-top: none; }
+.asr-name { flex: 1 1 auto; min-width: 0; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asr-count { flex: 0 0 auto; font-size: 0.78rem; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; }
+.anki-split-row .btn { flex: 0 0 auto; }
 .anki-error { margin-top: 8px; font-size: 0.82rem; color: var(--accent); background: rgba(139,26,26,0.07); border: 1px solid rgba(139,26,26,0.25); border-radius: var(--radius); padding: 8px 12px; }
 .anki-help { margin-top: 10px; font-size: 0.82rem; color: var(--text-muted); }
 .anki-help summary { cursor: pointer; font-weight: 600; color: var(--accent); }
@@ -657,6 +675,14 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <p class="deck-name-hint">Editable — and you can rename it inside Anki later.</p>
         <div id="anki-error" class="anki-error" style="display:none"></div>
         <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">A spaced-repetition deck of the selected cards. Exporting also marks them as known, so your next deck starts where this one left off.</p>
+        <!-- Only appears when the selection spans more than one set. -->
+        <details class="anki-split" id="anki-split" style="display:none">
+          <summary id="anki-split-summary"></summary>
+          <div class="anki-split-body">
+            <button class="btn btn-outline btn-sm" id="anki-split-all" onclick="exportEachDeckSeparately()"></button>
+            <div class="anki-split-list" id="anki-split-list"></div>
+          </div>
+        </details>
         <details class="anki-help">
           <summary>First time? Set up Anki</summary>
           <p class="anki-help-intro">Anki is the app that studies these cards with you. Install it first, then open the file you download here. Find your device below.</p>
@@ -1184,6 +1210,14 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           them, so your review history survives.
         </p>
         <p>
+          If your selection spans several liturgies, <strong>Or keep the N decks
+          separate</strong> appears under the button. It lists each set with its card
+          count and a <strong>Download</strong> of its own, plus one button that saves
+          them all as separate files in a row. Each becomes its own deck in Anki,
+          named after its liturgy, rather than one combined deck. Either way the cards
+          you export are marked known.
+        </p>
+        <p>
           Under <strong>Download Data</strong> you will also find printable
           double-sided flashcard PDFs and the raw card data as CSV, XLSX, JSON, or
           Google Sheets. Choosing a format there does not download it &mdash; it
@@ -1340,7 +1374,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v3.4';
+var APP_VERSION = 'v3.5';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -2561,6 +2595,7 @@ async function openCustomize() {
   // present on arrival rather than only after the first mode click.
   setStudyMode('A');
   refreshAnkiDeckName(true);
+  renderAnkiSplit();
   resetDataFormat();
 }
 
@@ -2821,6 +2856,7 @@ function updateCardCount() {
   var text = included + ' of ' + total + ' cards selected';
   if (knownCount > 0) text += '  ·  ' + knownCount + ' already known';
   document.getElementById('card-count').textContent = text;
+  renderAnkiSplit();
 }
 
 /* The Download Data menu picks a format; it never downloads. The button that
@@ -3921,6 +3957,36 @@ function buildApkg(rows, opts) {
    Flat, never nested: users can re-nest with "::" inside Anki. */
 var ANKI_DECK_NAME_MAX = 60;
 
+/* One set's deck name: "Heart Sutra 心經", falling back to the English alone
+   if the pair would run past the cap. */
+function ankiDeckNameForSet(setKey) {
+  var allSets = currentTradition ? getAllSets(currentTradition) : {};
+  var si = allSets[setKey];
+  var eng = (si && si.eng_name) ? si.eng_name : setKey;
+  var zh = si && si.display_tag ? String(si.display_tag).trim() : '';
+  var both = eng + (zh ? ' ' + zh : '');
+  return both.length <= ANKI_DECK_NAME_MAX ? both : eng;
+}
+
+/* The sets in the current selection, in manifest order, with their included
+   rows. One entry means the split option has nothing to offer. */
+function ankiSelectedGroups() {
+  var order = currentTradition ? Object.keys(getAllSets(currentTradition)) : [];
+  var byKey = {};
+  allCards.forEach(function(c) {
+    if (!c._included) return;
+    (byKey[c._setKey] = byKey[c._setKey] || []).push(c);
+  });
+  return Object.keys(byKey)
+    .sort(function(a, b) {
+      var ai = order.indexOf(a), bi = order.indexOf(b);
+      return (ai < 0 ? 1e9 : ai) - (bi < 0 ? 1e9 : bi);
+    })
+    .map(function(k) {
+      return { key: k, name: ankiDeckNameForSet(k), rows: byKey[k] };
+    });
+}
+
 function deriveAnkiDeckName() {
   var setKeys = {};
   allCards.forEach(function(c) { if (c._included) setKeys[c._setKey] = true; });
@@ -3930,13 +3996,7 @@ function deriveAnkiDeckName() {
   var allSets = getAllSets(currentTradition);
   function engName(k) { var si = allSets[k]; return (si && si.eng_name) ? si.eng_name : k; }
 
-  // A single set gets its Chinese title too: "Heart Sutra 心經".
-  if (keys.length === 1) {
-    var si = allSets[keys[0]];
-    var zh = si && si.display_tag ? String(si.display_tag).trim() : '';
-    var one = engName(keys[0]) + (zh ? ' ' + zh : '');
-    return one.length <= ANKI_DECK_NAME_MAX ? one : engName(keys[0]);
-  }
+  if (keys.length === 1) return ankiDeckNameForSet(keys[0]);
 
   // Several sets: "A & B & C", keeping whole names only, then "+N more" for
   // whatever did not fit. Sorted by the manifest order the cards came in.
@@ -4009,6 +4069,97 @@ function markExportedAsKnown(rows) {
   return added;
 }
 
+/* ---------- one file per set ----------
+   The combined export stays the default and the single button. This is the
+   alternative for people who would rather keep each liturgy as its own deck
+   in Anki, and it only appears when the selection actually spans more than
+   one. */
+function renderAnkiSplit() {
+  var box = document.getElementById('anki-split');
+  if (!box) return;
+  var groups = ankiSelectedGroups();
+  if (groups.length < 2) { box.style.display = 'none'; box.open = false; return; }
+  box.style.display = '';
+
+  document.getElementById('anki-split-summary').textContent =
+    'Or keep the ' + groups.length + ' decks separate';
+  document.getElementById('anki-split-all').textContent =
+    'Download all ' + groups.length + ' as separate files';
+  document.getElementById('anki-split-list').innerHTML = groups.map(function(g) {
+    return '<div class="anki-split-row">' +
+      '<span class="asr-name">' + escapeHtml(g.name) + '</span>' +
+      '<span class="asr-count">' + g.rows.length + ' card' + (g.rows.length === 1 ? '' : 's') + '</span>' +
+      '<button class="btn btn-outline btn-sm" data-anki-set="' + escapeHtml(g.key) + '">Download</button>' +
+    '</div>';
+  }).join('');
+}
+
+document.addEventListener('click', function(e) {
+  var b = e.target.closest && e.target.closest('button[data-anki-set]');
+  if (b) exportAnkiSets([b.getAttribute('data-anki-set')]);
+});
+
+function setAnkiBusy(busy, label) {
+  ['anki-btn', 'anki-split-all'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.disabled = busy;
+  });
+  document.querySelectorAll('button[data-anki-set]').forEach(function(el) { el.disabled = busy; });
+  var all = document.getElementById('anki-split-all');
+  if (all && label !== undefined) all.textContent = label;
+}
+
+/* Build and download one .apkg per set. The groups are captured before
+   anything is written, because marking a deck known unchecks its rows — read
+   them afterwards and every deck after the first would come out empty. */
+async function exportAnkiSets(setKeys) {
+  var all = ankiSelectedGroups();
+  var groups = all.filter(function(g) { return setKeys.indexOf(g.key) !== -1; });
+  if (!groups.length) return;
+
+  var restore = document.getElementById('anki-split-all').textContent;
+  var btn = document.getElementById('anki-btn');
+  var btnLabel = btn.textContent;
+  setAnkiError('');
+  setAnkiBusy(true, groups.length > 1 ? 'Preparing…' : restore);
+
+  try {
+    if (!ankiToolsPromise) btn.textContent = 'Loading Anki tools…';
+    await loadAnkiTools();
+    btn.textContent = 'Building decks…';
+
+    var exported = [];
+    for (var i = 0; i < groups.length; i++) {
+      var g = groups[i];
+      if (groups.length > 1) setAnkiBusy(true, 'Building ' + (i + 1) + ' of ' + groups.length + '…');
+      var bytes = await buildApkg(g.rows, { deckName: g.name });
+      downloadBlob(new Blob([bytes], { type: 'application/apkg' }),
+        (slugify(g.name) || 'anki-deck') + '.apkg');
+      exported = exported.concat(g.rows);
+      // Browsers throttle downloads fired back to back; a beat apart, they all land.
+      if (i < groups.length - 1) await new Promise(function(r) { setTimeout(r, 350); });
+    }
+
+    markExportedAsKnown(exported);
+    applyKnownToCards();
+    renderCardTable();
+    refreshAnkiDeckName(true);
+    renderAnkiSplit();
+  } catch (err) {
+    console.error('Anki export failed:', err);
+    setAnkiError('Anki export failed: ' + (err && err.message ? err.message : err) +
+                 ' — the PDF and data downloads above still work.');
+  } finally {
+    btn.textContent = btnLabel;
+    setAnkiBusy(false);
+    renderAnkiSplit();
+  }
+}
+
+function exportEachDeckSeparately() {
+  exportAnkiSets(ankiSelectedGroups().map(function(g) { return g.key; }));
+}
+
 async function exportToAnki() {
   var btn = document.getElementById('anki-btn');
   var input = document.getElementById('anki-deck-name');
@@ -4032,6 +4183,7 @@ async function exportToAnki() {
     markExportedAsKnown(rows);
     applyKnownToCards();
     renderCardTable();
+    renderAnkiSplit();
   } catch (err) {
     console.error('Anki export failed:', err);
     setAnkiError('Anki export failed: ' + (err && err.message ? err.message : err) +

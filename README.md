@@ -79,6 +79,20 @@ Each note is tagged with its `eng_tag`, so decks stay filterable by source text
 inside Anki. Rows with an empty `chinese` are skipped and every field is
 trimmed, so legacy CSVs with stray leading spaces export cleanly.
 
+### One deck, or one file per set
+
+The button makes a single combined deck. When the selection spans more than one
+set, a collapsed **Or keep the N decks separate** disclosure appears beneath it,
+listing each set with its card count and its own **Download**, plus a
+**Download all N as separate files** button. It is hidden entirely for a
+single-set selection, so the common path is untouched.
+
+`exportAnkiSets()` does both: it snapshots `ankiSelectedGroups()` **before**
+writing anything, because marking a deck known unchecks its rows — read them
+afterwards and every deck after the first would come out empty. Downloads are
+fired ~350ms apart, since browsers throttle saves triggered back to back, and
+the known list is updated once at the end from the whole set of exported rows.
+
 Deck names are flat, never nested — re-nest with `::` inside Anki if you want
 that. A single set gets its Chinese title too (`Heart Sutra 心經`); a mixed
 selection joins the set names with ` & `, fitting whole names into 60
