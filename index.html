@@ -893,17 +893,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <div id="screen-feedback" class="screen">
     <div class="doc" style="max-width:48rem">
       <h2>Feedback</h2>
-      <p class="doc-lede">
-        Found something broken? Wanted something the app doesn&rsquo;t do yet? Say so
-        here. Small annoyances are worth reporting &mdash; a wrong gloss, a card that
-        reads oddly, a button that is hard to find on your phone. So are half-formed
-        ideas; they are often the ones worth building.
-      </p>
-      <p class="doc-lede">
-        You post under an alias this device made up for you, so nothing here is tied
-        to your name. You can edit or delete anything you have posted, and reply to
-        anyone else.
-      </p>
     </div>
 
     <div id="feedback-scope" class="feedback-scope"></div>
@@ -1350,7 +1339,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v3.2';
+var APP_VERSION = 'v3.3';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -5074,11 +5063,24 @@ function feedbackAliasFor(seed) {
 
 function myFeedbackAlias() { return feedbackAliasFor(getFeedbackIdentity().seed); }
 
-function rerollFeedbackAlias() {
+async function rerollFeedbackAlias() {
   var id = getFeedbackIdentity();
   id.seed = fbRandomId();
   try { localStorage.setItem(FEEDBACK_IDENTITY_KEY, JSON.stringify(id)); } catch (e) {}
+  var me = myFeedbackAlias();
   renderFeedbackAlias();
+
+  // The alias is not an edit, so `updated` is left alone: rerolling must not
+  // mark every old post as having been changed.
+  try {
+    await fbUpdateMine({ author_alias: me.alias, author_color: me.color }, id.secret);
+  } catch (e) {
+    console.error('feedback: could not rename existing posts', e);
+    feedbackMsg('Renamed here, but the board did not take it. Try again in a moment.', true);
+  }
+  feedbackPosts.forEach(function(p) {
+    if (p.author_key === id.uid) { p.author_alias = me.alias; p.author_color = me.color; }
+  });
   renderFeedbackList();
 }
 
@@ -5124,6 +5126,21 @@ async function fbInsert(row) {
 /* Authorship is proved by edit_token, which the board never hands back: the
    public view omits it, so only the device that wrote a post can name it.
    author_key is the visible "same person" id and is not a credential. */
+/* Rewrite every post this device wrote. Used by the reroll, which has to
+   reach the posts already on the board — a name you have changed should not
+   leave the old one attached to yesterday's report. */
+async function fbUpdateMine(patch, token) {
+  if (!feedbackRemote()) {
+    var rows = fbLocalRead();
+    rows.forEach(function(p) { if (p.edit_token === token) Object.assign(p, patch); });
+    fbLocalWrite(rows);
+    return;
+  }
+  var url = FEEDBACK_ENDPOINT + '?edit_token=eq.' + encodeURIComponent(token);
+  var r = await fetch(url, { method: 'PATCH', headers: fbHeaders(), body: JSON.stringify(patch) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+}
+
 async function fbUpdate(id, patch, token) {
   if (!feedbackRemote()) {
     var rows = fbLocalRead();

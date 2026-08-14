@@ -263,13 +263,42 @@ Implements like `Vajra` and architecture like `Stupa` and `Ziggurat` are in. Aut
 their own posts; anyone can reply, one level deep. Deletes are soft, so replies
 survive the post they answer.
 
-**The board needs a backend to actually be public.** This app is a static page,
-so `FEEDBACK_ENDPOINT` / `FEEDBACK_READ_ENDPOINT` / `FEEDBACK_API_KEY` at the
-top of the feedback section in `index.html` are where you point it at one. Run
-[`feedback-schema.sql`](feedback-schema.sql) against a Supabase project, paste
-the three values in, and the same board serves every visitor. Until then the
-page runs against `localStorage` and **says so in a banner** rather than
-implying a post has been shared.
+**Rerolling an alias renames the posts already made**, on the board as well as
+on screen — a name you have changed should not leave the old one attached to
+yesterday's report. It patches every row matching the device's `edit_token` and
+deliberately leaves `updated` alone, so a rename is not mistaken for an edit.
+
+### Connecting the shared board
+
+This app is a static page, so a public board needs somewhere to live. Three
+constants at the top of the feedback section in `index.html` are the whole
+switch:
+
+```js
+var FEEDBACK_ENDPOINT      = 'https://<project>.supabase.co/rest/v1/feedback';
+var FEEDBACK_READ_ENDPOINT = 'https://<project>.supabase.co/rest/v1/feedback_public';
+var FEEDBACK_API_KEY       = '<anon key>';
+```
+
+1. Create a Supabase project (the free tier is enough).
+2. Run [`feedback-schema.sql`](feedback-schema.sql) in its SQL editor — table,
+   public view, and row policies.
+3. Paste the project URL and the **anon** key above. The anon key is meant to
+   be published; the policies are what guard the data.
+
+With those set the banner flips from "not yet connected" to "this board is
+public" on its own, and every visitor reads and writes the same rows. Until
+then the page runs against `localStorage` and **says so** rather than implying
+a post has been shared.
+
+The remote path is not untested code waiting on credentials.
+[`tools/mock-feedback-server.py`](tools/mock-feedback-server.py) is a
+PostgREST-shaped server implementing exactly the four calls the board makes,
+including the view that omits `edit_token`; the shared-board harness runs three
+independent browser contexts against it cross-origin and checks that a post
+made in one is read in the next, that replies and edits and deletes travel,
+that the token is never served, and that a reroll renames posts already on the
+board. Swapping in Supabase changes the host, nothing else.
 
 Two identifiers, deliberately distinct:
 
