@@ -47,7 +47,7 @@ Preferred header (new files):
 Character,Pīnyīn,English,eng_tag,shared_by,ch_tag
 ```
 
-Legacy files use `chinese,pinyin,english_def,ch_tag,eng_tag,frequency` and keep
+Legacy files use `chinese,pinyin,english_def,ch_tag,eng_tag` and keep
 working — column names are matched case-, accent-, and punctuation-insensitively
 against an alias table in `index.html` (`CARD_FIELD_ALIASES`), then mapped onto
 the canonical fields. To support another spelling, add one alias there.
@@ -59,7 +59,6 @@ the canonical fields. To support another spelling, add one alias there.
 | `english_def` | `English`, `english_def`, `definition`, `meaning` |
 | `ch_tag`      | `ch_tag` — Chinese name of the section          |
 | `eng_tag`     | `eng_tag` — English key for the section         |
-| `frequency`   | `frequency` — occurrence count, orders Type B   |
 | `shared_by`   | `shared_by` — other terms/sections it appears in |
 
 ## Anki export
@@ -170,12 +169,15 @@ Only **Type A** and **Type B** are offered. Mode `C` (custom field mapping)
 still exists in `setStudyMode()` and `effectiveKnownMode()` so old state cannot
 break the screen, but no button selects it.
 
-Type B sorts by the `frequency` column, which is worth knowing about before
-relying on it: only 4 of the 21 card CSVs carry that column (1,064 of 4,489
-rows), the counts are per-liturgy rather than corpus-wide, rows without a value
-sort last, and the comparison runs **ascending**, so lower counts come first.
-It is a different front side, not a "commonest first" syllabus. The
-Instructions screen says so plainly.
+Both modes present the cards in liturgy order. They differ only in what the
+front of the card shows.
+
+> **Removed:** a `frequency` column once re-ordered Type B. It was never
+> finished — only 4 of 21 CSVs ever carried it, its counts were per-liturgy
+> rather than corpus-wide, and the sort ran ascending. The column has been
+> dropped from the CSVs and every code path, alias, and doc reference to it is
+> gone. Do not reintroduce it as an ordering input without re-deriving the
+> counts across the whole corpus first.
 
 ## URLs
 

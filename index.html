@@ -604,7 +604,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <p>
           <strong>Type B</strong> &mdash; Chinese alone on the front, pinyin and
           English on the back. Cold recognition: you must supply both the sound and
-          the sense.
+          the sense. Cards follow the order of the liturgy, as in Type A; the two
+          modes differ in what the front of the card shows, not in what they cover
+          or in what order.
         </p>
         <p>
           Type A and Type B keep <strong>separate records of what you know</strong>.
@@ -612,15 +614,6 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           sitting underneath it is a different skill from recognising it cold, and the
           app does not treat one as evidence of the other. Most students work a set in
           Type A first and return to it later in Type B.
-        </p>
-        <p class="doc-note">
-          <strong>On Type B ordering.</strong> Type B sorts by the <code>frequency</code>
-          column in the card files, but that column exists in only 4 of the 21 sets
-          (1,064 of 4,489 rows), and its counts are per-liturgy rather than
-          corpus-wide. Rows without a value sort to the end, and the sort runs from
-          the lowest number upward. In practice, then, Type B is not a
-          &ldquo;commonest characters first&rdquo; ordering for most sets &mdash;
-          treat it as a different front side, not a different syllabus.
         </p>
       </details>
 
@@ -881,7 +874,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.35';
+var APP_VERSION = 'v2.36';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1035,7 +1028,7 @@ function stripDiacritics(s) {
      Character, Pīnyīn, English, eng_tag, shared_by, ch_tag
 
    Older files use the legacy header (chinese, pinyin, english_def,
-   ch_tag, eng_tag, frequency) and must keep working. Rather than
+   ch_tag, eng_tag) and must keep working. Rather than
    special-casing formats, every incoming column name is normalised
    (diacritics stripped, lower-cased, punctuation removed) and matched
    against the alias table below, then copied onto the canonical key the
@@ -1047,7 +1040,6 @@ var CARD_FIELD_ALIASES = {
   english_def: ['english_def', 'english', 'definition', 'meaning', 'translation', 'gloss'],
   ch_tag:      ['ch_tag', 'chinese_tag'],
   eng_tag:     ['eng_tag', 'english_tag'],
-  frequency:   ['frequency', 'freq'],
   shared_by:   ['shared_by']
 };
 
@@ -1431,8 +1423,7 @@ async function loadManifestFromDirectoryCSV() {
         multichar: 'Compound term flag (bold pinyin in PDF)',
         ch_tag: 'Chinese name of liturgy section',
         eng_tag: 'English key for liturgy section',
-        shared_by: 'Other sections this term also appears in',
-        frequency: 'Occurrence count (used to order Type B)'
+        shared_by: 'Other sections this term also appears in'
       },
       default_front: ['chinese', 'pinyin'],
       default_back: ['english_def'],
@@ -1974,19 +1965,12 @@ function setStudyMode(mode) {
     summaryEl.textContent = '';
   }
 
-  // Sort by frequency for Type B if available
-  if (mode === 'B') {
-    allCards.sort(function(a, b) {
-      var fa = parseInt(a.frequency) || 999999;
-      var fb = parseInt(b.frequency) || 999999;
-      return fa - fb;
-    });
-  } else {
-    // Restore deterministic original order (cross-set) for Types A and C
-    allCards.sort(function(a, b) {
-      return (a._originalOrder || 0) - (b._originalOrder || 0);
-    });
-  }
+  // Every mode uses the deterministic cross-set order the cards were loaded
+  // in, which follows the liturgy. (Type B once re-sorted by a `frequency`
+  // column; that feature was discontinued and the column carries no meaning.)
+  allCards.sort(function(a, b) {
+    return (a._originalOrder || 0) - (b._originalOrder || 0);
+  });
 
   applyKnownToCards();
   renderFieldMapping();

@@ -76,7 +76,6 @@ A free, permanent web app where Buddhist students can generate printable flashca
 | `english_def` | text | English definition PLUCKED from canonical translation (not reinvented) |
 | `ch_tag` | text | Chinese name of the liturgy section (e.g., 香讚, 心經, 佛讚) |
 | `eng_tag` | text | English name of the liturgy section (e.g., incense_praise, heart_sutra, amitabha_praise) |
-| `frequency` | integer | Count of how many times this Chinese term appears across the ENTIRE corpus (all sources). Used to order Type B cards by frequency. **App must handle this column being absent** — if missing, default to source order. |
 
 **Deprecated columns (v1 legacy):** `include` and `multichar` are no longer generated but may exist in older CSVs. The app ignores them gracefully — all cards are selected by default regardless of `include`, and `multichar` is no longer used for PDF styling.
 
@@ -196,7 +195,7 @@ The app presents two named study modes as presets built on top of the flexible f
 - Front: Chinese only
 - Back: Pinyin + English
 - Considerably more challenging. Students adopt this once they have a steady Type A practice.
-- When generated from the built-in corpus (not a single source), Type B cards are ordered by FREQUENCY of occurrence across all sources, not sequential order. Most common Dharma terms first.
+- ~~Type B cards are ordered by FREQUENCY of occurrence across all sources.~~ **Discontinued.** Never completed: only 4 of 21 CSVs ever carried the column, its counts were per-liturgy rather than corpus-wide, and the sort ran ascending. The column has been removed from the CSVs and the app; both modes use liturgy order.
 
 Each mode has independent progress tracking — a student can track which Type A cards they've printed separately from Type B cards. The two tracks interact: if a Type B card has been printed, it should be flagged when encountered in Type A generation (and vice versa).
 
@@ -420,13 +419,11 @@ All fonts are open-licensed via Google Fonts. No hosting cost.
 - [x] Custom upload persistence in localStorage with "My Uploads" section
 - [x] Export/import progress as JSON file
 - [x] New CSV format (6 columns, `include`/`multichar` deprecated)
-- [x] Type B ordering by frequency when available
+- [~] Type B ordering by frequency — **discontinued and removed** (see above)
 - [ ] Card preview in browser
 
 ### Phase 2: Data Pipeline & Deduplication
 - [ ] Finalize AI prompt template for reproducible ETL
-- [ ] Add `frequency` column to all CSVs (count of term across entire corpus)
-- [ ] Re-generate all 6 existing CSVs with frequency data
 - [ ] Implement cross-set deduplication logic in the app
 - [ ] Context tag on FRONT of card when term has multiple meanings across sets
 - [ ] Expand data: Morning Chanting, Meal Offering, Great Compassion Repentance, etc.
