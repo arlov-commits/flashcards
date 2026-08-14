@@ -126,6 +126,67 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
 .nav-bar .back-link { color: var(--accent); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 .nav-bar .back-link:hover { text-decoration: underline; }
+/* ---------- Feedback ---------- */
+.feedback-scope { max-width: 48rem; font-size: 0.86rem; padding: 10px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); margin: 4px 0 16px; }
+.feedback-scope.is-local { border-color: var(--accent-light); background: #f8efe2; }
+.feedback-scope.is-public { border-color: #2f6b3f; background: rgba(47,107,63,0.07); }
+.feedback-compose { max-width: 48rem; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 22px; }
+.feedback-you { font-size: 0.84rem; color: var(--text-muted); margin-bottom: 10px; }
+.fb-reroll { margin-left: 8px; font-family: inherit; font-size: 0.74rem; background: none;
+  border: none; color: var(--text-muted); text-decoration: underline; cursor: pointer; }
+.fb-reroll:hover { color: var(--accent); }
+.feedback-kinds { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.fb-kind { font-family: inherit; font-size: 0.78rem; font-weight: 600; padding: 5px 12px;
+  border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted);
+  cursor: pointer; }
+.fb-kind:hover { border-color: var(--accent); color: var(--accent); }
+.fb-kind.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.feedback-compose textarea, .fb-inline textarea { width: 100%; font-family: inherit; font-size: 0.9rem;
+  padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--text); resize: vertical; }
+.feedback-compose-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.feedback-msg { font-size: 0.82rem; color: var(--text-muted); }
+.feedback-msg.is-error { color: var(--accent); }
+
+.feedback-list { max-width: 48rem; }
+.fb-empty { font-size: 0.9rem; color: var(--text-muted); background: var(--bg-card);
+  border: 1px dashed var(--border); border-radius: var(--radius); padding: 18px; text-align: center; }
+.fb-thread { margin-bottom: 16px; }
+.fb-post { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; }
+.fb-post.is-mine { border-left: 3px solid var(--accent); }
+.fb-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.fb-alias { font-weight: 700; font-size: 0.85rem; }
+.fb-you { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: #fff; background: var(--accent); border-radius: 999px; padding: 1px 7px; }
+.fb-kind-chip { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  border-radius: 999px; padding: 2px 8px; border: 1.5px solid var(--border); color: var(--text-muted); }
+.fb-kind-feature { border-color: #2f6b3f; color: #2f6b3f; }
+.fb-kind-bug { border-color: var(--accent); color: var(--accent); }
+.fb-time { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
+.fb-body { font-size: 0.92rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.fb-deleted { color: var(--text-muted); }
+.fb-actions { display: flex; gap: 12px; margin-top: 8px; }
+.fb-act { font-family: inherit; font-size: 0.78rem; font-weight: 600; background: none; border: none;
+  color: var(--text-muted); cursor: pointer; padding: 0; }
+.fb-act:hover { color: var(--accent); text-decoration: underline; }
+.fb-act-danger:hover { color: var(--accent); }
+.fb-replies { margin: 8px 0 0 22px; border-left: 2px solid var(--border-light); padding-left: 12px; }
+.fb-post.is-reply { margin-bottom: 8px; background: var(--bg); }
+.fb-inline { margin-top: 10px; }
+.fb-inline-row { display: flex; gap: 8px; margin-top: 8px; }
+
+/* Alias tones — the colour in the alias is the colour it is shown in. */
+.fb-tone-amber{color:#a8730c}.fb-tone-azure{color:#1f6f9c}.fb-tone-cinnabar{color:#b23a1e}
+.fb-tone-copper{color:#a15c2a}.fb-tone-crimson{color:#9b1b30}.fb-tone-emerald{color:#1f7a52}
+.fb-tone-indigo{color:#3a3f8f}.fb-tone-ivory{color:#8a7c58}.fb-tone-jade{color:#2f7d63}
+.fb-tone-lilac{color:#7a5aa3}.fb-tone-ochre{color:#9a6a11}.fb-tone-onyx{color:#3b3b3b}
+.fb-tone-pearl{color:#7d7a72}.fb-tone-russet{color:#8b4513}.fb-tone-saffron{color:#b07d09}
+.fb-tone-sable{color:#4a3b32}.fb-tone-slate{color:#4f6272}.fb-tone-teal{color:#1c6f70}
+.fb-tone-umber{color:#6b4423}.fb-tone-verdant{color:#3d7a2a}
+/* ---------- end Feedback ---------- */
 /* ---------- Quiz ---------- */
 .quiz-setup { max-width: 46rem; padding-bottom: 16px; margin-bottom: 18px;
   border-bottom: 1px solid var(--border-light); }
@@ -145,10 +206,21 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .seg-sub { display: block; font-size: 0.72rem; opacity: 0.75; margin-top: 1px; }
 .seg-slim { flex: 0 1 240px; }
 .seg-slim .seg-btn { font-size: 0.85rem; font-weight: 600; padding: 7px 12px; }
-.quiz-opt-decks { align-items: flex-start; }
-.quiz-decks { flex: 1 1 320px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 10px; border: 1.5px solid var(--border); border-radius: var(--radius);
-  background: var(--bg-card); padding: 12px; max-height: 260px; overflow-y: auto; }
+.quiz-deck-dropdown { position: relative; flex: 0 1 320px; }
+.quiz-deck-toggle { width: 100%; text-align: left; font-family: inherit; font-size: 0.85rem;
+  padding: 8px 28px 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-card); color: var(--text); cursor: pointer; }
+.quiz-deck-toggle::after { content: '▾'; position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%); color: var(--text-muted); }
+.quiz-deck-toggle:hover { border-color: var(--accent); }
+.quiz-deck-menu { display: none; position: absolute; z-index: 40; top: calc(100% + 4px); left: 0;
+  width: min(460px, 88vw); background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px; }
+.quiz-deck-dropdown.open .quiz-deck-menu { display: block; }
+.quiz-deck-menu-actions { display: flex; gap: 8px; padding-bottom: 8px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-light); }
+.quiz-decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px; max-height: 320px; overflow-y: auto; }
 .quiz-cat { break-inside: avoid; }
 .quiz-cat-head { display: flex; align-items: center; gap: 7px; font-size: 0.84rem; font-weight: 700;
   color: var(--text); cursor: pointer; padding-bottom: 3px; border-bottom: 1px solid var(--border-light); }
@@ -157,11 +229,10 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
   color: var(--text-muted); cursor: pointer; padding: 2px 0; }
 .quiz-set:hover { color: var(--text); }
 .quiz-set-tag { opacity: 0.7; }
-.quiz-deck-actions { display: flex; align-items: center; gap: 10px; margin: 10px 0 0 68px; flex-wrap: wrap; }
 .quiz-available { font-size: 0.85rem; color: var(--text-muted); }
-.quiz-nav-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-.quiz-nav-row .quiz-score { margin: 0 0 0 auto; }
-.quiz-flash-slot { min-height: 4px; }
+.quiz-controls { display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-top: 16px; flex-wrap: wrap; }
+.quiz-controls .quiz-actions { margin-top: 0; justify-content: center; }
 .quiz-add-btn.is-on { border-color: #2f6b3f; color: #2f6b3f; background: rgba(47,107,63,0.08); }
 .quiz-empty { max-width: 46rem; background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 16px; font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
@@ -188,7 +259,7 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 /* The quiz card mirrors the Anki note type (templates/anki-1.2-type-a.txt):
    same palette, same fonts, same sizes, so practising here looks like
    reviewing there. */
-.qcard { background: #fdf6e3; color: #47321d; border: 1px solid var(--border);
+.qcard { position: relative; background: #fdf6e3; color: #47321d; border: 1px solid var(--border);
   border-radius: var(--radius); text-align: center; padding: 28px 20px; line-height: 1.5;
   font-family: "Times New Roman", Times, serif; min-height: 220px;
   display: flex; flex-direction: column; justify-content: center; }
@@ -200,16 +271,11 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .qcard .q-expander { display: block; font-family: "Lora", sans-serif; font-size: 18px;
   font-weight: bold; cursor: pointer; user-select: none; color: #3258a8; margin-top: 10px; }
 .qcard .q-shared { font-family: Arial, sans-serif; font-size: 26px; margin-top: 6px; }
-.qcard .q-deck { font-size: 13px; color: rgba(71,50,29,0.6); margin-top: 14px;
-  font-family: 'Segoe UI', system-ui, sans-serif; }
-.qcard .q-prompt { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem;
-  color: rgba(71,50,29,0.55); margin-top: 16px; }
+.qcard .q-deckname { position: absolute; top: 12px; left: 16px; max-width: 60%;
+  font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.02em; color: rgba(71,50,29,0.55); text-align: left; }
 
-.quiz-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
-.quiz-score { margin-top: 12px; font-size: 0.85rem; color: var(--text-muted); }
-.quiz-hint { margin-top: 6px; font-size: 0.76rem; color: var(--text-muted); font-style: italic; }
-.quiz-flash { font-size: 0.85rem; margin-top: 10px; padding: 8px 12px; border-radius: var(--radius);
-  background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
+.quiz-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn-danger { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
 .btn-success { background: transparent; border: 1.5px solid #2f6b3f; color: #2f6b3f; }
 .btn-success:hover { background: rgba(47,107,63,0.08); }
@@ -423,6 +489,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     <a class="nav-btn" data-nav="quiz" onclick="navigateTo('quiz')">Quiz</a>
     <a class="nav-btn" data-nav="instructions" onclick="navigateTo('instructions')">Instructions</a>
     <a class="nav-btn" data-nav="methodology" onclick="navigateTo('methodology')">Methodology</a>
+    <a class="nav-btn" data-nav="feedback" onclick="navigateTo('feedback')">Feedback</a>
   </nav>
 
   <!-- SCREEN 1: Landing (sets browser) -->
@@ -704,13 +771,19 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         </div>
       </div>
 
-      <div class="quiz-opt quiz-opt-decks">
+      <div class="quiz-opt">
         <span class="quiz-opt-label">Decks</span>
-        <div class="quiz-decks" id="quiz-decks"></div>
-      </div>
-      <div class="quiz-deck-actions">
-        <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(true)">Select all</button>
-        <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(false)">Clear</button>
+        <div class="quiz-deck-dropdown" id="quiz-deck-dropdown">
+          <button class="quiz-deck-toggle" id="quiz-deck-toggle" onclick="toggleQuizDeckMenu()"
+                  aria-haspopup="true" aria-expanded="false"></button>
+          <div class="quiz-deck-menu" id="quiz-deck-menu">
+            <div class="quiz-deck-menu-actions">
+              <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(true)">Select all</button>
+              <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(false)">Clear</button>
+            </div>
+            <div class="quiz-decks" id="quiz-decks"></div>
+          </div>
+        </div>
         <span id="quiz-available" class="quiz-available"></span>
       </div>
     </div>
@@ -727,17 +800,54 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
       <div class="qcard" id="quiz-card"></div>
 
-      <div class="quiz-actions" id="quiz-actions"></div>
-      <div class="quiz-nav-row">
+      <div class="quiz-controls">
         <button class="btn btn-outline btn-sm" id="quiz-back-btn" onclick="quizBack()">&larr; Back</button>
+        <div class="quiz-actions" id="quiz-actions"></div>
         <button class="btn btn-outline btn-sm" onclick="quizSkip()">Skip &rarr;</button>
-        <span class="quiz-score" id="quiz-score"></span>
       </div>
-      <div class="quiz-flash-slot" id="quiz-flash-slot"></div>
-      <div class="quiz-hint">Space or Enter reveals the answer, then 1 = got it, 2 = missed it. S skips, B goes back.</div>
     </div>
 
     <div id="quiz-empty" style="display:none" class="quiz-empty"></div>
+  </div>
+
+  <!-- SCREEN: Feedback -->
+  <div id="screen-feedback" class="screen">
+    <div class="doc" style="max-width:48rem">
+      <h2>Feedback</h2>
+      <p class="doc-lede">
+        Found something broken? Wanted something the app doesn&rsquo;t do yet? Say so
+        here. Small annoyances are worth reporting &mdash; a wrong gloss, a card that
+        reads oddly, a button that is hard to find on your phone. So are half-formed
+        ideas; they are often the ones worth building.
+      </p>
+      <p class="doc-lede">
+        You post under an alias this device made up for you, so nothing here is tied
+        to your name. You can edit or delete anything you have posted, and reply to
+        anyone else.
+      </p>
+    </div>
+
+    <div id="feedback-scope" class="feedback-scope"></div>
+
+    <div class="feedback-compose">
+      <div class="feedback-you">
+        Posting as <span class="fb-alias" id="feedback-alias"></span>
+        <button class="fb-reroll" onclick="rerollFeedbackAlias()" title="Give me a different alias">reroll</button>
+      </div>
+      <div class="feedback-kinds" id="feedback-kinds">
+        <button class="fb-kind active" data-kind="feature" onclick="setFeedbackKind('feature')">Feature request</button>
+        <button class="fb-kind" data-kind="bug" onclick="setFeedbackKind('bug')">Bug report</button>
+        <button class="fb-kind" data-kind="note" onclick="setFeedbackKind('note')">Feedback</button>
+      </div>
+      <textarea id="feedback-body" rows="4" maxlength="4000"
+        placeholder="What happened, or what would you like to see? Detail helps, but a sentence is fine."></textarea>
+      <div class="feedback-compose-row">
+        <button class="btn btn-primary" id="feedback-post-btn" onclick="submitFeedback()">Post</button>
+        <span id="feedback-compose-msg" class="feedback-msg"></span>
+      </div>
+    </div>
+
+    <div id="feedback-list" class="feedback-list"></div>
   </div>
 
   <!-- SCREEN: Instructions -->
@@ -1150,7 +1260,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.39';
+var APP_VERSION = 'v3.0';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1898,6 +2008,7 @@ function routePathForScreen(name) {
   if (name === 'methodology') return 'methodology';
   if (name === 'instructions') return 'instructions';
   if (name === 'quiz') return 'quiz';
+  if (name === 'feedback') return 'feedback';
   return '';
 }
 
@@ -1917,6 +2028,7 @@ function parseRoute() {
   if (parts[0] === 'methodology') return { screen: 'methodology' };
   if (parts[0] === 'instructions') return { screen: 'instructions' };
   if (parts[0] === 'quiz') return { screen: 'quiz' };
+  if (parts[0] === 'feedback') return { screen: 'feedback' };
   return { screen: 'landing' };
 }
 
@@ -1928,6 +2040,7 @@ async function applyRoute() {
   if (r.screen === 'methodology')  { showScreen('methodology'); return; }
   if (r.screen === 'instructions') { showScreen('instructions'); return; }
   if (r.screen === 'quiz')         { showScreen('quiz'); return; }
+  if (r.screen === 'feedback')     { showScreen('feedback'); return; }
 
   if (r.screen === 'known') {
     knownViewerMode = r.mode;
@@ -1975,6 +2088,7 @@ function showScreen(name) {
   });
   if (name === 'known') renderKnownViewer();
   if (name === 'quiz') openQuiz();
+  if (name === 'feedback') openFeedback();
   if (name === 'landing') { renderLanding(); renderProgressStats(); }
   window.scrollTo(0, 0);
 }
@@ -4251,7 +4365,7 @@ var QUIZ_PREFS_KEY = 'quiz_prefs';
 var quiz = {
   pool: 'new', type: 'A', decks: null,   // decks: null = all, else array of set keys
   cards: [], idx: 0, revealed: false, right: 0, wrong: 0, changed: 0,
-  history: [], flash: ''
+  history: []
 };
 
 function loadQuizPrefs() {
@@ -4330,7 +4444,31 @@ function quizPoolCards() {
   return out;
 }
 
+function quizDeckSummary() {
+  var sel = quizSelectedSetKeys().length;
+  var total = quizAllSetKeys().length;
+  if (quiz.decks === null || sel === total) return 'All decks (' + total + ')';
+  if (sel === 0) return 'No decks selected';
+  if (sel === 1) return oneQuizDeckName();
+  return sel + ' of ' + total + ' decks';
+}
+
+function toggleQuizDeckMenu(force) {
+  var wrap = document.getElementById('quiz-deck-dropdown');
+  if (!wrap) return;
+  var open = force === undefined ? !wrap.classList.contains('open') : force;
+  wrap.classList.toggle('open', open);
+  var btn = document.getElementById('quiz-deck-toggle');
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest || !e.target.closest('#quiz-deck-dropdown')) toggleQuizDeckMenu(false);
+});
+
 function renderQuizDeckPicker() {
+  var toggle = document.getElementById('quiz-deck-toggle');
+  if (toggle) toggle.textContent = quizDeckSummary();
   var host = document.getElementById('quiz-decks');
   if (!host) return;
   var cats = quizCategories();
@@ -4408,7 +4546,6 @@ function regenerateQuiz() {
   quiz.cards = cards;
   quiz.idx = 0;
   quiz.revealed = false;
-  quiz.flash = '';
   renderQuizAvailable();
   renderQuizChips();
   renderQuizCard();
@@ -4513,7 +4650,8 @@ function renderQuizCard() {
   document.getElementById('quiz-progress').textContent = (quiz.idx + 1) + ' / ' + quiz.cards.length;
 
   var showPinyinFront = quiz.type === 'A';
-  var html = '<div class="q-chinese" lang="zh-Hant">' + escapeHtml(c.chinese || '') + '</div>';
+  var html = '<div class="q-deckname">' + escapeHtml(c._setLabel || '') + '</div>' +
+             '<div class="q-chinese" lang="zh-Hant">' + escapeHtml(c.chinese || '') + '</div>';
   if (showPinyinFront) html += '<div class="q-pinyin">' + escapeHtml(c.pinyin || '') + '</div>';
   html += '<span class="q-halfbr"></span>';
 
@@ -4525,10 +4663,6 @@ function renderQuizCard() {
       html += '<div class="q-expander" onclick="toggleQuizShared()">Shared by &#9656;</div>' +
               '<div class="q-shared" id="quiz-shared" style="display:none">' + escapeHtml(c.shared_by) + '</div>';
     }
-    html += '<div class="q-deck">' + escapeHtml(c._setLabel || '') + '</div>';
-  } else {
-    html += '<div class="q-prompt">' +
-      (showPinyinFront ? 'What does it mean?' : 'How is it read, and what does it mean?') + '</div>';
   }
   document.getElementById('quiz-card').innerHTML = html;
 
@@ -4551,10 +4685,6 @@ function renderQuizCard() {
 
   var back = document.getElementById('quiz-back-btn');
   if (back) back.disabled = quiz.history.length === 0;
-
-  document.getElementById('quiz-score').textContent = quiz.right + ' right · ' + quiz.wrong + ' missed';
-  var slot = document.getElementById('quiz-flash-slot');
-  slot.innerHTML = quiz.flash ? '<div class="quiz-flash">' + quiz.flash + '</div>' : '';
   renderQuizAvailable();
 }
 
@@ -4588,7 +4718,6 @@ function advanceQuiz() {
 function answerQuiz(gotIt) {
   var c = quizCurrent();
   if (!c || !quiz.revealed) return;
-  quiz.flash = '';
 
   if (gotIt) {
     quiz.right++;
@@ -4600,8 +4729,6 @@ function answerQuiz(gotIt) {
       removeFromKnown(quiz.type, c.chinese, c.pinyin);
       quiz.changed++;
       undo.readd = { ch: c.chinese, py: c.pinyin, deck: c._setLabel || 'Quiz' };
-      quiz.flash = escapeHtml(c.chinese) + ' removed from your Type ' + quiz.type +
-                   ' known list — it will be back in your next deck.';
       updateQuizKnownCount(true);
       renderProgressStats();
     }
@@ -4613,7 +4740,6 @@ function answerQuiz(gotIt) {
 function quizSkip() {
   var c = quizCurrent();
   if (!c) return;
-  quiz.flash = '';
   pushQuizHistory(c, {});
   advanceQuiz();
 }
@@ -4636,9 +4762,6 @@ function quizBack() {
   if (at === -1) { quiz.cards.splice(quiz.idx, 0, h.card); at = quiz.idx; }
   quiz.idx = at;
   quiz.revealed = true;
-  quiz.flash = h.undo.readd
-    ? escapeHtml(h.undo.readd.ch) + ' put back on your Type ' + quiz.type + ' known list.'
-    : '';
   renderQuizCard();
 }
 
@@ -4651,12 +4774,9 @@ function toggleCurrentQuizCardKnown() {
   if (known.has(c.chinese, c.pinyin)) {
     removeFromKnown(quiz.type, c.chinese, c.pinyin);
     quiz.changed = Math.max(0, quiz.changed - 1);
-    quiz.flash = escapeHtml(c.chinese) + ' taken back off your Type ' + quiz.type + ' known list.';
   } else {
     addToKnown(quiz.type, [{ ch: c.chinese, py: c.pinyin }], c._setLabel || 'Quiz');
     quiz.changed++;
-    quiz.flash = escapeHtml(c.chinese) + ' added to your Type ' + quiz.type +
-                 ' known list — it will be left out of your next deck.';
   }
   updateQuizKnownCount(true);
   renderProgressStats();
@@ -4680,6 +4800,388 @@ document.addEventListener('keydown', function(e) {
   else if (k === 's' || k === 'S') { e.preventDefault(); quizSkip(); }
   else if (k === 'b' || k === 'B') { e.preventDefault(); quizBack(); }
 });
+
+/* ============================================================
+   FEEDBACK
+
+   A public board for bug reports and feature requests, posted under a
+   per-device alias.
+
+   STORAGE. This app is a static page with no server of its own, so
+   "public" needs somewhere to put the posts. FEEDBACK_ENDPOINT is that
+   somewhere: point it at a Supabase (or any PostgREST-compatible) table
+   and every visitor reads and writes the same board. Leave it empty and
+   the board still works, but only on this device — and the page says so
+   plainly rather than pretending a post went somewhere it did not.
+
+   See feedback-schema.sql in the repo for the table and its policies.
+   ============================================================ */
+var FEEDBACK_ENDPOINT = '';        // writes, e.g. 'https://xxxx.supabase.co/rest/v1/feedback'
+var FEEDBACK_READ_ENDPOINT = '';   // reads; the view that omits edit_token, e.g. '.../feedback_public'
+var FEEDBACK_API_KEY  = '';        // Supabase anon key — publishable; the row policies do the guarding
+
+var FB_COLORS = ['Amber','Azure','Cinnabar','Copper','Crimson','Emerald','Indigo','Ivory',
+  'Jade','Lilac','Ochre','Onyx','Pearl','Russet','Saffron','Sable','Slate','Teal','Umber','Verdant'];
+var FB_QUALITIES = ['Attentive','Brisk','Candid','Diligent','Earnest','Fearless','Gentle','Humble',
+  'Keen','Lucid','Measured','Nimble','Patient','Quiet','Resolute','Steady','Thoughtful','Unhurried',
+  'Vigilant','Wandering'];
+var FB_ANIMALS = ['Badger','Crane','Dragonfly','Egret','Falcon','Gibbon','Heron','Ibis','Jackdaw',
+  'Kingfisher','Lynx','Magpie','Nightjar','Otter','Pangolin','Quail','Raven','Sparrow','Tortoise','Wren'];
+
+var FEEDBACK_IDENTITY_KEY = 'feedback_identity';
+var FEEDBACK_LOCAL_KEY = 'feedback_posts_local';
+
+function fbHash(str) {
+  var h = 2166136261;
+  for (var i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+
+function fbRandomId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+/* The alias is derived from an id this device generated once and keeps. Same
+   device, same name every time; nothing about it identifies a person. The
+   secret never leaves local storage except as a hash, and is what lets the
+   board tell "this is the author" from "this is somebody else". */
+function getFeedbackIdentity() {
+  var id;
+  try { id = JSON.parse(localStorage.getItem(FEEDBACK_IDENTITY_KEY) || 'null'); } catch (e) { id = null; }
+  if (!id || !id.uid || !id.secret) {
+    id = { uid: fbRandomId(), secret: fbRandomId(), seed: fbRandomId() };
+    try { localStorage.setItem(FEEDBACK_IDENTITY_KEY, JSON.stringify(id)); } catch (e) {}
+  }
+  return id;
+}
+
+function feedbackAliasFor(seed) {
+  var h = fbHash(String(seed));
+  var color = FB_COLORS[h % FB_COLORS.length];
+  var quality = FB_QUALITIES[Math.floor(h / FB_COLORS.length) % FB_QUALITIES.length];
+  var animal = FB_ANIMALS[Math.floor(h / (FB_COLORS.length * FB_QUALITIES.length)) % FB_ANIMALS.length];
+  return { alias: color + ' ' + quality + ' ' + animal, color: color };
+}
+
+function myFeedbackAlias() { return feedbackAliasFor(getFeedbackIdentity().seed); }
+
+function rerollFeedbackAlias() {
+  var id = getFeedbackIdentity();
+  id.seed = fbRandomId();
+  try { localStorage.setItem(FEEDBACK_IDENTITY_KEY, JSON.stringify(id)); } catch (e) {}
+  renderFeedbackAlias();
+  renderFeedbackList();
+}
+
+function renderFeedbackAlias() {
+  var el = document.getElementById('feedback-alias');
+  if (!el) return;
+  var me = myFeedbackAlias();
+  el.textContent = me.alias;
+  el.className = 'fb-alias fb-tone-' + me.color.toLowerCase();
+}
+
+/* ---------- storage adapter ---------- */
+var feedbackRemote = function() { return !!FEEDBACK_ENDPOINT; };
+
+function fbHeaders() {
+  var h = { 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+  if (FEEDBACK_API_KEY) { h.apikey = FEEDBACK_API_KEY; h.Authorization = 'Bearer ' + FEEDBACK_API_KEY; }
+  return h;
+}
+
+function fbLocalRead() {
+  try { return JSON.parse(localStorage.getItem(FEEDBACK_LOCAL_KEY) || '[]'); } catch (e) { return []; }
+}
+function fbLocalWrite(rows) {
+  try { localStorage.setItem(FEEDBACK_LOCAL_KEY, JSON.stringify(rows)); } catch (e) {}
+}
+
+async function fbList() {
+  if (!feedbackRemote()) return fbLocalRead();
+  var url = (FEEDBACK_READ_ENDPOINT || FEEDBACK_ENDPOINT) + '?select=*&order=created.asc';
+  var r = await fetch(url, { headers: fbHeaders() });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return await r.json();
+}
+
+async function fbInsert(row) {
+  if (!feedbackRemote()) { var rows = fbLocalRead(); rows.push(row); fbLocalWrite(rows); return row; }
+  var r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: fbHeaders(), body: JSON.stringify(row) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return row;
+}
+
+/* Authorship is proved by edit_token, which the board never hands back: the
+   public view omits it, so only the device that wrote a post can name it.
+   author_key is the visible "same person" id and is not a credential. */
+async function fbUpdate(id, patch, token) {
+  if (!feedbackRemote()) {
+    var rows = fbLocalRead();
+    rows.forEach(function(p) { if (p.id === id && p.edit_token === token) Object.assign(p, patch); });
+    fbLocalWrite(rows);
+    return;
+  }
+  var url = FEEDBACK_ENDPOINT + '?id=eq.' + encodeURIComponent(id) +
+            '&edit_token=eq.' + encodeURIComponent(token);
+  var r = await fetch(url, { method: 'PATCH', headers: fbHeaders(), body: JSON.stringify(patch) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+}
+
+/* ---------- rendering ---------- */
+var feedbackPosts = [];
+var feedbackKind = 'feature';
+var feedbackReplyTo = null;
+var feedbackEditing = null;
+
+var FB_KIND_LABEL = { feature: 'Feature request', bug: 'Bug report', note: 'Feedback' };
+
+function setFeedbackKind(k) {
+  feedbackKind = k;
+  document.querySelectorAll('#feedback-kinds .fb-kind').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.kind === k);
+  });
+}
+
+function renderFeedbackScope() {
+  var el = document.getElementById('feedback-scope');
+  if (!el) return;
+  el.className = 'feedback-scope' + (feedbackRemote() ? ' is-public' : ' is-local');
+  el.innerHTML = feedbackRemote()
+    ? '<strong>This board is public.</strong> Everything you post here is visible to anyone using the app.'
+    : '<strong>Not yet connected to the shared board.</strong> Posts you write are kept on this ' +
+      'device only, so no one else can see them yet. The board goes public as soon as an endpoint ' +
+      'is configured — your posts are not lost in the meantime.';
+}
+
+function fbTimeAgo(iso) {
+  var t = new Date(iso).getTime();
+  if (!t) return '';
+  var s = Math.floor((Date.now() - t) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  if (s < 2592000) return Math.floor(s / 86400) + 'd ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+function fbIsMine(p) { return p.author_key === getFeedbackIdentity().uid; }
+
+function renderFeedbackPost(p, isReply) {
+  var mine = fbIsMine(p);
+  var tone = (p.author_color || 'Slate').toLowerCase();
+  var body = p.deleted
+    ? '<em class="fb-deleted">Deleted by its author.</em>'
+    : escapeHtml(p.body || '').replace(/\n/g, '<br>');
+
+  var head =
+    '<span class="fb-alias fb-tone-' + escapeHtml(tone) + '">' + escapeHtml(p.author_alias || 'Someone') + '</span>' +
+    (mine ? '<span class="fb-you">you</span>' : '') +
+    (!isReply ? '<span class="fb-kind-chip fb-kind-' + escapeHtml(p.kind || 'note') + '">' +
+        escapeHtml(FB_KIND_LABEL[p.kind] || 'Feedback') + '</span>' : '') +
+    '<span class="fb-time">' + escapeHtml(fbTimeAgo(p.created)) +
+      (p.updated && p.updated !== p.created ? ' · edited' : '') + '</span>';
+
+  var actions = '';
+  if (!p.deleted) {
+    actions += '<button class="fb-act" onclick="startFeedbackReply(\'' + escapeHtml(p.id) + '\')">Reply</button>';
+    if (mine) {
+      actions += '<button class="fb-act" onclick="startFeedbackEdit(\'' + escapeHtml(p.id) + '\')">Edit</button>' +
+                 '<button class="fb-act fb-act-danger" onclick="deleteFeedback(\'' + escapeHtml(p.id) + '\')">Delete</button>';
+    }
+  }
+
+  return '<div class="fb-post' + (isReply ? ' is-reply' : '') + (mine ? ' is-mine' : '') + '" data-id="' + escapeHtml(p.id) + '">' +
+    '<div class="fb-head">' + head + '</div>' +
+    '<div class="fb-body">' + body + '</div>' +
+    '<div class="fb-actions">' + actions + '</div>' +
+    '<div class="fb-slot" id="fb-slot-' + escapeHtml(p.id) + '"></div>' +
+  '</div>';
+}
+
+function renderFeedbackList() {
+  var host = document.getElementById('feedback-list');
+  if (!host) return;
+  var tops = feedbackPosts.filter(function(p) { return !p.parent_id; })
+    .sort(function(a, b) { return String(b.created).localeCompare(String(a.created)); });
+
+  if (!tops.length) {
+    host.innerHTML = '<div class="fb-empty">Nothing posted yet. Yours would be the first — ' +
+      'a bug, a request, or just what you found confusing.</div>';
+    return;
+  }
+
+  host.innerHTML = tops.map(function(p) {
+    var replies = feedbackPosts.filter(function(r) { return r.parent_id === p.id; })
+      .sort(function(a, b) { return String(a.created).localeCompare(String(b.created)); });
+    return '<div class="fb-thread">' + renderFeedbackPost(p, false) +
+      (replies.length ? '<div class="fb-replies">' + replies.map(function(r) {
+        return renderFeedbackPost(r, true);
+      }).join('') + '</div>' : '') + '</div>';
+  }).join('');
+}
+
+function feedbackMsg(text, isError) {
+  var el = document.getElementById('feedback-compose-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'feedback-msg' + (isError ? ' is-error' : '');
+}
+
+async function openFeedback() {
+  renderFeedbackScope();
+  renderFeedbackAlias();
+  setFeedbackKind(feedbackKind);
+  var host = document.getElementById('feedback-list');
+  if (host) host.innerHTML = '<div class="fb-empty">Loading…</div>';
+  try {
+    feedbackPosts = await fbList();
+  } catch (e) {
+    console.error('feedback: could not load posts', e);
+    feedbackPosts = [];
+    if (host) host.innerHTML = '<div class="fb-empty">Could not reach the board just now. ' +
+      'Your own posts are safe; try again in a moment.</div>';
+    return;
+  }
+  renderFeedbackList();
+}
+
+async function submitFeedback() {
+  var ta = document.getElementById('feedback-body');
+  var text = (ta.value || '').trim();
+  if (!text) { feedbackMsg('Write something first.', true); return; }
+
+  var id = getFeedbackIdentity();
+  var me = myFeedbackAlias();
+  var now = new Date().toISOString();
+  var row = {
+    id: fbRandomId(), parent_id: null, kind: feedbackKind, body: text,
+    author_key: id.uid, author_alias: me.alias, author_color: me.color,
+    edit_token: id.secret, created: now, updated: now, deleted: false
+  };
+
+  var btn = document.getElementById('feedback-post-btn');
+  btn.disabled = true;
+  feedbackMsg('Posting…');
+  try {
+    await fbInsert(row);
+    feedbackPosts.push(row);
+    ta.value = '';
+    feedbackMsg(feedbackRemote() ? 'Posted — thank you.' : 'Saved on this device — thank you.');
+    renderFeedbackList();
+  } catch (e) {
+    console.error('feedback: post failed', e);
+    feedbackMsg('That did not go through. Try again in a moment.', true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function fbCloseSlots() {
+  document.querySelectorAll('.fb-slot').forEach(function(s) { s.innerHTML = ''; });
+  document.querySelectorAll('.fb-body').forEach(function(b) { b.style.display = ''; });
+  feedbackReplyTo = null;
+  feedbackEditing = null;
+}
+
+function startFeedbackReply(postId) {
+  fbCloseSlots();
+  feedbackReplyTo = postId;
+  var slot = document.getElementById('fb-slot-' + postId);
+  if (!slot) return;
+  slot.innerHTML =
+    '<div class="fb-inline">' +
+      '<textarea id="fb-reply-body" rows="3" maxlength="4000" placeholder="Reply…"></textarea>' +
+      '<div class="fb-inline-row">' +
+        '<button class="btn btn-primary btn-sm" onclick="sendFeedbackReply()">Reply</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="fbCloseSlots()">Cancel</button>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('fb-reply-body').focus();
+}
+
+async function sendFeedbackReply() {
+  var ta = document.getElementById('fb-reply-body');
+  var text = (ta.value || '').trim();
+  if (!text || !feedbackReplyTo) return;
+  var id = getFeedbackIdentity();
+  var me = myFeedbackAlias();
+  var now = new Date().toISOString();
+  var row = {
+    id: fbRandomId(), parent_id: feedbackReplyTo, kind: 'note', body: text,
+    author_key: id.uid, author_alias: me.alias, author_color: me.color,
+    edit_token: id.secret, created: now, updated: now, deleted: false
+  };
+  try {
+    await fbInsert(row);
+    feedbackPosts.push(row);
+    fbCloseSlots();
+    renderFeedbackList();
+  } catch (e) {
+    console.error('feedback: reply failed', e);
+    alert('That reply did not go through. Try again in a moment.');
+  }
+}
+
+function startFeedbackEdit(postId) {
+  var p = feedbackPosts.filter(function(x) { return x.id === postId; })[0];
+  if (!p || !fbIsMine(p)) return;
+  fbCloseSlots();
+  feedbackEditing = postId;
+  var wrap = document.querySelector('.fb-post[data-id="' + postId + '"]');
+  if (wrap) wrap.querySelector('.fb-body').style.display = 'none';
+  var slot = document.getElementById('fb-slot-' + postId);
+  slot.innerHTML =
+    '<div class="fb-inline">' +
+      '<textarea id="fb-edit-body" rows="3" maxlength="4000"></textarea>' +
+      '<div class="fb-inline-row">' +
+        '<button class="btn btn-primary btn-sm" onclick="saveFeedbackEdit()">Save</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="fbCloseSlots()">Cancel</button>' +
+      '</div>' +
+    '</div>';
+  var ta = document.getElementById('fb-edit-body');
+  ta.value = p.body || '';
+  ta.focus();
+}
+
+async function saveFeedbackEdit() {
+  var ta = document.getElementById('fb-edit-body');
+  var text = (ta.value || '').trim();
+  var p = feedbackPosts.filter(function(x) { return x.id === feedbackEditing; })[0];
+  if (!text || !p) return;
+  var patch = { body: text, updated: new Date().toISOString() };
+  try {
+    await fbUpdate(p.id, patch, getFeedbackIdentity().secret);
+    Object.assign(p, patch);
+    fbCloseSlots();
+    renderFeedbackList();
+  } catch (e) {
+    console.error('feedback: edit failed', e);
+    alert('That edit did not save. Try again in a moment.');
+  }
+}
+
+/* Soft delete: replies to a deleted post stay readable, so a thread does not
+   lose its shape when someone withdraws the opening post. */
+async function deleteFeedback(postId) {
+  var p = feedbackPosts.filter(function(x) { return x.id === postId; })[0];
+  if (!p || !fbIsMine(p)) return;
+  if (!confirm('Delete this post? Any replies to it stay visible.')) return;
+  var patch = { deleted: true, body: '', updated: new Date().toISOString() };
+  try {
+    await fbUpdate(p.id, patch, getFeedbackIdentity().secret);
+    Object.assign(p, patch);
+    fbCloseSlots();
+    renderFeedbackList();
+  } catch (e) {
+    console.error('feedback: delete failed', e);
+    alert('That delete did not go through. Try again in a moment.');
+  }
+}
 
 /* ============================================================
    BOOT

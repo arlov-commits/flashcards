@@ -151,8 +151,9 @@ page count is visible before committing. Nothing leaves the browser until the
 download button is pressed, and the whole block resets on the next visit to
 the screen.
 
-A persistent site nav (**Home · Quiz · Instructions · Methodology**) sits above
-every screen, outside the screen containers, and highlights the current one.
+A persistent site nav (**Home · Quiz · Instructions · Methodology · Feedback**)
+sits above every screen, outside the screen containers, and highlights the
+current one.
 
 ## Card identity: Chinese + Pinyin
 
@@ -182,11 +183,16 @@ Type A) and deals a queue immediately; any setting change calls
 `regenerateQuiz()`, which rebuilds the queue while keeping the score and
 history.
 
-Three settings: pool (New / Known), type (A / B), and a deck tree mirroring the
-landing page's categories and sets, with whole categories selectable. They
-render as chips above the card next to a live known count for the current type,
-re-read from storage after every change and flashed via CSS so the movement is
-visible.
+Three settings: pool (New / Known), type (A / B), and a deck **dropdown** whose
+menu is a checkbox tree mirroring the landing page's categories and sets, with
+whole categories selectable. They render as chips above the card next to a live
+known count for the current type, re-read from storage after every change and
+flashed via CSS so the movement is visible — that counter is the only running
+feedback the screen gives, by design.
+
+The card shows its deck name pinned top-left and nothing else but the term. No
+prompt, no score line, no keyboard legend. Controls sit centred beneath it:
+**Back** on the left, the answer buttons in the middle, **Skip** on the right.
 
 The card mirrors the Anki note type — same palette (`#fdf6e3` on `#47321d`),
 fonts and sizes, and the same collapsed **Shared by** expander.
@@ -226,6 +232,34 @@ front of the card shows.
 > gone. Do not reintroduce it as an ordering input without re-deriving the
 > counts across the whole corpus first.
 
+## Feedback board
+
+A public board for bug reports and feature requests at `#/feedback`, posted
+under a per-device alias (colour + quality + animal, e.g. *Amber Resolute
+Falcon*) derived from an id in `localStorage`. Authors can edit and delete
+their own posts; anyone can reply, one level deep. Deletes are soft, so replies
+survive the post they answer.
+
+**The board needs a backend to actually be public.** This app is a static page,
+so `FEEDBACK_ENDPOINT` / `FEEDBACK_READ_ENDPOINT` / `FEEDBACK_API_KEY` at the
+top of the feedback section in `index.html` are where you point it at one. Run
+[`feedback-schema.sql`](feedback-schema.sql) against a Supabase project, paste
+the three values in, and the same board serves every visitor. Until then the
+page runs against `localStorage` and **says so in a banner** rather than
+implying a post has been shared.
+
+Two identifiers, deliberately distinct:
+
+| Field | Visible | Purpose |
+| ----- | ------- | ------- |
+| `author_key` | yes | "same person" marker, drives the *you* badge |
+| `edit_token` | **no** — the read view omits it | proves authorship for edit/delete |
+
+Edits and deletes filter on `edit_token`, which the public view never returns,
+so reading a post tells you nothing about how to change it. This is a soft
+guard, not authentication; it is proportionate to a feedback board, and the
+schema notes what to do if that stops being true.
+
 ## URLs
 
 Every screen has a shareable URL:
@@ -240,6 +274,7 @@ Every screen has a shareable URL:
 | `#/quiz` | Quiz |
 | `#/instructions` | Instructions |
 | `#/methodology` | Methodology |
+| `#/feedback` | Feedback board |
 
 Selections stay readable and resolvable, so a pasted link rebuilds the same
 selection.
