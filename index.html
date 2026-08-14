@@ -127,7 +127,8 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .nav-bar .back-link { color: var(--accent); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 .nav-bar .back-link:hover { text-decoration: underline; }
 /* ---------- Quiz ---------- */
-.quiz-setup { max-width: 46rem; }
+.quiz-setup { max-width: 46rem; padding-bottom: 16px; margin-bottom: 18px;
+  border-bottom: 1px solid var(--border-light); }
 .quiz-opt { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .quiz-opt-label { width: 56px; flex: none; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.04em; color: var(--text-muted); }
@@ -144,8 +145,26 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .seg-sub { display: block; font-size: 0.72rem; opacity: 0.75; margin-top: 1px; }
 .seg-slim { flex: 0 1 240px; }
 .seg-slim .seg-btn { font-size: 0.85rem; font-weight: 600; padding: 7px 12px; }
-.quiz-start-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
+.quiz-opt-decks { align-items: flex-start; }
+.quiz-decks { flex: 1 1 320px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-card); padding: 12px; max-height: 260px; overflow-y: auto; }
+.quiz-cat { break-inside: avoid; }
+.quiz-cat-head { display: flex; align-items: center; gap: 7px; font-size: 0.84rem; font-weight: 700;
+  color: var(--text); cursor: pointer; padding-bottom: 3px; border-bottom: 1px solid var(--border-light); }
+.quiz-cat-sets { padding: 4px 0 0 6px; }
+.quiz-set { display: flex; align-items: center; gap: 7px; font-size: 0.82rem;
+  color: var(--text-muted); cursor: pointer; padding: 2px 0; }
+.quiz-set:hover { color: var(--text); }
+.quiz-set-tag { opacity: 0.7; }
+.quiz-deck-actions { display: flex; align-items: center; gap: 10px; margin: 10px 0 0 68px; flex-wrap: wrap; }
 .quiz-available { font-size: 0.85rem; color: var(--text-muted); }
+.quiz-nav-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.quiz-nav-row .quiz-score { margin: 0 0 0 auto; }
+.quiz-flash-slot { min-height: 4px; }
+.quiz-add-btn.is-on { border-color: #2f6b3f; color: #2f6b3f; background: rgba(47,107,63,0.08); }
+.quiz-empty { max-width: 46rem; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
 
 .quiz-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px;
   flex-wrap: wrap; margin-bottom: 14px; }
@@ -191,10 +210,6 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .quiz-hint { margin-top: 6px; font-size: 0.76rem; color: var(--text-muted); font-style: italic; }
 .quiz-flash { font-size: 0.85rem; margin-top: 10px; padding: 8px 12px; border-radius: var(--radius);
   background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
-.quiz-summary { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 18px; max-width: 46rem; }
-.quiz-summary h3 { font-size: 1.1rem; color: var(--accent); margin-bottom: 8px; }
-.quiz-summary p { font-size: 0.9rem; margin-bottom: 6px; }
 .btn-danger { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
 .btn-success { background: transparent; border: 1.5px solid #2f6b3f; color: #2f6b3f; }
 .btn-success:hover { background: rgba(47,107,63,0.08); }
@@ -654,10 +669,11 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     <div class="doc" style="max-width:46rem">
       <h2>Quiz</h2>
       <p class="doc-note" style="margin-bottom:16px">
-        A quick self-test, not a study system. It shows each card once, in one pass,
-        with no scheduling behind it. For real spaced repetition &mdash; intervals
-        that grow as you get things right, and a review history that survives
-        &mdash; build a deck on the
+        A quick self-test, not a study system. It deals cards from whichever pile you
+        pick, with no scheduling behind it &mdash; change a setting and the queue
+        rebuilds as you go. For real spaced repetition &mdash; intervals that grow as
+        you get things right, and a review history that survives &mdash; build a deck
+        on the
         <a href="#/" onclick="navigateTo('landing');return false;">card sets</a> page
         and press <strong>To Anki (.apkg)</strong>.
       </p>
@@ -667,11 +683,11 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <div class="quiz-opt">
         <span class="quiz-opt-label">Cards</span>
         <div class="seg" id="quiz-pool">
-          <button class="seg-btn active" data-pool="known" onclick="setQuizOption('pool','known')">
-            <span class="seg-title">Known</span><span class="seg-sub">Cards you have marked known</span>
+          <button class="seg-btn active" data-pool="new" onclick="setQuizOption('pool','new')">
+            <span class="seg-title">New</span><span class="seg-sub">New Cards Only</span>
           </button>
-          <button class="seg-btn" data-pool="new" onclick="setQuizOption('pool','new')">
-            <span class="seg-title">New</span><span class="seg-sub">Everything you have not</span>
+          <button class="seg-btn" data-pool="known" onclick="setQuizOption('pool','known')">
+            <span class="seg-title">Known</span><span class="seg-sub">Review</span>
           </button>
         </div>
       </div>
@@ -688,26 +704,17 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         </div>
       </div>
 
-      <div class="quiz-opt">
-        <span class="quiz-opt-label">Order</span>
-        <div class="seg seg-slim" id="quiz-order">
-          <button class="seg-btn active" data-order="random" onclick="setQuizOption('order','random')">Random</button>
-          <button class="seg-btn" data-order="deck" onclick="setQuizOption('order','deck')">By deck</button>
-        </div>
+      <div class="quiz-opt quiz-opt-decks">
+        <span class="quiz-opt-label">Decks</span>
+        <div class="quiz-decks" id="quiz-decks"></div>
       </div>
-
-      <div class="quiz-opt">
-        <span class="quiz-opt-label">Deck</span>
-        <select id="quiz-deck" onchange="setQuizOption('deck', this.value)"></select>
-      </div>
-
-      <div class="quiz-start-row">
-        <button class="btn btn-primary" id="quiz-start-btn" onclick="startQuiz()">Start quiz</button>
+      <div class="quiz-deck-actions">
+        <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(true)">Select all</button>
+        <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(false)">Clear</button>
         <span id="quiz-available" class="quiz-available"></span>
       </div>
     </div>
 
-    <!-- Playing -->
     <div id="quiz-play" style="display:none">
       <div class="quiz-bar">
         <div class="quiz-chips" id="quiz-chips"></div>
@@ -721,18 +728,16 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <div class="qcard" id="quiz-card"></div>
 
       <div class="quiz-actions" id="quiz-actions"></div>
-      <div class="quiz-score" id="quiz-score"></div>
-      <div class="quiz-hint">Space or Enter reveals the answer, then 1 = got it, 2 = missed it.</div>
-      <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="endQuiz()">End quiz</button>
+      <div class="quiz-nav-row">
+        <button class="btn btn-outline btn-sm" id="quiz-back-btn" onclick="quizBack()">&larr; Back</button>
+        <button class="btn btn-outline btn-sm" onclick="quizSkip()">Skip &rarr;</button>
+        <span class="quiz-score" id="quiz-score"></span>
+      </div>
+      <div class="quiz-flash-slot" id="quiz-flash-slot"></div>
+      <div class="quiz-hint">Space or Enter reveals the answer, then 1 = got it, 2 = missed it. S skips, B goes back.</div>
     </div>
 
-    <!-- Finished -->
-    <div id="quiz-done" style="display:none">
-      <div class="quiz-summary" id="quiz-summary"></div>
-      <div class="btn-row" style="margin-top:14px">
-        <button class="btn btn-primary" onclick="endQuiz()">Back to quiz options</button>
-      </div>
-    </div>
+    <div id="quiz-empty" style="display:none" class="quiz-empty"></div>
   </div>
 
   <!-- SCREEN: Instructions -->
@@ -840,6 +845,11 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 
         <h4>Known cards are unchecked, not hidden</h4>
         <p>
+          A card is identified by its <strong>character and its reading together</strong>,
+          so <span lang="zh-Hant">行</span> <em>xíng</em> and <span lang="zh-Hant">行</span>
+          <em>háng</em> are two separate cards: knowing one does not silence the other.
+        </p>
+        <p>
           When you open the customize screen, anything on your known list is
           automatically <em>unchecked</em> &mdash; it will not go into your deck &mdash;
           but it stays visible in the table, greyed, sorted to the bottom. The counter
@@ -889,36 +899,41 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <details class="doc-detail">
         <summary>The Quiz page</summary>
         <p>
-          <strong>Quiz</strong> in the top bar is a quick self-test over the cards you
-          have marked known, or over the ones you have not. It shows each card once,
-          in one pass, with nothing scheduling the repeats. It is a way to shuffle
-          cards between the two piles by feel, not a study system &mdash; that is what
-          the Anki deck is for.
+          <strong>Quiz</strong> in the top bar is a rolling self-test. There is no
+          start and no end: opening the page begins one from your last settings, and
+          changing a setting rebuilds the queue underneath you without resetting your
+          score. It is a way to shuffle cards between the two piles by feel, not a
+          study system &mdash; that is what the Anki deck is for.
         </p>
         <p>
-          Four choices sit at the top: which pile (<strong>Known</strong> or
-          <strong>New</strong>), which type (<strong>A</strong> or <strong>B</strong>,
-          exactly as on the card sets page), the order (random or grouped by deck),
-          and a single deck if you want to narrow it. While a quiz is running those
-          four are shown as chips above the card, so it is always clear what you are
-          being asked, alongside a live count of your known list for that type.
-        </p>
-        <p>
-          <strong>Known pile &mdash; missing a card removes it.</strong> Press
-          &ldquo;Missed it&rdquo; and that character comes off your known list for the
-          current type. The counter above the card drops immediately, and the term
-          reappears in the next deck you build. Getting one right changes nothing.
+          Three settings sit at the top: which pile (<strong>New</strong> or
+          <strong>Known</strong>), which type (<strong>A</strong> or <strong>B</strong>,
+          exactly as on the card sets page), and which decks &mdash; the same
+          categories and sets as the home screen, where ticking a category takes all
+          of its sets. While a quiz is running those settings are shown as chips above
+          the card, alongside a live count of your known list for that type.
         </p>
         <p>
           <strong>New pile &mdash; nothing is recorded unless you say so.</strong>
-          Right and wrong are just a score there; neither touches your known list. If
-          a card turns out to be one you already know, press
-          <strong>+ Add to known</strong> on that card and it moves across, again with
-          the counter updating as you watch.
+          Right and wrong are just a score; neither touches your known list. If a card
+          turns out to be one you already know, press <strong>+ Add to known</strong>.
+          The button then reads <em>In your known list &mdash; click to undo</em>, so
+          a mistaken tick is one click away from being reversed.
         </p>
         <p>
-          Keyboard: <kbd>Space</kbd> or <kbd>Enter</kbd> reveals the answer, then
-          <kbd>1</kbd> for got it and <kbd>2</kbd> for missed it.
+          <strong>Known pile &mdash; missing a card removes it.</strong> Press
+          &ldquo;Missed it&rdquo; and that card comes off your known list for the
+          current type. The counter drops immediately and the term reappears in the
+          next deck you build. Getting one right changes nothing.
+        </p>
+        <p>
+          <strong>Skip</strong> moves on without scoring. <strong>Back</strong> returns
+          to the previous card and undoes what leaving it did &mdash; the score, and a
+          known-list removal if that is what happened.
+        </p>
+        <p>
+          Keyboard: <kbd>Space</kbd> or <kbd>Enter</kbd> reveals, then <kbd>1</kbd> got
+          it, <kbd>2</kbd> missed it, <kbd>S</kbd> skip, <kbd>B</kbd> back.
         </p>
       </details>
 
@@ -1135,7 +1150,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.38';
+var APP_VERSION = 'v2.39';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1192,6 +1207,38 @@ function getKnownEntries(mode) {
   } catch (e) { return []; }
 }
 
+/* Identity of a card, everywhere: term + reading. 行 xíng and 行 héng are
+   two cards, and marking one known must not silence the other. Entries
+   written before this carried no reading; they are treated as matching any
+   reading for that character, so no existing progress is lost. */
+function cardKey(ch, py) {
+  return String(ch == null ? '' : ch).trim() + '\u0001' + String(py == null ? '' : py).trim();
+}
+
+function getKnownIndex(mode) {
+  var keys = new Set(), legacy = new Set();
+  getKnownEntries(mode).forEach(function(e) {
+    var ch = String(e.ch == null ? '' : e.ch).trim();
+    if (!ch) return;
+    if (e.py === undefined || e.py === null) legacy.add(ch);
+    else keys.add(cardKey(ch, e.py));
+  });
+  return {
+    keys: keys,
+    legacy: legacy,
+    size: keys.size + legacy.size,
+    has: function(ch, py) {
+      var c = String(ch == null ? '' : ch).trim();
+      if (!c) return false;
+      return legacy.has(c) || keys.has(cardKey(c, py));
+    }
+  };
+}
+
+function getKnownCount(mode) { return getKnownEntries(mode).length; }
+
+/* Character-only view, for the few places that genuinely have no reading
+   to hand (progress import, legacy callers). */
 function getKnownList(mode) {
   var entries = getKnownEntries(mode);
   return new Set(entries.map(function(e) { return e.ch; }));
@@ -1201,23 +1248,41 @@ function saveKnownEntries(mode, entries) {
   localStorage.setItem('known_type' + mode, JSON.stringify(entries));
 }
 
-function addToKnown(mode, chineseValues, deckName) {
+/* `cards` may be {ch, py} objects or bare character strings. A bare string
+   stores no reading and so behaves like a legacy entry: it matches every
+   reading of that character. */
+function addToKnown(mode, cards, deckName) {
   var entries = getKnownEntries(mode);
-  var existing = new Set(entries.map(function(e) { return e.ch; }));
+  var idx = getKnownIndex(mode);
   var ts = new Date().toISOString();
   var deck = deckName || 'Unknown';
-  chineseValues.forEach(function(v) {
-    if (!existing.has(v)) {
-      entries.push({ ch: v, ts: ts, deck: deck });
-      existing.add(v);
-    }
+  var addedKeys = new Set();
+  cards.forEach(function(v) {
+    var ch = typeof v === 'string' ? v : (v && v.ch);
+    var py = typeof v === 'string' ? undefined : (v && v.py);
+    ch = String(ch == null ? '' : ch).trim();
+    if (!ch) return;
+    var k = cardKey(ch, py);
+    if (idx.has(ch, py) || addedKeys.has(k)) return;
+    addedKeys.add(k);
+    var e = { ch: ch, ts: ts, deck: deck };
+    if (py !== undefined && py !== null) e.py = String(py).trim();
+    entries.push(e);
   });
   saveKnownEntries(mode, entries);
 }
 
-function removeFromKnown(mode, chineseValue) {
-  var entries = getKnownEntries(mode);
-  entries = entries.filter(function(e) { return e.ch !== chineseValue; });
+/* Omitting `py` clears every reading of the character — what an "unmark this
+   character" control should do. */
+function removeFromKnown(mode, chineseValue, py) {
+  var ch = String(chineseValue == null ? '' : chineseValue).trim();
+  var wanted = cardKey(ch, py);
+  var entries = getKnownEntries(mode).filter(function(e) {
+    if (String(e.ch == null ? '' : e.ch).trim() !== ch) return true;
+    if (py === undefined || py === null) return false;      // drop all readings
+    if (e.py === undefined || e.py === null) return false;  // legacy entry covers it
+    return cardKey(e.ch, e.py) !== wanted;
+  });
   saveKnownEntries(mode, entries);
 }
 
@@ -1488,8 +1553,8 @@ function runGlobalSearch(q) {
     return;
   }
 
-  var knownA = getKnownList('A');
-  var knownB = getKnownList('B');
+  var knownA = getKnownIndex('A');
+  var knownB = getKnownIndex('B');
 
   var LIMIT = 300;
   var shown = scored.slice(0, LIMIT);
@@ -1504,14 +1569,14 @@ function runGlobalSearch(q) {
     var en  = c2[byType.translation]  || '';
     var src = getCardSourceLabel(c2);
     var deckLine = src ? (src + ' — ' + c2._setLabel) : c2._setLabel;
-    var isKnown = knownA.has(ch) || knownB.has(ch);
+    var isKnown = knownA.has(ch, py) || knownB.has(ch, py);
     html +=
       '<div class="gs-row">' +
         '<span class="gs-field-chinese">' + highlightWithNorm(ch, nq) + '</span>' +
         '<span class="gs-field-pinyin">'  + highlightWithNorm(py, nq) + '</span>' +
         '<span class="gs-field-english">' + highlightWithNorm(en, nq) + '</span>' +
         '<span class="gs-source">'        + highlightWithNorm(deckLine, nq) + '</span>' +
-        '<button class="known-toggle' + (isKnown ? ' is-known' : '') + '" data-gs-known="' + escapeHtml(ch) + '" data-gs-deck="' + escapeHtml(c2._setLabel) + '" title="Toggle known">' + (isKnown ? '✓' : '') + '</button>' +
+        '<button class="known-toggle' + (isKnown ? ' is-known' : '') + '" data-gs-known="' + escapeHtml(ch) + '" data-gs-py="' + escapeHtml(py) + '" data-gs-deck="' + escapeHtml(c2._setLabel) + '" title="Toggle known">' + (isKnown ? '✓' : '') + '</button>' +
       '</div>';
   }
   box.innerHTML = html;
@@ -1533,17 +1598,18 @@ function setupGlobalSearch() {
       var btn = e.target.closest('.known-toggle[data-gs-known]');
       if (!btn) return;
       var ch = btn.getAttribute('data-gs-known');
+      var py = btn.getAttribute('data-gs-py') || '';
       var deck = btn.getAttribute('data-gs-deck') || 'Unknown';
       if (!ch) return;
       var isKnown = btn.classList.contains('is-known');
       if (isKnown) {
-        removeFromKnown('A', ch);
-        removeFromKnown('B', ch);
+        removeFromKnown('A', ch, py);
+        removeFromKnown('B', ch, py);
         btn.classList.remove('is-known');
         btn.textContent = '';
       } else {
-        addToKnown('A', [ch], deck);
-        addToKnown('B', [ch], deck);
+        addToKnown('A', [{ ch: ch, py: py }], deck);
+        addToKnown('B', [{ ch: ch, py: py }], deck);
         btn.classList.add('is-known');
         btn.textContent = '✓';
       }
@@ -1579,15 +1645,16 @@ async function toggleDone(setKey, type, btnEl) {
     try {
       var doneRows = await fetchCardRows(si.file);
       var trad2 = manifest.traditions[tradKey];
-      var chKey = '';
+      var chKey = '', pyKey = '';
       for (var fi = 0; fi < (trad2.fields || []).length; fi++) {
-        if (trad2.fields[fi].type === 'target_lang') { chKey = trad2.fields[fi].key; break; }
+        if (trad2.fields[fi].type === 'target_lang')  chKey = trad2.fields[fi].key;
+        if (trad2.fields[fi].type === 'romanization') pyKey = trad2.fields[fi].key;
       }
       if (chKey) {
         var chars = [];
         doneRows.forEach(function(row) {
           var v = (row[chKey] || '').trim();
-          if (v) chars.push(v);
+          if (v) chars.push({ ch: v, py: pyKey ? (row[pyKey] || '').trim() : '' });
         });
         var deckName = si.eng_name;
         if (newVal) {
@@ -2253,11 +2320,11 @@ function renderModeButtons() {
    KNOWN LIST INTEGRATION
    ============================================================ */
 function applyKnownToCards() {
-  var known = getKnownList(effectiveKnownMode());
+  var known = getKnownIndex(effectiveKnownMode());
   var knownCount = 0;
   for (var i = 0; i < allCards.length; i++) {
     var ch = allCards[i]._chinese;
-    if (ch && known.has(ch)) {
+    if (ch && known.has(ch, allCards[i]._pinyin)) {
       allCards[i]._included = false;
       knownCount++;
     } else {
@@ -2307,6 +2374,7 @@ async function loadCards() {
   allCards = [];
   var fields = currentTradition.fields;
   var targetField = fields.find(function(f) { return f.type === 'target_lang'; });
+  var romanizationField = fields.find(function(f) { return f.type === 'romanization'; });
   var translationField = fields.find(function(f) { return f.type === 'translation'; });
   var allSets = getAllSets(currentTradition);
   var allSetKeys = Object.keys(allSets); // deterministic order from manifest
@@ -2332,6 +2400,7 @@ async function loadCards() {
             row._index = i;
             row._included = true;
             row._chinese = targetField ? (row[targetField.key] || '') : '';
+            row._pinyin  = romanizationField ? (row[romanizationField.key] || '') : '';
             rows.push(row);
           });
           loadedBySet[sk] = rows;
@@ -2352,71 +2421,25 @@ async function loadCards() {
     return ai - bi;
   });
 
-  // De-duplicate across all selected sets. Match criteria:
-  //   - Chinese (target_lang): exact match
-  //   - Pinyin  (romanization): exact match
-  //   - English (translation):  case-insensitive gloss comparison. An entry
-  //     whose glosses are a subset of another's is treated as the duplicate.
-  //     (e.g. "Great" is a subset of "Great; Big" and gets removed.)
-  // Glosses are split on ";" and compared case-insensitively.
+  // De-duplicate across all selected sets on (Chinese, Pinyin) — the card
+  // identity used everywhere in the app. The first occurrence in manifest
+  // order wins; later repeats of the same term-and-reading are dropped,
+  // whatever their gloss says. Rows with nothing to match on are all kept.
   var romanField = fields.find(function(f) { return f.type === 'romanization'; });
-  function parseGlosses(s) {
-    if (!s) return [];
-    return s.split(';').map(function(x) { return x.trim().toLowerCase(); })
-      .filter(function(x) { return x.length > 0; });
-  }
-  function isSubsetArr(a, b) {
-    for (var i = 0; i < a.length; i++) { if (b.indexOf(a[i]) === -1) return false; }
-    return true;
-  }
-
-  // First, flatten rows in manifest-ordered deck order, annotating with
-  // a grouping key on (chinese, pinyin).
-  var flat = [];
-  orderedKeys.forEach(function(sk) {
-    var rows = loadedBySet[sk] || [];
-    rows.forEach(function(row) {
-      var tKey  = targetField      ? (row[targetField.key] || '')      : '';
-      var pKey  = romanField       ? (row[romanField.key] || '')       : '';
-      var eKey  = translationField ? (row[translationField.key] || '') : '';
-      flat.push({
-        row: row,
-        groupKey: tKey + '\u0001' + pKey,
-        glosses: parseGlosses(eKey),
-        hasMatchable: !!(tKey || pKey || eKey)
-      });
-    });
-  });
-
-  // Group by (chinese, pinyin) and drop subset-duplicates within each group.
-  var groups = {};
-  flat.forEach(function(e, idx) {
-    e._idx = idx;
-    if (!groups[e.groupKey]) groups[e.groupKey] = [];
-    groups[e.groupKey].push(e);
-  });
-
-  var keepIdx = {};
-  flat.forEach(function(e) {
-    if (!e.hasMatchable) { keepIdx[e._idx] = true; return; }
-    var group = groups[e.groupKey] || [e];
-    var redundant = false;
-    for (var i = 0; i < group.length; i++) {
-      var other = group[i];
-      if (other === e) continue;
-      if (isSubsetArr(e.glosses, other.glosses)) {
-        if (e.glosses.length < other.glosses.length) { redundant = true; break; }
-        // Equal sets: drop the later one (keep first occurrence).
-        if (e.glosses.length === other.glosses.length && other._idx < e._idx) {
-          redundant = true; break;
-        }
-      }
-    }
-    if (!redundant) keepIdx[e._idx] = true;
-  });
 
   var ordered = [];
-  flat.forEach(function(e) { if (keepIdx[e._idx]) ordered.push(e.row); });
+  var seenKey = {};
+  orderedKeys.forEach(function(sk) {
+    (loadedBySet[sk] || []).forEach(function(row) {
+      var tKey = targetField ? (row[targetField.key] || '') : '';
+      var pKey = romanField  ? (row[romanField.key]  || '') : '';
+      if (!tKey && !pKey) { ordered.push(row); return; }
+      var k = cardKey(tKey, pKey);
+      if (seenKey[k]) return;
+      seenKey[k] = true;
+      ordered.push(row);
+    });
+  });
 
   // Assign a stable original-order index for Type A restoration.
   ordered.forEach(function(row, idx) { row._originalOrder = idx; });
@@ -2480,7 +2503,7 @@ function renderFieldMapping() {
 function renderCardTable() {
   var fields = currentTradition.fields;
   var searchVal = (document.getElementById('card-search').value || '').toLowerCase();
-  var known = getKnownList(effectiveKnownMode());
+  var known = getKnownIndex(effectiveKnownMode());
 
   // Build sorted display list: unknowns first (CSV order), then knowns (CSV order)
   var unknowns = [];
@@ -2494,7 +2517,7 @@ function renderCardTable() {
         if (!srcMatch) continue;
       }
     }
-    var isKnown = card._chinese && known.has(card._chinese);
+    var isKnown = card._chinese && known.has(card._chinese, card._pinyin);
     if (isKnown && !card._included) { knowns.push(card); } else { unknowns.push(card); }
   }
   var displayCards = unknowns.concat(knowns);
@@ -2556,7 +2579,7 @@ function renderCardTable() {
     var knownTd = document.createElement('td');
     knownTd.style.textAlign = 'center';
     var knownBtn = document.createElement('button');
-    var cardIsKnown = !!(card2._chinese && known.has(card2._chinese));
+    var cardIsKnown = !!(card2._chinese && known.has(card2._chinese, card2._pinyin));
     knownBtn.className = 'known-toggle' + (cardIsKnown ? ' is-known' : '');
     knownBtn.textContent = cardIsKnown ? '✓' : ' ';
     knownBtn.title = cardIsKnown ? 'Mark as not known' : 'Mark as known';
@@ -2564,24 +2587,24 @@ function renderCardTable() {
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
         var kmode = effectiveKnownMode();
-        var kn = getKnownList(kmode);
-        var isNowKnown = c._chinese && kn.has(c._chinese);
+        var kn = getKnownIndex(kmode);
+        var isNowKnown = c._chinese && kn.has(c._chinese, c._pinyin);
         if (isNowKnown) {
-          removeFromKnown(kmode, c._chinese);
+          removeFromKnown(kmode, c._chinese, c._pinyin);
           btn.className = 'known-toggle';
           btn.textContent = ' ';
           btn.title = 'Mark as known';
         } else if (c._chinese) {
-          addToKnown(kmode, [c._chinese], getDeckLabelForCard(c));
+          addToKnown(kmode, [{ ch: c._chinese, py: c._pinyin }], getDeckLabelForCard(c));
           btn.className = 'known-toggle is-known';
           btn.textContent = '✓';
           btn.title = 'Mark as not known';
         }
         // Update known bar count
-        var kn2 = getKnownList(kmode);
+        var kn2 = getKnownIndex(kmode);
         var kc = 0;
         for (var j = 0; j < allCards.length; j++) {
-          if (allCards[j]._chinese && kn2.has(allCards[j]._chinese)) kc++;
+          if (allCards[j]._chinese && kn2.has(allCards[j]._chinese, allCards[j]._pinyin)) kc++;
         }
         updateKnownBar();
       });
@@ -2596,10 +2619,10 @@ function renderCardTable() {
 function updateCardCount() {
   var total = allCards.length;
   var included = allCards.filter(function(c) { return c._included; }).length;
-  var known = getKnownList(effectiveKnownMode());
+  var known = getKnownIndex(effectiveKnownMode());
   var knownCount = 0;
   for (var i = 0; i < allCards.length; i++) {
-    if (allCards[i]._chinese && known.has(allCards[i]._chinese)) knownCount++;
+    if (allCards[i]._chinese && known.has(allCards[i]._chinese, allCards[i]._pinyin)) knownCount++;
   }
   var text = included + ' of ' + total + ' cards selected';
   if (knownCount > 0) text += '  ·  ' + knownCount + ' already known';
@@ -3079,8 +3102,8 @@ function openCornerKnownViewer(cornerEl) {
 }
 
 function renderProgressStats() {
-  var knownA = getKnownList('A').size;
-  var knownB = getKnownList('B').size;
+  var knownA = getKnownCount('A');
+  var knownB = getKnownCount('B');
   var el = document.getElementById('progress-stats');
   var parts = [];
   if (knownA) parts.push(knownA + ' known (Type A)');
@@ -3784,7 +3807,7 @@ function markExportedAsKnown(rows) {
     if (!c._chinese) return;
     var deck = getDeckLabelForCard(c);
     if (!byDeck[deck]) byDeck[deck] = [];
-    byDeck[deck].push(c._chinese);
+    byDeck[deck].push({ ch: c._chinese, py: c._pinyin });
   });
   var added = false;
   for (var deck in byDeck) { addToKnown(effectiveKnownMode(), byDeck[deck], deck); added = true; }
@@ -4208,103 +4231,211 @@ async function generatePDF() {
 /* ============================================================
    QUIZ
 
-   A single-pass self-test over the global card index, kept
-   deliberately simple: no scheduling, no history. Two pools with
-   different consequences —
+   A rolling self-test over the global card index. There is no start and
+   no end: opening the page begins a quiz from the last-used settings,
+   and touching any setting regenerates the queue underneath you without
+   resetting your score.
 
-     known  : failing a card removes it from the known list, so the
-              term comes back in your next Anki deck.
-     new    : purely performative. Nothing is recorded unless the user
-              presses "Add to known" on a card.
+   Two pools with different consequences —
 
-   The known counter in the quiz bar is the live view of that: it is
-   re-read from storage after every change and flashes when it moves.
+     new    : performative. Neither answer records anything; the only way
+              in is the per-card "Add to known" toggle.
+     known  : review. Missing a card removes it from the known list, so
+              the term returns to your next Anki deck.
+
+   The known counter in the quiz bar is re-read from storage after every
+   change and flashed, so a card moving between the piles is visible.
    ============================================================ */
+var QUIZ_PREFS_KEY = 'quiz_prefs';
+
 var quiz = {
-  pool: 'known', type: 'A', order: 'random', deck: '',
-  cards: [], idx: 0, revealed: false, right: 0, wrong: 0,
-  changed: 0, running: false, flash: ''
+  pool: 'new', type: 'A', decks: null,   // decks: null = all, else array of set keys
+  cards: [], idx: 0, revealed: false, right: 0, wrong: 0, changed: 0,
+  history: [], flash: ''
 };
 
+function loadQuizPrefs() {
+  try {
+    var p = JSON.parse(localStorage.getItem(QUIZ_PREFS_KEY) || 'null');
+    if (!p) return;
+    if (p.pool === 'known' || p.pool === 'new') quiz.pool = p.pool;
+    if (p.type === 'A' || p.type === 'B') quiz.type = p.type;
+    if (p.decks === null || Array.isArray(p.decks)) quiz.decks = p.decks;
+  } catch (e) { /* defaults stand */ }
+}
+
+function saveQuizPrefs() {
+  try {
+    localStorage.setItem(QUIZ_PREFS_KEY,
+      JSON.stringify({ pool: quiz.pool, type: quiz.type, decks: quiz.decks }));
+  } catch (e) { /* ignore quota errors */ }
+}
+
+/* The set hierarchy the landing page uses, so the deck picker reads the
+   same way: categories in manifest order, sets in row order. */
+function quizCategories() {
+  var out = [];
+  if (!manifest) return out;
+  for (var tk in manifest.traditions) {
+    var trad = manifest.traditions[tk];
+    if (!trad.available || !trad.subcategories) continue;
+    for (var sck in trad.subcategories) {
+      var sub = trad.subcategories[sck];
+      var sets = Object.keys(sub.sets || {}).map(function(k) {
+        return { key: k, name: sub.sets[k].eng_name || k, tag: sub.sets[k].display_tag || '' };
+      });
+      if (sets.length) out.push({ key: sck, name: sub.display_name || sck, sets: sets });
+    }
+  }
+  return out;
+}
+
+function quizAllSetKeys() {
+  var keys = [];
+  quizCategories().forEach(function(c) { c.sets.forEach(function(x) { keys.push(x.key); }); });
+  return keys;
+}
+
+function quizSelectedSetKeys() {
+  return quiz.decks === null ? quizAllSetKeys() : quiz.decks;
+}
+
+function quizDeckIsSelected(setKey) {
+  return quiz.decks === null || quiz.decks.indexOf(setKey) !== -1;
+}
+
+/* Cards for the current pool, de-duplicated on (Chinese, Pinyin) — the same
+   card identity the rest of the app uses. */
 function quizPoolCards() {
   if (!globalCardIndex) return [];
-  var known = getKnownList(quiz.type);
-
-  // De-duplicate by term: the same character occurs in several liturgies and
-  // should be asked once, attributed to the first set it appears in.
+  var known = getKnownIndex(quiz.type);
+  var allowed = null;
+  if (quiz.decks !== null) {
+    allowed = {};
+    quiz.decks.forEach(function(k) { allowed[k] = true; });
+  }
   var seen = {};
   var out = [];
   globalCardIndex.forEach(function(e) {
     var ch = (e.chinese || '').trim();
-    if (!ch || seen[ch]) return;
-    var isKnown = known.has(ch);
+    if (!ch) return;
+    if (allowed && !allowed[e._setKey]) return;
+    var k = cardKey(ch, e.pinyin);
+    if (seen[k]) return;
+    var isKnown = known.has(ch, e.pinyin);
     if (quiz.pool === 'known' ? !isKnown : isKnown) return;
-    seen[ch] = true;
+    seen[k] = true;
     out.push(e);
   });
   return out;
 }
 
-function quizDeckOptions() {
-  var counts = {};
-  quizPoolCards().forEach(function(e) {
-    var d = e._setLabel || 'Unknown';
-    counts[d] = (counts[d] || 0) + 1;
-  });
-  return Object.keys(counts).sort().map(function(d) { return { deck: d, n: counts[d] }; });
+function renderQuizDeckPicker() {
+  var host = document.getElementById('quiz-decks');
+  if (!host) return;
+  var cats = quizCategories();
+  host.innerHTML = cats.map(function(c) {
+    var all = c.sets.every(function(x) { return quizDeckIsSelected(x.key); });
+    var some = !all && c.sets.some(function(x) { return quizDeckIsSelected(x.key); });
+    return '<div class="quiz-cat">' +
+      '<label class="quiz-cat-head">' +
+        '<input type="checkbox" data-quiz-cat="' + escapeHtml(c.key) + '"' +
+          (all ? ' checked' : '') + (some ? ' data-indeterminate="1"' : '') + '>' +
+        '<span>' + escapeHtml(c.name) + '</span>' +
+      '</label>' +
+      '<div class="quiz-cat-sets">' + c.sets.map(function(x) {
+        return '<label class="quiz-set">' +
+          '<input type="checkbox" data-quiz-set="' + escapeHtml(x.key) + '"' +
+            (quizDeckIsSelected(x.key) ? ' checked' : '') + '>' +
+          '<span>' + escapeHtml(x.name) +
+            (x.tag ? ' <span class="quiz-set-tag" lang="zh-Hant">' + escapeHtml(x.tag) + '</span>' : '') +
+          '</span></label>';
+      }).join('') + '</div></div>';
+  }).join('');
+  host.querySelectorAll('input[data-indeterminate]').forEach(function(cb) { cb.indeterminate = true; });
 }
 
-function quizSelectedCards() {
-  var cards = quizPoolCards();
-  if (quiz.deck) cards = cards.filter(function(e) { return (e._setLabel || 'Unknown') === quiz.deck; });
-  return cards;
+function setQuizDecksAll(on) {
+  quiz.decks = on ? null : [];
+  saveQuizPrefs();
+  renderQuizDeckPicker();
+  regenerateQuiz();
+}
+
+function toggleQuizSet(setKey, on) {
+  var cur = quizSelectedSetKeys().slice();
+  var i = cur.indexOf(setKey);
+  if (on && i === -1) cur.push(setKey);
+  if (!on && i !== -1) cur.splice(i, 1);
+  quiz.decks = cur.length === quizAllSetKeys().length ? null : cur;
+  saveQuizPrefs();
+  renderQuizDeckPicker();
+  regenerateQuiz();
+}
+
+function toggleQuizCategory(catKey, on) {
+  var cat = quizCategories().filter(function(c) { return c.key === catKey; })[0];
+  if (!cat) return;
+  var cur = quizSelectedSetKeys().slice();
+  cat.sets.forEach(function(x) {
+    var i = cur.indexOf(x.key);
+    if (on && i === -1) cur.push(x.key);
+    if (!on && i !== -1) cur.splice(i, 1);
+  });
+  quiz.decks = cur.length === quizAllSetKeys().length ? null : cur;
+  saveQuizPrefs();
+  renderQuizDeckPicker();
+  regenerateQuiz();
 }
 
 function setQuizOption(key, value) {
   quiz[key] = value;
-  if (key === 'pool' || key === 'type') quiz.deck = '';   // deck lists differ per pool
-  ['pool', 'type', 'order'].forEach(function(k) {
+  ['pool', 'type'].forEach(function(k) {
     document.querySelectorAll('#quiz-' + k + ' .seg-btn').forEach(function(b) {
       b.classList.toggle('active', b.dataset[k] === quiz[k]);
     });
   });
-  renderQuizSetup();
+  saveQuizPrefs();
+  renderQuizDeckPicker();   // per-pool counts change with the pool and type
+  regenerateQuiz();
 }
 
-function renderQuizSetup() {
-  var sel = document.getElementById('quiz-deck');
-  if (sel) {
-    var opts = quizDeckOptions();
-    var total = opts.reduce(function(a, o) { return a + o.n; }, 0);
-    sel.innerHTML = '<option value="">All decks (' + total + ')</option>' +
-      opts.map(function(o) {
-        return '<option value="' + escapeHtml(o.deck) + '">' + escapeHtml(o.deck) + ' (' + o.n + ')</option>';
-      }).join('');
-    sel.value = quiz.deck;
-    if (sel.value !== quiz.deck) { quiz.deck = ''; sel.value = ''; }
-  }
-  var n = quizSelectedCards().length;
-  var avail = document.getElementById('quiz-available');
-  if (avail) {
-    avail.textContent = n
-      ? n + ' card' + (n === 1 ? '' : 's') + ' in this quiz'
-      : (quiz.pool === 'known'
-          ? 'No known cards yet for Type ' + quiz.type + ' — mark some known, or quiz the new pile.'
-          : 'Nothing left: every card is already known for Type ' + quiz.type + '.');
-  }
-  var btn = document.getElementById('quiz-start-btn');
-  if (btn) btn.disabled = n === 0;
+/* Rebuild the queue for the current settings and carry on. The score, the
+   history and the settings survive; only the cards ahead of you change. */
+function regenerateQuiz() {
+  var cards = quizPoolCards().slice();
+  shuffle(cards);
+  quiz.cards = cards;
+  quiz.idx = 0;
+  quiz.revealed = false;
+  quiz.flash = '';
+  renderQuizAvailable();
+  renderQuizChips();
+  renderQuizCard();
+}
+
+function renderQuizAvailable() {
+  var el = document.getElementById('quiz-available');
+  if (!el) return;
+  var n = quiz.cards.length;
+  el.textContent = n
+    ? n + ' card' + (n === 1 ? '' : 's') + ' in this quiz'
+    : 'No cards match these settings.';
 }
 
 async function openQuiz() {
-  document.getElementById('quiz-play').style.display = 'none';
-  document.getElementById('quiz-done').style.display = 'none';
-  document.getElementById('quiz-setup').style.display = '';
-  quiz.running = false;
+  loadQuizPrefs();
+  ['pool', 'type'].forEach(function(k) {
+    document.querySelectorAll('#quiz-' + k + ' .seg-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset[k] === quiz[k]);
+    });
+  });
   var avail = document.getElementById('quiz-available');
   if (avail) avail.textContent = 'Loading cards…';
   await buildGlobalCardIndex();
-  renderQuizSetup();
+  quiz.right = 0; quiz.wrong = 0; quiz.changed = 0; quiz.history = [];
+  renderQuizDeckPicker();
+  regenerateQuiz();
 }
 
 function shuffle(a) {
@@ -4315,48 +4446,42 @@ function shuffle(a) {
   return a;
 }
 
-function startQuiz() {
-  var cards = quizSelectedCards().slice();
-  if (!cards.length) return;
-  if (quiz.order === 'random') shuffle(cards);
-  else cards.sort(function(a, b) {
-    var d = (a._setLabel || '').localeCompare(b._setLabel || '');
-    return d !== 0 ? d : 0;   // stable: within a deck, keep index (liturgy) order
-  });
-
-  quiz.cards = cards;
-  quiz.idx = 0; quiz.revealed = false; quiz.right = 0; quiz.wrong = 0; quiz.changed = 0;
-  quiz.running = true; quiz.flash = '';
-  document.getElementById('quiz-setup').style.display = 'none';
-  document.getElementById('quiz-done').style.display = 'none';
-  document.getElementById('quiz-play').style.display = '';
-  renderQuizChips();
-  renderQuizCard();
-}
-
 function renderQuizChips() {
   var el = document.getElementById('quiz-chips');
   if (!el) return;
+  var sel = quizSelectedSetKeys().length;
+  var total = quizAllSetKeys().length;
+  var deckChip = quiz.decks === null ? 'All decks'
+    : (sel === 0 ? 'No decks' : (sel === 1 ? oneQuizDeckName() : sel + ' of ' + total + ' decks'));
   el.innerHTML =
     '<span class="quiz-chip ' + (quiz.pool === 'known' ? 'is-pool-known' : 'is-pool-new') + '">' +
-      (quiz.pool === 'known' ? 'Known cards' : 'New cards') + '</span>' +
+      (quiz.pool === 'known' ? 'Known · Review' : 'New cards only') + '</span>' +
     '<span class="quiz-chip">Type ' + quiz.type + '</span>' +
-    '<span class="quiz-chip">' + (quiz.order === 'random' ? 'Random' : 'By deck') + '</span>' +
-    '<span class="quiz-chip">' + escapeHtml(quiz.deck || 'All decks') + '</span>';
-  document.getElementById('quiz-known-type').textContent = quiz.type;
+    '<span class="quiz-chip">' + escapeHtml(deckChip) + '</span>';
+  var t = document.getElementById('quiz-known-type');
+  if (t) t.textContent = quiz.type;
   updateQuizKnownCount(false);
 }
 
-/* Re-read the count from storage rather than tracking it, so the number can
-   never drift from what is actually stored. `bump` flashes it. */
+function oneQuizDeckName() {
+  var k = quizSelectedSetKeys()[0];
+  var name = k;
+  quizCategories().forEach(function(c) {
+    c.sets.forEach(function(x) { if (x.key === k) name = x.name; });
+  });
+  return name;
+}
+
+/* Re-read from storage rather than tracking it, so the number can never
+   drift from what is actually stored. `bump` flashes it. */
 function updateQuizKnownCount(bump) {
   var el = document.getElementById('quiz-known-count');
   if (!el) return;
+  el.textContent = getKnownCount(quiz.type);
   var wrap = document.getElementById('quiz-known');
-  el.textContent = getKnownList(quiz.type).size;
   if (bump && wrap) {
     wrap.classList.remove('bump');
-    void wrap.offsetWidth;          // restart the animation
+    void wrap.offsetWidth;
     wrap.classList.add('bump');
   }
 }
@@ -4364,9 +4489,27 @@ function updateQuizKnownCount(bump) {
 function quizCurrent() { return quiz.cards[quiz.idx]; }
 
 function renderQuizCard() {
+  var play = document.getElementById('quiz-play');
+  var empty = document.getElementById('quiz-empty');
   var c = quizCurrent();
-  if (!c) return finishQuiz();
 
+  if (!c) {
+    play.style.display = 'none';
+    empty.style.display = '';
+    empty.innerHTML = quiz.cards.length
+      ? '<p>That is every card in this selection — ' + quiz.right + ' right, ' + quiz.wrong +
+        ' missed. Change a setting above to keep going.</p>'
+      : '<p>Nothing to quiz with these settings. ' +
+        (quiz.pool === 'known'
+          ? 'You have no known cards for Type ' + quiz.type + ' in the chosen decks yet.'
+          : 'Every card in the chosen decks is already known for Type ' + quiz.type + '.') +
+        '</p>';
+    renderQuizChips();
+    return;
+  }
+
+  empty.style.display = 'none';
+  play.style.display = '';
   document.getElementById('quiz-progress').textContent = (quiz.idx + 1) + ' / ' + quiz.cards.length;
 
   var showPinyinFront = quiz.type === 'A';
@@ -4384,27 +4527,35 @@ function renderQuizCard() {
     }
     html += '<div class="q-deck">' + escapeHtml(c._setLabel || '') + '</div>';
   } else {
-    html += '<div class="q-prompt">' + (showPinyinFront ? 'What does it mean?' : 'How is it read, and what does it mean?') + '</div>';
+    html += '<div class="q-prompt">' +
+      (showPinyinFront ? 'What does it mean?' : 'How is it read, and what does it mean?') + '</div>';
   }
   document.getElementById('quiz-card').innerHTML = html;
 
   var actions = document.getElementById('quiz-actions');
   if (!quiz.revealed) {
     actions.innerHTML = '<button class="btn btn-primary" onclick="revealQuizCard()">Show answer</button>';
-  } else if (quiz.pool === 'known') {
-    actions.innerHTML =
-      '<button class="btn btn-success" onclick="answerQuiz(true)">&#10003; Got it</button>' +
-      '<button class="btn btn-danger" onclick="answerQuiz(false)">&#10007; Missed it &mdash; remove from known</button>';
   } else {
-    actions.innerHTML =
+    var buttons =
       '<button class="btn btn-success" onclick="answerQuiz(true)">&#10003; Got it</button>' +
-      '<button class="btn btn-danger" onclick="answerQuiz(false)">&#10007; Missed it</button>' +
-      '<button class="btn btn-outline btn-sm" onclick="addCurrentQuizCardToKnown(this)">+ Add to known</button>';
+      '<button class="btn btn-danger" onclick="answerQuiz(false)">&#10007; ' +
+        (quiz.pool === 'known' ? 'Missed it &mdash; remove from known' : 'Missed it') + '</button>';
+    if (quiz.pool === 'new') {
+      var isKnown = getKnownIndex(quiz.type).has(c.chinese, c.pinyin);
+      buttons += '<button class="btn btn-outline btn-sm quiz-add-btn' + (isKnown ? ' is-on' : '') +
+        '" onclick="toggleCurrentQuizCardKnown()">' +
+        (isKnown ? '&#10003; In your known list — click to undo' : '+ Add to known') + '</button>';
+    }
+    actions.innerHTML = buttons;
   }
 
-  var score = document.getElementById('quiz-score');
-  var line = quiz.right + ' right · ' + quiz.wrong + ' missed';
-  score.innerHTML = escapeHtml(line) + (quiz.flash ? '<div class="quiz-flash">' + quiz.flash + '</div>' : '');
+  var back = document.getElementById('quiz-back-btn');
+  if (back) back.disabled = quiz.history.length === 0;
+
+  document.getElementById('quiz-score').textContent = quiz.right + ' right · ' + quiz.wrong + ' missed';
+  var slot = document.getElementById('quiz-flash-slot');
+  slot.innerHTML = quiz.flash ? '<div class="quiz-flash">' + quiz.flash + '</div>' : '';
+  renderQuizAvailable();
 }
 
 function toggleQuizShared() {
@@ -4417,83 +4568,117 @@ function toggleQuizShared() {
 }
 
 function revealQuizCard() {
-  if (!quiz.running || quiz.revealed) return;
+  if (quiz.revealed || !quizCurrent()) return;
   quiz.revealed = true;
   renderQuizCard();
 }
 
-function answerQuiz(gotIt) {
-  if (!quiz.running || !quiz.revealed) return;
-  var c = quizCurrent();
-  quiz.flash = '';
+/* Every move that leaves a card pushes what it would take to come back. */
+function pushQuizHistory(card, undo) {
+  quiz.history.push({ card: card, undo: undo });
+  if (quiz.history.length > 200) quiz.history.shift();
+}
 
-  if (gotIt) {
-    quiz.right++;
-  } else {
-    quiz.wrong++;
-    // Only the known pool has a consequence: a term you could not produce
-    // goes back into circulation for the next deck you build.
-    if (quiz.pool === 'known' && c && c.chinese) {
-      removeFromKnown(quiz.type, c.chinese);
-      quiz.changed++;
-      quiz.flash = escapeHtml(c.chinese) + ' removed from your Type ' + quiz.type +
-                   ' known list — it will be back in your next deck.';
-      updateQuizKnownCount(true);
-      renderProgressStats();
-    }
-  }
+function advanceQuiz() {
   quiz.idx++;
   quiz.revealed = false;
   renderQuizCard();
 }
 
-function addCurrentQuizCardToKnown(btn) {
+function answerQuiz(gotIt) {
+  var c = quizCurrent();
+  if (!c || !quiz.revealed) return;
+  quiz.flash = '';
+
+  if (gotIt) {
+    quiz.right++;
+    pushQuizHistory(c, { right: 1 });
+  } else {
+    quiz.wrong++;
+    var undo = { wrong: 1 };
+    if (quiz.pool === 'known' && c.chinese) {
+      removeFromKnown(quiz.type, c.chinese, c.pinyin);
+      quiz.changed++;
+      undo.readd = { ch: c.chinese, py: c.pinyin, deck: c._setLabel || 'Quiz' };
+      quiz.flash = escapeHtml(c.chinese) + ' removed from your Type ' + quiz.type +
+                   ' known list — it will be back in your next deck.';
+      updateQuizKnownCount(true);
+      renderProgressStats();
+    }
+    pushQuizHistory(c, undo);
+  }
+  advanceQuiz();
+}
+
+function quizSkip() {
+  var c = quizCurrent();
+  if (!c) return;
+  quiz.flash = '';
+  pushQuizHistory(c, {});
+  advanceQuiz();
+}
+
+/* Step back to the card before this one and undo whatever leaving it did —
+   the score, and a known-list removal if that is what happened. */
+function quizBack() {
+  var h = quiz.history.pop();
+  if (!h) return;
+  if (h.undo.right) quiz.right = Math.max(0, quiz.right - 1);
+  if (h.undo.wrong) quiz.wrong = Math.max(0, quiz.wrong - 1);
+  if (h.undo.readd) {
+    addToKnown(quiz.type, [{ ch: h.undo.readd.ch, py: h.undo.readd.py }], h.undo.readd.deck);
+    quiz.changed = Math.max(0, quiz.changed - 1);
+    updateQuizKnownCount(true);
+    renderProgressStats();
+  }
+  // The queue may have been regenerated under us; find the card again.
+  var at = quiz.cards.indexOf(h.card);
+  if (at === -1) { quiz.cards.splice(quiz.idx, 0, h.card); at = quiz.idx; }
+  quiz.idx = at;
+  quiz.revealed = true;
+  quiz.flash = h.undo.readd
+    ? escapeHtml(h.undo.readd.ch) + ' put back on your Type ' + quiz.type + ' known list.'
+    : '';
+  renderQuizCard();
+}
+
+/* The "new" pool records nothing on its own; this button is the only way in,
+   and it undoes itself. */
+function toggleCurrentQuizCardKnown() {
   var c = quizCurrent();
   if (!c || !c.chinese) return;
-  addToKnown(quiz.type, [c.chinese], c._setLabel || 'Quiz');
-  quiz.changed++;
+  var known = getKnownIndex(quiz.type);
+  if (known.has(c.chinese, c.pinyin)) {
+    removeFromKnown(quiz.type, c.chinese, c.pinyin);
+    quiz.changed = Math.max(0, quiz.changed - 1);
+    quiz.flash = escapeHtml(c.chinese) + ' taken back off your Type ' + quiz.type + ' known list.';
+  } else {
+    addToKnown(quiz.type, [{ ch: c.chinese, py: c.pinyin }], c._setLabel || 'Quiz');
+    quiz.changed++;
+    quiz.flash = escapeHtml(c.chinese) + ' added to your Type ' + quiz.type +
+                 ' known list — it will be left out of your next deck.';
+  }
   updateQuizKnownCount(true);
   renderProgressStats();
-  if (btn) { btn.disabled = true; btn.textContent = '✓ Added to known'; }
-  var score = document.getElementById('quiz-score');
-  if (score) {
-    score.innerHTML = escapeHtml(quiz.right + ' right · ' + quiz.wrong + ' missed') +
-      '<div class="quiz-flash">' + escapeHtml(c.chinese) + ' added to your Type ' + quiz.type +
-      ' known list — it will be left out of your next deck.</div>';
-  }
+  renderQuizCard();
 }
 
-function finishQuiz() {
-  quiz.running = false;
-  document.getElementById('quiz-play').style.display = 'none';
-  document.getElementById('quiz-done').style.display = '';
-  var total = quiz.right + quiz.wrong;
-  var pct = total ? Math.round((quiz.right / total) * 100) : 0;
-  var changed = '';
-  if (quiz.changed) {
-    changed = '<p>' + quiz.changed + ' card' + (quiz.changed === 1 ? '' : 's') +
-      ' moved in or out of your Type ' + quiz.type + ' known list. Your next Anki deck reflects that.</p>';
-  }
-  document.getElementById('quiz-summary').innerHTML =
-    '<h3>Quiz finished</h3>' +
-    '<p>' + quiz.right + ' of ' + total + ' right (' + pct + '%), over the ' +
-      (quiz.pool === 'known' ? 'known' : 'new') + ' pile in Type ' + quiz.type + '.</p>' +
-    changed +
-    '<p style="color:var(--text-muted)">One pass, no scheduling. Anki is where this turns into ' +
-      'actual retention — build a deck from the card sets page.</p>';
-}
-
-function endQuiz() {
-  quiz.running = false;
-  openQuiz();
-}
+document.addEventListener('change', function(e) {
+  var setCb = e.target.closest && e.target.closest('input[data-quiz-set]');
+  if (setCb) { toggleQuizSet(setCb.getAttribute('data-quiz-set'), setCb.checked); return; }
+  var catCb = e.target.closest && e.target.closest('input[data-quiz-cat]');
+  if (catCb) { toggleQuizCategory(catCb.getAttribute('data-quiz-cat'), catCb.checked); }
+});
 
 document.addEventListener('keydown', function(e) {
-  if (_currentScreen !== 'quiz' || !quiz.running) return;
+  if (_currentScreen !== 'quiz') return;
   if (e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
-  if (!quiz.revealed && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); revealQuizCard(); }
-  else if (quiz.revealed && (e.key === '1' || e.key === 'Enter')) { e.preventDefault(); answerQuiz(true); }
-  else if (quiz.revealed && e.key === '2') { e.preventDefault(); answerQuiz(false); }
+  var k = e.key;
+  if (!quiz.revealed && (k === ' ' || k === 'Enter')) { e.preventDefault(); revealQuizCard(); }
+  else if (quiz.revealed && (k === '1' || k === 'Enter')) { e.preventDefault(); answerQuiz(true); }
+  else if (quiz.revealed && k === '2') { e.preventDefault(); answerQuiz(false); }
+  else if (k === 's' || k === 'S') { e.preventDefault(); quizSkip(); }
+  else if (k === 'b' || k === 'B') { e.preventDefault(); quizBack(); }
 });
 
 /* ============================================================

@@ -154,14 +154,39 @@ the screen.
 A persistent site nav (**Home · Quiz · Instructions · Methodology**) sits above
 every screen, outside the screen containers, and highlights the current one.
 
+## Card identity: Chinese + Pinyin
+
+**One card is one (Chinese, Pinyin) pair**, everywhere — `cardKey()`. 行 *xíng*
+and 行 *háng* are two cards; knowing one does not mark the other. This governs
+the known list, the card-list de-duplication in `loadCards()`, and the quiz
+queue alike.
+
+Known-list entries are `{ch, py, ts, deck}`. Entries written before this carried
+no `py`; `getKnownIndex()` treats those as matching **any** reading of that
+character, so no existing progress was invalidated. `removeFromKnown(mode, ch)`
+without a reading clears every reading of the character (and any legacy entry);
+passing a reading removes just that card.
+
+`loadCards()` keeps the **first** row for each (Chinese, Pinyin) in manifest
+order. This replaced a gloss-subset comparison that also weighed the English
+column — over the full corpus it keeps 2,498 cards where the old rule kept
+3,555, because 637 term+reading pairs are glossed differently in different
+liturgies and only the first is now shown.
+
 ## The Quiz screen
 
-A single-pass self-test over the global card index (`#/quiz`), with no
-scheduling — the page says so and points at the Anki export. Four controls:
-pool (known / new), type (A / B), order (random / by deck), and an optional
-single deck. While playing, those four render as chips above the card next to a
-live known count for the current type, re-read from storage after every change
-and flashed via a CSS animation so the movement is visible.
+A rolling self-test over the global card index (`#/quiz`), with no scheduling —
+the page says so and points at the Anki export. **There is no start or end:**
+`openQuiz()` restores the last settings from `quiz_prefs` (defaulting to New /
+Type A) and deals a queue immediately; any setting change calls
+`regenerateQuiz()`, which rebuilds the queue while keeping the score and
+history.
+
+Three settings: pool (New / Known), type (A / B), and a deck tree mirroring the
+landing page's categories and sets, with whole categories selectable. They
+render as chips above the card next to a live known count for the current type,
+re-read from storage after every change and flashed via CSS so the movement is
+visible.
 
 The card mirrors the Anki note type — same palette (`#fdf6e3` on `#47321d`),
 fonts and sizes, and the same collapsed **Shared by** expander.
@@ -170,11 +195,11 @@ The two pools differ in consequence, which is the whole point of the screen:
 
 | Pool | Got it | Missed it | Manual |
 | ---- | ------ | --------- | ------ |
+| **New** | nothing | nothing | **+ Add to known**, which toggles back off |
 | **Known** | nothing | `removeFromKnown()` — the term returns to your next deck | — |
-| **New** | nothing | nothing | **+ Add to known** records that one card |
 
-Terms are de-duplicated across liturgies, so a character shared by several sets
-is asked once and attributed to the first set it appears in.
+**Skip** advances without scoring. **Back** returns to the previous card and
+undoes what leaving it did, including re-adding a card the Known pool removed.
 
 ### Marking cards as known
 
