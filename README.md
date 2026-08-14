@@ -151,9 +151,12 @@ page count is visible before committing. Nothing leaves the browser until the
 download button is pressed, and the whole block resets on the next visit to
 the screen.
 
-A persistent site nav (**Home · Quiz · Instructions · Methodology · Feedback**)
+A persistent site nav (**Home · Instructions · Methodology · Feedback · Quiz**)
 sits above every screen, outside the screen containers, and highlights the
-current one.
+current one. It never wraps to a second row: the buttons tighten through
+breakpoints at 700px, 420px and 340px, and a test measures `scrollWidth`
+against `clientWidth` at seven real device widths from 320px up to confirm
+nothing is clipped.
 
 ## Card identity: Chinese + Pinyin
 
@@ -247,11 +250,16 @@ front of the card shows.
 ## Feedback board
 
 A public board for bug reports and feature requests at `#/feedback`, posted
-under a per-device alias — an adjective and a noun, e.g. *Wandering Simurgh*,
-*Undivided Alembic* — drawn from Buddhist, Sufi, yogic and wider mystical
-vocabulary and derived from an id in `localStorage`. 1,290 combinations; the
-nouns are objects and states rather than titles, so an alias reads as an image
-and never as a claim about the person holding it. Authors can edit and delete
+under a per-device alias — an adjective and a noun, e.g. *Still Ziggurat*,
+*Alabaster Compass*, *Murmuring Pagoda* — derived from an id in `localStorage`.
+73 adjectives (qualities, textures, colours) × 74 nouns from Buddhist, Sufi,
+yogic, Babylonian/Sumerian and wider mystical vocabulary: 5,402 combinations.
+
+The nouns are **objects, creatures, places and states only**. Terms a tradition
+venerates are deliberately excluded — the Three Jewels (`Sangha` was removed),
+awakening itself (`Bodhi`), and the names of gods in any of these pantheons —
+so an alias reads as an image and never as a claim about the person holding it.
+Implements like `Vajra` and architecture like `Stupa` and `Ziggurat` are in. Authors can edit and delete
 their own posts; anyone can reply, one level deep. Deletes are soft, so replies
 survive the post they answer.
 

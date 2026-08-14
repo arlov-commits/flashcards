@@ -352,13 +352,34 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .doc-detail > *:not(summary) { margin-left: 2px; }
 .doc a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .doc a:hover { color: var(--text); }
-.site-nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-  padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-light); }
-.nav-btn { display: inline-block; padding: 4px 12px; font-size: 0.82rem; font-weight: 600;
+/* One row at every width. The labels shrink before the row ever wraps, and
+   overflow-x is the last-resort valve on a very narrow phone rather than a
+   second line that pushes the page down. */
+.site-nav { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;
+  padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-light);
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.site-nav::-webkit-scrollbar { display: none; }
+.nav-btn { display: inline-block; flex: 0 0 auto; white-space: nowrap;
+  padding: 4px 12px; font-size: 0.82rem; font-weight: 600;
   color: var(--accent); background: var(--bg-card); border: 1.5px solid var(--border);
   border-radius: var(--radius); cursor: pointer; text-decoration: none; line-height: 1.5; }
 .nav-btn:hover { border-color: var(--accent); background: rgba(139,26,26,0.06); }
 .nav-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+@media (max-width: 700px) {
+  /* Five labels, ~39 characters, have to clear a 320px screen: tighten the
+     buttons and reclaim the container's side padding for the bar itself. */
+  .container { padding-left: 10px; padding-right: 10px; }
+  .site-nav { gap: 4px; }
+  .nav-btn { padding: 4px 7px; font-size: 0.63rem; letter-spacing: -0.01em; }
+}
+@media (max-width: 420px) {
+  .site-nav { gap: 3px; }
+  .nav-btn { padding: 4px 5px; font-size: 0.60rem; }
+}
+@media (max-width: 340px) {
+  .site-nav { gap: 2px; }
+  .nav-btn { padding: 3px 4px; font-size: 0.57rem; }
+}
 
 /* Set selection */
 .set-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
@@ -540,10 +561,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
        on all of them, including the landing page. -->
   <nav class="site-nav" id="site-nav">
     <a class="nav-btn" data-nav="landing" onclick="navigateTo('landing')">Home</a>
-    <a class="nav-btn" data-nav="quiz" onclick="navigateTo('quiz')">Quiz</a>
     <a class="nav-btn" data-nav="instructions" onclick="navigateTo('instructions')">Instructions</a>
     <a class="nav-btn" data-nav="methodology" onclick="navigateTo('methodology')">Methodology</a>
     <a class="nav-btn" data-nav="feedback" onclick="navigateTo('feedback')">Feedback</a>
+    <a class="nav-btn" data-nav="quiz" onclick="navigateTo('quiz')">Quiz</a>
   </nav>
 
   <!-- SCREEN 1: Landing (sets browser) -->
@@ -1329,7 +1350,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v3.1';
+var APP_VERSION = 'v3.2';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -4966,29 +4987,50 @@ var FEEDBACK_ENDPOINT = '';        // writes, e.g. 'https://xxxx.supabase.co/res
 var FEEDBACK_READ_ENDPOINT = '';   // reads; the view that omits edit_token, e.g. '.../feedback_public'
 var FEEDBACK_API_KEY  = '';        // Supabase anon key — publishable; the row policies do the guarding
 
-/* Two words: an adjective — a colour or a quality — and a noun drawn from the
-   contemplative traditions this app sits alongside: Buddhist, Sufi, yogic and
-   the wider mystical vocabulary. Objects and states rather than titles, so an
+/* Two words: an adjective — colour, texture or quality — and a noun drawn from
+   the contemplative and antique traditions this app sits alongside: Buddhist,
+   Sufi, yogic, Mesopotamian, and the wider mystical vocabulary.
+   Objects, creatures, places and states only — never the terms a tradition
+   venerates (the Three Jewels, awakening itself, the names of gods), so an
    alias reads as an image and never as a claim about the person holding it. */
 var FB_ADJECTIVES = [
+  // qualities
   'Luminous','Boundless','Hidden','Silent','Unborn','Ineffable','Radiant','Empty','Still','Veiled',
   'Wandering','Unhurried','Fathomless','Wakeful','Tranquil','Effortless','Undivided','Patient',
-  'Ashen','Golden','Indigo','Saffron','Vermilion','Azure','Cinnabar','Jade','Amber','Sable',
-  'Pearl','Verdant'];
+  'Nameless','Wayward','Errant','Steadfast','Weightless','Tidal','Nocturnal','Vesperal','Auroral',
+  'Threadbare','Unbidden','Unspoken','Sunlit','Moonlit','Windborne','Riverine','Winnowing',
+  'Circling','Kindling','Distant','Quickening','Abiding','Unhoused','Lucid','Drifting','Murmuring',
+  // textures and materials
+  'Gilded','Weathered','Burnished','Hollow','Woven','Salted','Ashen','Alabaster','Basalt','Clay',
+  // colours
+  'Golden','Indigo','Saffron','Vermilion','Azure','Cinnabar','Jade','Amber','Sable','Pearl',
+  'Verdant','Umber','Russet','Teal','Ochre','Crimson','Emerald','Lilac','Slate'];
 var FB_NOUNS = [
+  // Buddhist — implements, imagery, states
   'Lotus','Vajra','Stupa','Mandala','Mudra','Mantra','Kalpa','Samadhi','Dhyana','Dharani',
-  'Cintamani','Naga','Garuda','Kinnara','Deva','Sangha','Bodhi','Ksana','Torana','Kesa',
-  'Simurgh','Dervish','Baraka','Qalb','Huma','Sama','Nafas','Tariqa',
-  'Prana','Chakra','Nadi','Bindu','Ojas','Kosha','Asana',
-  'Alembic','Cipher','Lantern','Mirror','Threshold','Ember','Cairn','Chrysalis'];
+  'Cintamani','Naga','Garuda','Kinnara','Deva','Ksana','Torana','Bell','Alms','Pagoda',
+  // Sufi
+  'Simurgh','Dervish','Baraka','Qalb','Huma','Sama','Nafas','Tariqa','Reed','Tavern',
+  // yogic
+  'Prana','Chakra','Nadi','Bindu','Ojas','Kosha','Asana','Breath',
+  // Babylonian and Sumerian — architecture, creatures, places, objects
+  'Ziggurat','Lamassu','Anzu','Abzu','Mushussu','Kudurru','Dilmun','Eridu','Uruk','Lagash',
+  'Kur','Cuneiform','Stylus','Lapis','Bitumen','Tablet','Barque','Canal','Date-Palm','Gate',
+  // wider mystical
+  'Alembic','Cipher','Lantern','Mirror','Threshold','Ember','Cairn','Chrysalis','Astrolabe',
+  'Compass','Hourglass','Key','Lodestone','Well','Ferry','Kiln'];
 
 /* The tone an alias is drawn in. A colour adjective is shown in its own
    colour; anything else takes one from the palette by hash. */
 var FB_TONES = ['amber','azure','cinnabar','crimson','emerald','indigo','jade','ochre',
   'russet','saffron','sable','slate','teal','umber','verdant','lilac'];
-var FB_ADJ_TONE = { ashen: 'slate', golden: 'saffron', indigo: 'indigo', saffron: 'saffron',
-  vermilion: 'cinnabar', azure: 'azure', cinnabar: 'cinnabar', jade: 'jade', amber: 'amber',
-  sable: 'sable', pearl: 'pearl', verdant: 'verdant' };
+var FB_ADJ_TONE = {
+  golden: 'saffron', indigo: 'indigo', saffron: 'saffron', vermilion: 'cinnabar', azure: 'azure',
+  cinnabar: 'cinnabar', jade: 'jade', amber: 'amber', sable: 'sable', pearl: 'pearl',
+  verdant: 'verdant', umber: 'umber', russet: 'russet', teal: 'teal', ochre: 'ochre',
+  crimson: 'crimson', emerald: 'emerald', lilac: 'lilac', slate: 'slate',
+  ashen: 'slate', alabaster: 'pearl', basalt: 'sable', clay: 'russet',
+  gilded: 'saffron', weathered: 'slate', burnished: 'amber', salted: 'pearl', woven: 'umber' };
 
 var FEEDBACK_IDENTITY_KEY = 'feedback_identity';
 var FEEDBACK_LOCAL_KEY = 'feedback_posts_local';
