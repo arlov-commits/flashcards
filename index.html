@@ -186,6 +186,7 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .fb-tone-pearl{color:#7d7a72}.fb-tone-russet{color:#8b4513}.fb-tone-saffron{color:#b07d09}
 .fb-tone-sable{color:#4a3b32}.fb-tone-slate{color:#4f6272}.fb-tone-teal{color:#1c6f70}
 .fb-tone-umber{color:#6b4423}.fb-tone-verdant{color:#3d7a2a}
+.fb-tone-lilac{color:#7a5aa3}
 /* ---------- end Feedback ---------- */
 /* ---------- Quiz ---------- */
 .quiz-setup { max-width: 46rem; padding-bottom: 16px; margin-bottom: 18px;
@@ -217,8 +218,16 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
   width: min(460px, 88vw); background: var(--bg-card); border: 1.5px solid var(--border);
   border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px; }
 .quiz-deck-dropdown.open .quiz-deck-menu { display: block; }
-.quiz-deck-menu-actions { display: flex; gap: 8px; padding-bottom: 8px; margin-bottom: 8px;
-  border-bottom: 1px solid var(--border-light); }
+.quiz-deck-random { display: block; width: 100%; text-align: left; font-family: inherit;
+  padding: 9px 12px; margin-bottom: 8px; border: 1.5px solid var(--border);
+  border-radius: var(--radius); background: var(--bg); color: var(--text); cursor: pointer; }
+.quiz-deck-random:hover { border-color: var(--accent); }
+.quiz-deck-random.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.quiz-deck-random .qdr-title { display: block; font-weight: 700; font-size: 0.88rem; }
+.quiz-deck-random .qdr-sub { display: block; font-size: 0.74rem; opacity: 0.8; margin-top: 1px; }
+.quiz-deck-menu-actions { display: flex; gap: 10px; align-items: center; padding-bottom: 8px;
+  margin-bottom: 8px; border-bottom: 1px solid var(--border-light); }
+.quiz-deck-hint { font-size: 0.76rem; color: var(--text-muted); }
 .quiz-decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px; max-height: 320px; overflow-y: auto; }
 .quiz-cat { break-inside: avoid; }
@@ -230,10 +239,36 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .quiz-set:hover { color: var(--text); }
 .quiz-set-tag { opacity: 0.7; }
 .quiz-available { font-size: 0.85rem; color: var(--text-muted); }
-.quiz-controls { display: flex; align-items: center; justify-content: center; gap: 12px;
-  margin-top: 16px; flex-wrap: wrap; }
-.quiz-controls .quiz-actions { margin-top: 0; justify-content: center; }
-.quiz-add-btn.is-on { border-color: #2f6b3f; color: #2f6b3f; background: rgba(47,107,63,0.08); }
+/* Fixed height for the same reason as the card: the middle of this row swaps
+   between one button and three, and must not change the page's height. */
+.quiz-controls { display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin-top: 16px; min-height: 46px; flex-wrap: nowrap; }
+.quiz-controls .quiz-actions { margin-top: 0; justify-content: center; min-height: 40px;
+  align-items: center; flex-wrap: nowrap; }
+#quiz-play { min-height: 60vh; }
+
+/* One button family for the quiz, three roles: red for missed, green for got
+   it, slate for the neutral moves that neither judge nor record. */
+.q-btn { font-family: inherit; font-size: 0.88rem; font-weight: 600; padding: 9px 16px;
+  border-radius: var(--radius); border: 1.5px solid; cursor: pointer; white-space: nowrap;
+  background: var(--bg-card); transition: background 0.12s, color 0.12s; }
+.q-btn:disabled { opacity: 0.4; cursor: default; }
+.q-btn-miss { border-color: #a32020; color: #a32020; }
+.q-btn-miss:hover:not(:disabled) { background: #a32020; color: #fff; }
+.q-btn-got { border-color: #2f7d4f; color: #2f7d4f; }
+.q-btn-got:hover:not(:disabled) { background: #2f7d4f; color: #fff; }
+.q-btn-nav { border-color: #7c8794; color: #56606c; padding: 8px 13px; font-size: 0.82rem; }
+.q-btn-nav:hover:not(:disabled) { background: #7c8794; color: #fff; }
+.q-btn-reveal { border-color: var(--accent); background: var(--accent); color: #fff; padding: 9px 24px; }
+.q-btn-reveal:hover { background: #6f1515; }
+
+/* "Got it" and "+ known" are one control: the same green, hairline apart. */
+.q-split { display: inline-flex; }
+.q-split .q-btn-got { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right-width: 0.75px; }
+.q-split .q-btn-known { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 0.75px;
+  border-color: #2f7d4f; color: #2f7d4f; font-size: 0.8rem; padding: 9px 12px; }
+.q-split .q-btn-known:hover { background: #2f7d4f; color: #fff; }
+.q-split.is-on .q-btn-known { background: #2f7d4f; color: #fff; }
 .quiz-empty { max-width: 46rem; background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 16px; font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
 
@@ -258,11 +293,19 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 
 /* The quiz card mirrors the Anki note type (templates/anki-1.2-type-a.txt):
    same palette, same fonts, same sizes, so practising here looks like
-   reviewing there. */
+   reviewing there.
+
+   Its height is fixed rather than content-driven. Revealing an answer roughly
+   doubles the content, and if the card grew the buttons below it would move
+   under the pointer and the page would jump. A constant box means the whole
+   quiz — card, controls and all — holds still from the first card to the last;
+   long answers scroll inside it instead of resizing it. */
 .qcard { position: relative; background: #fdf6e3; color: #47321d; border: 1px solid var(--border);
-  border-radius: var(--radius); text-align: center; padding: 28px 20px; line-height: 1.5;
-  font-family: "Times New Roman", Times, serif; min-height: 220px;
+  border-radius: var(--radius); text-align: center; padding: 34px 20px 46px; line-height: 1.5;
+  font-family: "Times New Roman", Times, serif;
+  height: clamp(300px, 46vh, 430px); overflow: hidden;
   display: flex; flex-direction: column; justify-content: center; }
+.qcard .q-inner { max-height: 100%; overflow-y: auto; }
 .qcard .q-chinese { font-family: "Noto Serif SC", "Times New Roman", serif; font-size: 50px; }
 .qcard .q-pinyin  { font-size: 40px; }
 .qcard .q-halfbr  { display: block; margin-top: 0.3em; }
@@ -274,6 +317,17 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .qcard .q-deckname { position: absolute; top: 12px; left: 16px; max-width: 60%;
   font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.78rem; font-weight: 600;
   letter-spacing: 0.02em; color: rgba(71,50,29,0.55); text-align: left; }
+/* Same corners, glyphs and dimming as the Anki card. */
+.qcard .q-dict { position: absolute; bottom: 12px; font-size: 20px; text-decoration: none;
+  opacity: 0.4; line-height: 1; }
+.qcard .q-dict:hover { opacity: 0.9; }
+.qcard .q-dict-left { left: 14px; }
+.qcard .q-dict-right { right: 14px; }
+.qcard .q-dictmsg { display: none; position: absolute; left: 50%; bottom: 10px;
+  transform: translateX(-50%); max-width: 86%; font-family: "Lora", 'Segoe UI', sans-serif;
+  font-size: 14px; line-height: 1.35; color: #47321d; background: #f3e7cc;
+  border: 1px solid #d9c9a3; border-radius: 6px; padding: 7px 11px; }
+.qcard .q-dictmsg a { color: #3258a8; }
 
 .quiz-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn-danger { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
@@ -777,9 +831,13 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <button class="quiz-deck-toggle" id="quiz-deck-toggle" onclick="toggleQuizDeckMenu()"
                   aria-haspopup="true" aria-expanded="false"></button>
           <div class="quiz-deck-menu" id="quiz-deck-menu">
+            <button class="quiz-deck-random" id="quiz-deck-random" onclick="setQuizDecksAll(true)">
+              <span class="qdr-title">Random</span>
+              <span class="qdr-sub">Every deck, all cards shuffled together</span>
+            </button>
             <div class="quiz-deck-menu-actions">
-              <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(true)">Select all</button>
-              <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(false)">Clear</button>
+              <button class="btn btn-outline btn-sm" onclick="setQuizDecksAll(false)">Clear all</button>
+              <span class="quiz-deck-hint">or pick categories and sets below</span>
             </div>
             <div class="quiz-decks" id="quiz-decks"></div>
           </div>
@@ -801,9 +859,9 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <div class="qcard" id="quiz-card"></div>
 
       <div class="quiz-controls">
-        <button class="btn btn-outline btn-sm" id="quiz-back-btn" onclick="quizBack()">&larr; Back</button>
+        <button class="q-btn q-btn-nav" id="quiz-back-btn" onclick="quizBack()">&larr; Back</button>
         <div class="quiz-actions" id="quiz-actions"></div>
-        <button class="btn btn-outline btn-sm" onclick="quizSkip()">Skip &rarr;</button>
+        <button class="q-btn q-btn-nav" onclick="quizSkip()">Skip &rarr;</button>
       </div>
     </div>
 
@@ -1018,17 +1076,22 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <p>
           Three settings sit at the top: which pile (<strong>New</strong> or
           <strong>Known</strong>), which type (<strong>A</strong> or <strong>B</strong>,
-          exactly as on the card sets page), and which decks &mdash; the same
-          categories and sets as the home screen, where ticking a category takes all
-          of its sets. While a quiz is running those settings are shown as chips above
-          the card, alongside a live count of your known list for that type.
+          exactly as on the card sets page), and which decks. Decks default to
+          <strong>Random</strong> &mdash; every deck, all cards shuffled together
+          &mdash; and the dropdown holds the same categories and sets as the home
+          screen, where ticking a category takes all of its sets. A term that appears
+          in several liturgies is asked once however many of them you select, and the
+          count beside the dropdown is that de-duplicated number. While a quiz is
+          running the settings show as chips above the card, alongside a live count of
+          your known list for that type.
         </p>
         <p>
           <strong>New pile &mdash; nothing is recorded unless you say so.</strong>
           Right and wrong are just a score; neither touches your known list. If a card
-          turns out to be one you already know, press <strong>+ Add to known</strong>.
-          The button then reads <em>In your known list &mdash; click to undo</em>, so
-          a mistaken tick is one click away from being reversed.
+          turns out to be one you already know, use the <strong>+ known</strong> half of
+          the green button &mdash; it sits against &ldquo;Got it&rdquo; because it is
+          the same judgement, one step stronger. It fills in once set, and clicking it
+          again takes the card back off.
         </p>
         <p>
           <strong>Known pile &mdash; missing a card removes it.</strong> Press
@@ -1039,7 +1102,13 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <p>
           <strong>Skip</strong> moves on without scoring. <strong>Back</strong> returns
           to the previous card and undoes what leaving it did &mdash; the score, and a
-          known-list removal if that is what happened.
+          known-list removal if that is what happened. Both are grey; the red and green
+          buttons between them are the ones that count.
+        </p>
+        <p>
+          Each quiz card carries the same &#128214; Pleco and &#128213; HanziCraft
+          links as the Anki cards, in the same two corners, behaving the same way.
+          Reach for them when a card will not stick.
         </p>
         <p>
           Keyboard: <kbd>Space</kbd> or <kbd>Enter</kbd> reveals, then <kbd>1</kbd> got
@@ -1260,7 +1329,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v3.0';
+var APP_VERSION = 'v3.1';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -4447,7 +4516,7 @@ function quizPoolCards() {
 function quizDeckSummary() {
   var sel = quizSelectedSetKeys().length;
   var total = quizAllSetKeys().length;
-  if (quiz.decks === null || sel === total) return 'All decks (' + total + ')';
+  if (quiz.decks === null || sel === total) return 'Random — all ' + total + ' decks';
   if (sel === 0) return 'No decks selected';
   if (sel === 1) return oneQuizDeckName();
   return sel + ' of ' + total + ' decks';
@@ -4469,6 +4538,9 @@ document.addEventListener('click', function(e) {
 function renderQuizDeckPicker() {
   var toggle = document.getElementById('quiz-deck-toggle');
   if (toggle) toggle.textContent = quizDeckSummary();
+  var rnd = document.getElementById('quiz-deck-random');
+  if (rnd) rnd.classList.toggle('active', quiz.decks === null ||
+    quizSelectedSetKeys().length === quizAllSetKeys().length);
   var host = document.getElementById('quiz-decks');
   if (!host) return;
   var cats = quizCategories();
@@ -4554,6 +4626,9 @@ function regenerateQuiz() {
 function renderQuizAvailable() {
   var el = document.getElementById('quiz-available');
   if (!el) return;
+  // quiz.cards is already de-duplicated on (Chinese, Pinyin), so this is the
+  // number of distinct cards you will actually be shown, not the sum of the
+  // selected decks — overlapping liturgies are counted once.
   var n = quiz.cards.length;
   el.textContent = n
     ? n + ' card' + (n === 1 ? '' : 's') + ' in this quiz'
@@ -4650,35 +4725,51 @@ function renderQuizCard() {
   document.getElementById('quiz-progress').textContent = (quiz.idx + 1) + ' / ' + quiz.cards.length;
 
   var showPinyinFront = quiz.type === 'A';
-  var html = '<div class="q-deckname">' + escapeHtml(c._setLabel || '') + '</div>' +
-             '<div class="q-chinese" lang="zh-Hant">' + escapeHtml(c.chinese || '') + '</div>';
-  if (showPinyinFront) html += '<div class="q-pinyin">' + escapeHtml(c.pinyin || '') + '</div>';
-  html += '<span class="q-halfbr"></span>';
+  var inner = '<div class="q-chinese" lang="zh-Hant">' + escapeHtml(c.chinese || '') + '</div>';
+  if (showPinyinFront) inner += '<div class="q-pinyin">' + escapeHtml(c.pinyin || '') + '</div>';
+  inner += '<span class="q-halfbr"></span>';
 
   if (quiz.revealed) {
-    html += '<hr>';
-    if (!showPinyinFront) html += '<div class="q-pinyin">' + escapeHtml(c.pinyin || '') + '</div>';
-    html += '<div class="q-english">' + escapeHtml(c.english_def || '') + '</div>';
+    inner += '<hr>';
+    if (!showPinyinFront) inner += '<div class="q-pinyin">' + escapeHtml(c.pinyin || '') + '</div>';
+    inner += '<div class="q-english">' + escapeHtml(c.english_def || '') + '</div>';
     if ((c.shared_by || '').trim()) {
-      html += '<div class="q-expander" onclick="toggleQuizShared()">Shared by &#9656;</div>' +
-              '<div class="q-shared" id="quiz-shared" style="display:none">' + escapeHtml(c.shared_by) + '</div>';
+      inner += '<div class="q-expander" onclick="toggleQuizShared()">Shared by &#9656;</div>' +
+               '<div class="q-shared" id="quiz-shared" style="display:none">' + escapeHtml(c.shared_by) + '</div>';
     }
   }
+
+  var html =
+    '<div class="q-deckname">' + escapeHtml(c._setLabel || '') + '</div>' +
+    '<div class="q-inner">' + inner + '</div>' +
+    '<a class="q-dict q-dict-left" href="https://hanzicraft.com/character/' +
+      encodeURIComponent(c.chinese || '') + '" target="_blank" rel="noopener"' +
+      ' title="Look this character up on HanziCraft">&#128213;</a>' +
+    '<a class="q-dict q-dict-right" id="quiz-pleco" href="#" data-hw="' + escapeHtml(c.chinese || '') +
+      '" title="Open in Pleco">&#128214;</a>' +
+    '<div class="q-dictmsg" id="quiz-dictmsg"></div>';
   document.getElementById('quiz-card').innerHTML = html;
+  wireQuizPlecoLink();
 
   var actions = document.getElementById('quiz-actions');
   if (!quiz.revealed) {
-    actions.innerHTML = '<button class="btn btn-primary" onclick="revealQuizCard()">Show answer</button>';
+    actions.innerHTML = '<button class="q-btn q-btn-reveal" onclick="revealQuizCard()">Show answer</button>';
   } else {
-    var buttons =
-      '<button class="btn btn-success" onclick="answerQuiz(true)">&#10003; Got it</button>' +
-      '<button class="btn btn-danger" onclick="answerQuiz(false)">&#10007; ' +
-        (quiz.pool === 'known' ? 'Missed it &mdash; remove from known' : 'Missed it') + '</button>';
+    var buttons = '<button class="q-btn q-btn-miss" onclick="answerQuiz(false)">&#10007; Missed it</button>';
     if (quiz.pool === 'new') {
+      // "Got it" and "Got it, and I know this one" are the same judgement at
+      // two strengths, so they share one control rather than sitting apart.
       var isKnown = getKnownIndex(quiz.type).has(c.chinese, c.pinyin);
-      buttons += '<button class="btn btn-outline btn-sm quiz-add-btn' + (isKnown ? ' is-on' : '') +
-        '" onclick="toggleCurrentQuizCardKnown()">' +
-        (isKnown ? '&#10003; In your known list — click to undo' : '+ Add to known') + '</button>';
+      buttons +=
+        '<span class="q-split' + (isKnown ? ' is-on' : '') + '">' +
+          '<button class="q-btn q-btn-got" onclick="answerQuiz(true)">&#10003; Got it</button>' +
+          '<button class="q-btn q-btn-known" onclick="toggleCurrentQuizCardKnown()" title="' +
+            (isKnown ? 'On your known list — click to take it back off' :
+             'Got it, and keep it out of future decks') + '">' +
+            (isKnown ? '&#10003; known' : '+ known') + '</button>' +
+        '</span>';
+    } else {
+      buttons += '<button class="q-btn q-btn-got" onclick="answerQuiz(true)">&#10003; Got it</button>';
     }
     actions.innerHTML = buttons;
   }
@@ -4686,6 +4777,61 @@ function renderQuizCard() {
   var back = document.getElementById('quiz-back-btn');
   if (back) back.disabled = quiz.history.length === 0;
   renderQuizAvailable();
+}
+
+/* Same platform handling as the Anki note's script: Android gets the
+   intent:// wrapper, iOS the plecoapi:// scheme with a not-installed
+   fallback, desktop a note rather than a dead link. */
+function wireQuizPlecoLink() {
+  var link = document.getElementById('quiz-pleco');
+  var msg = document.getElementById('quiz-dictmsg');
+  if (!link || !msg) return;
+
+  var ua = navigator.userAgent || '';
+  var isAndroid = /Android/i.test(ua);
+  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+              (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var hw = encodeURIComponent(link.getAttribute('data-hw') || '');
+  var hideTimer;
+
+  function show(html) {
+    msg.innerHTML = html;
+    msg.style.display = 'block';
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function() { msg.style.display = 'none'; }, 6000);
+  }
+
+  if (isAndroid) {
+    link.href = 'intent://x-callback-url/df?hw=' + hw +
+      '#Intent;scheme=plecoapi;package=com.pleco.chinesesystem' +
+      ';S.browser_fallback_url=https%3A%2F%2Fwww.pleco.com%2F' +
+      ';launchFlags=0x10000000;end';
+  } else if (isIOS) {
+    link.href = 'plecoapi://x-callback-url/df?hw=' + hw + '&sec=dict';
+  }
+
+  link.addEventListener('click', function(e) {
+    if (!isAndroid && !isIOS) {
+      e.preventDefault();
+      show('Pleco is only available on mobile. Use \uD83D\uDCD5 for HanziCraft in a browser.');
+      return;
+    }
+    if (!hw) { e.preventDefault(); return; }
+    if (!isIOS) return;
+    var left = false;
+    function onLeave() { left = true; }
+    document.addEventListener('visibilitychange', onLeave);
+    window.addEventListener('pagehide', onLeave);
+    setTimeout(function() {
+      document.removeEventListener('visibilitychange', onLeave);
+      window.removeEventListener('pagehide', onLeave);
+      if (!left && !document.hidden) {
+        show('Pleco does not seem to be installed. ' +
+             '<a href="https://apps.apple.com/us/app/pleco-chinese-dictionary/id341922306" ' +
+             'target="_blank" rel="noopener">Get Pleco</a>');
+      }
+    }, 1500);
+  });
 }
 
 function toggleQuizShared() {
@@ -4820,13 +4966,29 @@ var FEEDBACK_ENDPOINT = '';        // writes, e.g. 'https://xxxx.supabase.co/res
 var FEEDBACK_READ_ENDPOINT = '';   // reads; the view that omits edit_token, e.g. '.../feedback_public'
 var FEEDBACK_API_KEY  = '';        // Supabase anon key — publishable; the row policies do the guarding
 
-var FB_COLORS = ['Amber','Azure','Cinnabar','Copper','Crimson','Emerald','Indigo','Ivory',
-  'Jade','Lilac','Ochre','Onyx','Pearl','Russet','Saffron','Sable','Slate','Teal','Umber','Verdant'];
-var FB_QUALITIES = ['Attentive','Brisk','Candid','Diligent','Earnest','Fearless','Gentle','Humble',
-  'Keen','Lucid','Measured','Nimble','Patient','Quiet','Resolute','Steady','Thoughtful','Unhurried',
-  'Vigilant','Wandering'];
-var FB_ANIMALS = ['Badger','Crane','Dragonfly','Egret','Falcon','Gibbon','Heron','Ibis','Jackdaw',
-  'Kingfisher','Lynx','Magpie','Nightjar','Otter','Pangolin','Quail','Raven','Sparrow','Tortoise','Wren'];
+/* Two words: an adjective — a colour or a quality — and a noun drawn from the
+   contemplative traditions this app sits alongside: Buddhist, Sufi, yogic and
+   the wider mystical vocabulary. Objects and states rather than titles, so an
+   alias reads as an image and never as a claim about the person holding it. */
+var FB_ADJECTIVES = [
+  'Luminous','Boundless','Hidden','Silent','Unborn','Ineffable','Radiant','Empty','Still','Veiled',
+  'Wandering','Unhurried','Fathomless','Wakeful','Tranquil','Effortless','Undivided','Patient',
+  'Ashen','Golden','Indigo','Saffron','Vermilion','Azure','Cinnabar','Jade','Amber','Sable',
+  'Pearl','Verdant'];
+var FB_NOUNS = [
+  'Lotus','Vajra','Stupa','Mandala','Mudra','Mantra','Kalpa','Samadhi','Dhyana','Dharani',
+  'Cintamani','Naga','Garuda','Kinnara','Deva','Sangha','Bodhi','Ksana','Torana','Kesa',
+  'Simurgh','Dervish','Baraka','Qalb','Huma','Sama','Nafas','Tariqa',
+  'Prana','Chakra','Nadi','Bindu','Ojas','Kosha','Asana',
+  'Alembic','Cipher','Lantern','Mirror','Threshold','Ember','Cairn','Chrysalis'];
+
+/* The tone an alias is drawn in. A colour adjective is shown in its own
+   colour; anything else takes one from the palette by hash. */
+var FB_TONES = ['amber','azure','cinnabar','crimson','emerald','indigo','jade','ochre',
+  'russet','saffron','sable','slate','teal','umber','verdant','lilac'];
+var FB_ADJ_TONE = { ashen: 'slate', golden: 'saffron', indigo: 'indigo', saffron: 'saffron',
+  vermilion: 'cinnabar', azure: 'azure', cinnabar: 'cinnabar', jade: 'jade', amber: 'amber',
+  sable: 'sable', pearl: 'pearl', verdant: 'verdant' };
 
 var FEEDBACK_IDENTITY_KEY = 'feedback_identity';
 var FEEDBACK_LOCAL_KEY = 'feedback_posts_local';
@@ -4861,10 +5023,11 @@ function getFeedbackIdentity() {
 
 function feedbackAliasFor(seed) {
   var h = fbHash(String(seed));
-  var color = FB_COLORS[h % FB_COLORS.length];
-  var quality = FB_QUALITIES[Math.floor(h / FB_COLORS.length) % FB_QUALITIES.length];
-  var animal = FB_ANIMALS[Math.floor(h / (FB_COLORS.length * FB_QUALITIES.length)) % FB_ANIMALS.length];
-  return { alias: color + ' ' + quality + ' ' + animal, color: color };
+  var adj = FB_ADJECTIVES[h % FB_ADJECTIVES.length];
+  var noun = FB_NOUNS[Math.floor(h / FB_ADJECTIVES.length) % FB_NOUNS.length];
+  var tone = FB_ADJ_TONE[adj.toLowerCase()] ||
+             FB_TONES[Math.floor(h / (FB_ADJECTIVES.length * FB_NOUNS.length)) % FB_TONES.length];
+  return { alias: adj + ' ' + noun, color: tone };
 }
 
 function myFeedbackAlias() { return feedbackAliasFor(getFeedbackIdentity().seed); }
@@ -4882,7 +5045,7 @@ function renderFeedbackAlias() {
   if (!el) return;
   var me = myFeedbackAlias();
   el.textContent = me.alias;
-  el.className = 'fb-alias fb-tone-' + me.color.toLowerCase();
+  el.className = 'fb-alias fb-tone-' + String(me.color).toLowerCase();
 }
 
 /* ---------- storage adapter ---------- */
@@ -4973,7 +5136,7 @@ function fbIsMine(p) { return p.author_key === getFeedbackIdentity().uid; }
 
 function renderFeedbackPost(p, isReply) {
   var mine = fbIsMine(p);
-  var tone = (p.author_color || 'Slate').toLowerCase();
+  var tone = String(p.author_color || 'slate').toLowerCase();
   var body = p.deleted
     ? '<em class="fb-deleted">Deleted by its author.</em>'
     : escapeHtml(p.body || '').replace(/\n/g, '<br>');

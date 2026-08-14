@@ -183,16 +183,28 @@ Type A) and deals a queue immediately; any setting change calls
 `regenerateQuiz()`, which rebuilds the queue while keeping the score and
 history.
 
-Three settings: pool (New / Known), type (A / B), and a deck **dropdown** whose
-menu is a checkbox tree mirroring the landing page's categories and sets, with
-whole categories selectable. They render as chips above the card next to a live
-known count for the current type, re-read from storage after every change and
-flashed via CSS so the movement is visible — that counter is the only running
-feedback the screen gives, by design.
+Three settings: pool (New / Known), type (A / B), and a deck **dropdown**
+defaulting to **Random** — every deck shuffled together — whose menu is a
+checkbox tree mirroring the landing page's categories and sets, with whole
+categories selectable. The card count beside it is the de-duplicated queue
+length, recomputed on every toggle, so a term in five liturgies is counted and
+asked once.
 
-The card shows its deck name pinned top-left and nothing else but the term. No
-prompt, no score line, no keyboard legend. Controls sit centred beneath it:
-**Back** on the left, the answer buttons in the middle, **Skip** on the right.
+**The geometry is fixed on purpose.** `.qcard` has a set height and
+`.quiz-controls` a set min-height, because revealing an answer roughly doubles
+the card's content: if the box grew, the buttons would slide out from under the
+pointer and the page would jump on every card. Long answers scroll inside the
+card instead. A regression test asserts card height, card top, button top,
+page height and scroll position are all identical across reveal, across the
+next card, and across twenty cards in a row.
+
+The card shows its deck name top-left, the 📖 Pleco and 📕 HanziCraft links in
+the same two corners as the Anki note (same glyphs, same 0.4 opacity, same
+per-platform behaviour), and nothing else. No prompt, no score line, no
+keyboard legend — the known counter is the only running feedback.
+
+Controls, centred beneath: **← Back** (slate) · **✗ Missed it** (red) · **✓ Got
+it | + known** (green, one split control) · **Skip →** (slate).
 
 The card mirrors the Anki note type — same palette (`#fdf6e3` on `#47321d`),
 fonts and sizes, and the same collapsed **Shared by** expander.
@@ -235,8 +247,11 @@ front of the card shows.
 ## Feedback board
 
 A public board for bug reports and feature requests at `#/feedback`, posted
-under a per-device alias (colour + quality + animal, e.g. *Amber Resolute
-Falcon*) derived from an id in `localStorage`. Authors can edit and delete
+under a per-device alias — an adjective and a noun, e.g. *Wandering Simurgh*,
+*Undivided Alembic* — drawn from Buddhist, Sufi, yogic and wider mystical
+vocabulary and derived from an id in `localStorage`. 1,290 combinations; the
+nouns are objects and states rather than titles, so an alias reads as an image
+and never as a claim about the person holding it. Authors can edit and delete
 their own posts; anyone can reply, one level deep. Deletes are soft, so replies
 survive the post they answer.
 
