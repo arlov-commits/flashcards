@@ -126,6 +126,11 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
 .nav-bar .back-link { color: var(--accent); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 .nav-bar .back-link:hover { text-decoration: underline; }
+.nav-bar .nav-links { display: flex; gap: 8px; align-items: center; }
+.nav-btn { display: inline-block; padding: 4px 12px; font-size: 0.82rem; font-weight: 600;
+  color: var(--accent); background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; text-decoration: none; line-height: 1.5; }
+.nav-btn:hover { border-color: var(--accent); background: rgba(139,26,26,0.06); }
 
 /* Set selection */
 .set-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
@@ -233,6 +238,12 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
 .anki-help summary { cursor: pointer; font-weight: 600; color: var(--accent); }
 .anki-help ul { margin: 8px 0 0 18px; }
 .anki-help li { margin-bottom: 4px; }
+.anki-help a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.anki-help a:hover { color: var(--accent); }
+.anki-help h4 { font-size: 0.82rem; margin: 10px 0 2px; color: var(--text); }
+.anki-help p { margin: 2px 0; }
+.anki-help .anki-help-intro { margin-bottom: 4px; }
+.anki-help .anki-help-cost { color: var(--text-muted); }
 .summary-text { position: relative; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 34px 12px 16px; font-size: 0.9rem; color: var(--text-muted); margin: 16px 0; }
 .progress-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 
@@ -310,6 +321,7 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
     </div>
     <div class="manage-bar">
       <h2 id="landing-browse-title" style="margin-bottom:0">Browse Card Sets</h2>
+      <a class="nav-btn" onclick="navigateTo('methodology')">Methodology</a>
     </div>
     <div id="global-search-bar">
       <input type="search" id="global-search-input" placeholder="Search all cards (Chinese, pinyin, or English — any substring)…" autocomplete="off">
@@ -336,7 +348,10 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
   <!-- SCREEN 2: Customize -->
   <div id="screen-customize" class="screen">
     <div class="nav-bar">
-      <a class="back-link" onclick="navigateTo('landing')">&larr; Back to Sets</a>
+      <div class="nav-links">
+        <a class="nav-btn" onclick="navigateTo('landing')">Home</a>
+        <a class="nav-btn" onclick="navigateTo('methodology')">Methodology</a>
+      </div>
       <span id="customize-title"></span>
     </div>
 
@@ -386,35 +401,46 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">A spaced-repetition deck of the selected cards. You can rename it after importing.</p>
         <details class="anki-help">
           <summary>First time? Set up Anki</summary>
-          <ul>
-            <li><strong>Windows, macOS &amp; Linux:</strong> <a href="https://apps.ankiweb.net/" target="_blank" rel="noopener">Anki</a> is free.</li>
-            <li><strong>Android:</strong> <a href="https://play.google.com/store/apps/details?id=com.ichi2.anki&amp;hl=en_US" target="_blank" rel="noopener">AnkiDroid</a> is free.</li>
-            <li><strong>iPhone &amp; iPad:</strong> <a href="https://apps.apple.com/us/app/ankimobile-flashcards/id373493387" target="_blank" rel="noopener">AnkiMobile</a> is a one-time $24.99 purchase. Free alternatives are AnkiWeb in a browser (online only), or a third-party <code>.apkg</code> importer.</li>
-            <li><strong>After downloading:</strong> tap or open the <code>.apkg</code> file and Anki imports it. If your device asks what to open it with, choose <strong>Open with Anki</strong>.</li>
-          </ul>
+          <p class="anki-help-intro">Anki is the app that studies these cards with you. Install it first, then open the file you download here. Find your device below.</p>
+
+          <h4>Windows, macOS or Linux</h4>
+          <p>Install <a href="https://apps.ankiweb.net/" target="_blank" rel="noopener">Anki</a> — free. Download the <code>.apkg</code>, then double-click it. If your computer asks what to open it with, choose <strong>Open with Anki</strong>.</p>
+
+          <h4>Android phone or tablet</h4>
+          <p>Install <a href="https://play.google.com/store/apps/details?id=com.ichi2.anki&amp;hl=en_US" target="_blank" rel="noopener">AnkiDroid</a> — free. Download the <code>.apkg</code>, tap it, and choose <strong>Open with AnkiDroid</strong> if prompted.</p>
+
+          <h4>iPhone or iPad</h4>
+          <p>Install <a href="https://apps.apple.com/us/app/ankimobile-flashcards/id373493387" target="_blank" rel="noopener">AnkiMobile</a>, then download the <code>.apkg</code>, tap it, and choose <strong>Open with AnkiMobile</strong>. <span class="anki-help-cost">AnkiMobile is a one-time $24.99 purchase.</span></p>
+          <p>To avoid that cost: study in a browser at <a href="https://ankiweb.net/" target="_blank" rel="noopener">AnkiWeb</a> (free, needs an internet connection), or import the file with a third-party <code>.apkg</code> reader.</p>
+
+          <h4>Already using Anki?</h4>
+          <p>Just open the file. Re-importing an updated deck edits the cards you already have instead of duplicating them, and keeps your review history.</p>
         </details>
       </div>
 
       <div class="data-block">
-        <div class="export-dropdown" style="position:relative;display:inline-block">
-          <button class="btn btn-outline btn-sm" onclick="this.nextElementSibling.classList.toggle('open')" style="font-size:0.82rem">Download Data &#9662;</button>
-          <div class="export-menu">
-            <div class="export-menu-label">Card data</div>
-            <button onclick="exportData('csv')">CSV</button>
-            <button onclick="exportData('xlsx')">XLSX</button>
-            <button onclick="exportData('json')">JSON</button>
-            <button onclick="exportData('gsheet')">Google Sheets</button>
-            <div class="export-menu-label">Printable flashcards (PDF)</div>
-            <button onclick="exportData('pdf:4x4')">4 &times; 4 (16 cards)</button>
-            <button onclick="exportData('pdf:4x5')">4 &times; 5 (20 cards)</button>
-            <button onclick="exportData('pdf:5x5')">5 &times; 5 (25 cards)</button>
+        <div class="anki-row">
+          <div class="export-dropdown" style="position:relative;display:inline-block">
+            <button class="btn btn-outline btn-sm" onclick="this.nextElementSibling.classList.toggle('open')" style="font-size:0.82rem">Download Data &#9662;</button>
+            <div class="export-menu">
+              <div class="export-menu-label">Card data</div>
+              <button onclick="pickDataFormat('csv')">CSV</button>
+              <button onclick="pickDataFormat('xlsx')">XLSX</button>
+              <button onclick="pickDataFormat('json')">JSON</button>
+              <button onclick="pickDataFormat('gsheet')">Google Sheets</button>
+              <div class="export-menu-label">Printable flashcards (PDF)</div>
+              <button onclick="pickDataFormat('pdf:4x4')">4 &times; 4 (16 cards)</button>
+              <button onclick="pickDataFormat('pdf:4x5')">4 &times; 5 (20 cards)</button>
+              <button onclick="pickDataFormat('pdf:5x5')">5 &times; 5 (25 cards)</button>
+            </div>
           </div>
+          <span id="data-format-label" style="font-size:0.85rem;color:var(--text-muted)">Choose a format to download.</span>
         </div>
       </div>
 
-      <!-- Print-only controls: the page-count pill, the card design gear and a
-           re-download button. Hidden until a PDF grid is picked from the menu
-           above, so the Anki path stays uncluttered. -->
+      <!-- Print-only controls: the page-count pill and the card design gear.
+           Hidden until a PDF grid is picked from the menu above, so the Anki
+           path stays uncluttered. -->
       <div id="print-options" style="display:none">
       <div id="summary-text" class="summary-text">
         <span id="summary-text-body"></span>
@@ -515,16 +541,35 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
           <button class="btn btn-outline btn-sm" onclick="resetCardDesign()">Reset to defaults</button>
         </div>
       </div>
-        <button class="btn btn-outline btn-sm" onclick="generatePDF()">Download <span id="print-grid-label">4 &times; 4</span> PDF again</button>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Checked cards will be added to your known list.</p>
+        <p id="print-note" style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Front &amp; back pages for double-sided printing. Checked cards will be added to your known list.</p>
       </div>
+      <div id="data-download-row" style="display:none;margin-top:10px">
+        <button class="btn btn-primary" id="data-download-btn" onclick="downloadSelectedFormat()">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Methodology -->
+  <div id="screen-methodology" class="screen">
+    <div class="nav-bar">
+      <div class="nav-links">
+        <a class="nav-btn" onclick="navigateTo('landing')">Home</a>
+      </div>
+      <span>Methodology</span>
+    </div>
+    <div id="methodology-body">
+      <h2>Methodology</h2>
+      <p style="color:var(--text-muted);margin-top:8px">Coming soon.</p>
     </div>
   </div>
 
   <!-- SCREEN 3: Known Viewer -->
   <div id="screen-known" class="screen">
     <div class="nav-bar">
-      <a class="back-link" onclick="navigateTo('landing')">&larr; Back</a>
+      <div class="nav-links">
+        <a class="nav-btn" onclick="navigateTo('landing')">Home</a>
+        <a class="nav-btn" onclick="navigateTo('methodology')">Methodology</a>
+      </div>
       <span>Known Characters</span>
     </div>
     <div class="known-mode-tabs" id="known-mode-tabs">
@@ -559,7 +604,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.33';
+var APP_VERSION = 'v2.34';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -1253,6 +1298,7 @@ function resolveSelectionSlug(slug) {
 function routePathForScreen(name) {
   if (name === 'customize') return 'cards/' + buildSelectionSlug();
   if (name === 'known') return 'known/' + String(knownViewerMode || 'A').toLowerCase();
+  if (name === 'methodology') return 'methodology';
   return '';
 }
 
@@ -1269,6 +1315,7 @@ function parseRoute() {
   if (!parts.length) return { screen: 'landing' };
   if (parts[0] === 'cards')  return { screen: 'customize', slug: decodeURIComponent(parts[1] || '') };
   if (parts[0] === 'known')  return { screen: 'known', mode: (parts[1] || 'a').toUpperCase() === 'B' ? 'B' : 'A' };
+  if (parts[0] === 'methodology') return { screen: 'methodology' };
   return { screen: 'landing' };
 }
 
@@ -1276,6 +1323,8 @@ function parseRoute() {
    back/forward, and for hand-edited URLs. */
 async function applyRoute() {
   var r = parseRoute();
+
+  if (r.screen === 'methodology') { showScreen('methodology'); return; }
 
   if (r.screen === 'known') {
     knownViewerMode = r.mode;
@@ -1716,7 +1765,7 @@ async function openCustomize() {
   renderCardDesignInputs();
   renderCardTable();
   refreshAnkiDeckName(true);
-  hidePrintOptions();
+  resetDataFormat();
 }
 
 async function loadCards() {
@@ -2022,6 +2071,52 @@ function updateCardCount() {
   document.getElementById('card-count').textContent = text;
 }
 
+/* The Download Data menu picks a format; it never downloads. The button that
+   appears below it does that, so nothing leaves the browser until the user
+   has seen the format they chose (and, for PDFs, the page count and design
+   controls that come with it). */
+var DATA_FORMATS = {
+  'csv':      'CSV',
+  'xlsx':     'XLSX',
+  'json':     'JSON',
+  'gsheet':   'Google Sheets',
+  'pdf:4x4':  '4 \u00d7 4 flashcard PDF',
+  'pdf:4x5':  '4 \u00d7 5 flashcard PDF',
+  'pdf:5x5':  '5 \u00d7 5 flashcard PDF'
+};
+
+var selectedDataFormat = null;
+
+function pickDataFormat(fmt) {
+  document.querySelectorAll('.export-menu').forEach(function(m) { m.classList.remove('open'); });
+  if (!DATA_FORMATS[fmt]) return;
+  selectedDataFormat = fmt;
+
+  var label = document.getElementById('data-format-label');
+  if (label) label.textContent = 'Selected: ' + DATA_FORMATS[fmt];
+  var btn = document.getElementById('data-download-btn');
+  if (btn) btn.textContent = 'Download ' + DATA_FORMATS[fmt];
+  var row = document.getElementById('data-download-row');
+  if (row) row.style.display = '';
+
+  if (fmt.indexOf('pdf:') === 0) showPrintOptions(fmt.slice(4));
+  else hidePrintOptions();
+}
+
+function downloadSelectedFormat() {
+  if (!selectedDataFormat) return;
+  exportData(selectedDataFormat);
+}
+
+function resetDataFormat() {
+  selectedDataFormat = null;
+  var label = document.getElementById('data-format-label');
+  if (label) label.textContent = 'Choose a format to download.';
+  var row = document.getElementById('data-download-row');
+  if (row) row.style.display = 'none';
+  hidePrintOptions();
+}
+
 /* Switch to a print grid and reveal the print-only controls. The page-count
    pill and the card design gear stay hidden until the user actually asks for
    a printable PDF, so the Anki path is the uncluttered default. */
@@ -2030,8 +2125,6 @@ function showPrintOptions(grid) {
   loadCardDesign();
   renderCardDesignInputs();
   updateSummary();
-  var label = document.getElementById('print-grid-label');
-  if (label) label.innerHTML = currentGrid.split('x').join(' &times; ');
   var panel = document.getElementById('print-options');
   if (panel) panel.style.display = '';
 }
@@ -2691,7 +2784,7 @@ document.addEventListener('click', function(e) {
 function exportData(fmt) {
   document.querySelectorAll('.export-menu').forEach(function(m) { m.classList.remove('open'); });
 
-  // "pdf:4x4" and friends: switch grid, show the print controls, then print.
+  // "pdf:4x4" and friends print with the grid the user picked.
   if (fmt.indexOf('pdf:') === 0) {
     showPrintOptions(fmt.slice(4));
     generatePDF();
@@ -3070,16 +3163,50 @@ function buildApkg(rows, opts) {
   return ankiPackageToBytes(pkg);
 }
 
-/* One set selected names the deck after that set; a mixed selection falls
-   back to the collection name. Flat, not nested under a parent deck — users
-   can rename or re-nest inside Anki, so this only needs a sane default. */
+/* Anki itself sets no maximum deck name length — its normaliser only strips
+   invalid characters and trims whitespace. 60 is our own cap, borrowed from
+   AnkiWeb's shared-deck title limit, so names stay readable in the deck list.
+   Flat, never nested: users can re-nest with "::" inside Anki. */
+var ANKI_DECK_NAME_MAX = 60;
+
 function deriveAnkiDeckName() {
   var setKeys = {};
   allCards.forEach(function(c) { if (c._included) setKeys[c._setKey] = true; });
   var keys = Object.keys(setKeys);
-  if (keys.length !== 1 || !currentTradition) return 'Buddhist Liturgy';
-  var si = getAllSets(currentTradition)[keys[0]];
-  return (si && si.eng_name) ? si.eng_name : keys[0];
+  if (!keys.length || !currentTradition) return 'Buddhist Liturgy';
+
+  var allSets = getAllSets(currentTradition);
+  function engName(k) { var si = allSets[k]; return (si && si.eng_name) ? si.eng_name : k; }
+
+  // A single set gets its Chinese title too: "Heart Sutra 心經".
+  if (keys.length === 1) {
+    var si = allSets[keys[0]];
+    var zh = si && si.display_tag ? String(si.display_tag).trim() : '';
+    var one = engName(keys[0]) + (zh ? ' ' + zh : '');
+    return one.length <= ANKI_DECK_NAME_MAX ? one : engName(keys[0]);
+  }
+
+  // Several sets: "A & B & C", keeping whole names only, then "+N more" for
+  // whatever did not fit. Sorted by the manifest order the cards came in.
+  var names = [];
+  var seen = {};
+  allCards.forEach(function(c) {
+    if (!c._included || seen[c._setKey]) return;
+    seen[c._setKey] = true;
+    names.push(engName(c._setKey));
+  });
+
+  var out = '';
+  for (var i = 0; i < names.length; i++) {
+    var next = out ? out + ' & ' + names[i] : names[i];
+    var remaining = names.length - (i + 1);
+    var suffix = remaining ? ' +' + remaining + ' more' : '';
+    if (next.length + suffix.length > ANKI_DECK_NAME_MAX) break;
+    out = next;
+  }
+  if (!out) out = names[0].slice(0, ANKI_DECK_NAME_MAX).trim();
+  var left = names.length - out.split(' & ').length;
+  return left > 0 ? out + ' +' + left + ' more' : out;
 }
 
 /* Strip quotes and control characters out of whatever the user typed —

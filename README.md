@@ -80,10 +80,17 @@ Each note is tagged with its `eng_tag`, so decks stay filterable by source text
 inside Anki. Rows with an empty `chinese` are skipped and every field is
 trimmed, so legacy CSVs with stray leading spaces export cleanly.
 
-The deck is named after the selected set (`Amitabha Sutra`) when the selection
-is a single set, and `Buddhist Liturgy` when it mixes several. The name is a
-plain, un-nested default shown in an editable field before download — nest it
-under a parent with `::` yourself if you want that.
+Deck names are flat, never nested — re-nest with `::` inside Anki if you want
+that. A single set gets its Chinese title too (`Heart Sutra 心經`); a mixed
+selection joins the set names with ` & `, fitting whole names into 60
+characters and reporting the rest (`Heart Sutra & Amitabha Sutra +18 more`).
+The name is only a default: it appears in an editable field before download.
+
+Anki itself imposes **no** maximum deck name length — its normaliser
+([`rslib/src/decks/name.rs`](https://github.com/ankitects/anki/blob/main/rslib/src/decks/name.rs))
+only strips invalid characters and trims whitespace. The 60 in
+`ANKI_DECK_NAME_MAX` is ours, borrowed from AnkiWeb's shared-deck title limit,
+to keep names readable in the deck list.
 
 ### Card template
 
@@ -138,10 +145,16 @@ name come immediately after the card table. Everything else lives behind
 and the printable flashcard PDFs (4×4, 4×5, 5×5) as two groups of the same
 menu.
 
-Picking a PDF grid switches the grid, generates the PDF, and reveals the
-print-only controls — the page-count pill, the card design gear, and a
-re-download button — so someone exporting to Anki never sees print settings
-they don't need. They stay hidden again on the next visit to the screen.
+The menu only *chooses* a format — it never downloads. Picking one names the
+format and reveals a download button; picking a PDF grid additionally reveals
+the print-only controls (the page-count pill and the card design gear) so the
+page count is visible before committing. Nothing leaves the browser until the
+download button is pressed, and the whole block resets on the next visit to
+the screen.
+
+Every screen carries **Home** and **Methodology** buttons in its top bar;
+Methodology is also linked from the landing page and has its own URL
+(`#/methodology`).
 
 ## URLs
 
@@ -154,6 +167,7 @@ Every screen has a shareable URL:
 | `#/cards/evening-ceremony` | Customize, one whole section |
 | `#/cards/heart_sutra+gc_repent` | Customize, specific sets |
 | `#/known/a`, `#/known/b` | Known-cards viewer |
+| `#/methodology` | Methodology |
 
 Selections stay readable and resolvable, so a pasted link rebuilds the same
 selection.
