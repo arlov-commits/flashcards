@@ -142,6 +142,8 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .doc-detail > summary { cursor: pointer; font-weight: 600; color: var(--accent); font-size: 0.95rem; }
 .doc-detail[open] > summary { margin-bottom: 8px; }
 .doc-detail > *:not(summary) { margin-left: 2px; }
+.doc a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.doc a:hover { color: var(--text); }
 .site-nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
   padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-light); }
 .nav-btn { display: inline-block; padding: 4px 12px; font-size: 0.82rem; font-weight: 600;
@@ -590,6 +592,57 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
         below is optional reading &mdash; open a section if you want the detail.
       </p>
 
+      <p class="doc-note">
+        <strong>Use this alongside Pleco.</strong> These cards are an index to the
+        liturgy, not a dictionary &mdash; the gloss on a card records how that term
+        was translated in that passage, which is narrower than what it can mean. The
+        app assumes you have Pleco installed and reach for it whenever a term is new
+        or refuses to stick. Get it free for
+        <a href="https://play.google.com/store/apps/details?id=com.pleco.chinesesystem" target="_blank" rel="noopener">Android</a> or
+        <a href="https://apps.apple.com/us/app/pleco-chinese-dictionary/id341922306" target="_blank" rel="noopener">iPhone and iPad</a>.
+      </p>
+
+      <details class="doc-detail">
+        <summary>The two dictionary icons on every card</summary>
+        <p>
+          The back of each card carries two small icons in the bottom corners. They
+          are dim on purpose &mdash; they are there when you want them and out of the
+          way when you do not.
+        </p>
+        <p>
+          <strong>&#128213; bottom right &mdash; Pleco.</strong> Opens that character
+          straight into Pleco&rsquo;s dictionary entry on your phone or tablet. On a
+          desktop computer it says so rather than failing, since Pleco is a mobile
+          app. If you tap it and nothing happens, Pleco is probably not installed:
+          <a href="https://play.google.com/store/apps/details?id=com.pleco.chinesesystem" target="_blank" rel="noopener">Android</a>,
+          <a href="https://apps.apple.com/us/app/pleco-chinese-dictionary/id341922306" target="_blank" rel="noopener">iPhone and iPad</a>.
+        </p>
+        <p>
+          <strong>&#128212; bottom left &mdash; HanziCraft.</strong> Opens the
+          character on <a href="https://hanzicraft.com" target="_blank" rel="noopener">hanzicraft.com</a>
+          in a browser, which works on every platform including desktop. It breaks a
+          character into its components and lists the words it appears in &mdash;
+          useful for a character you keep confusing with another one.
+        </p>
+        <p>
+          <strong>Check one or both whenever a term is new, or when one refuses to
+          stick.</strong> Seeing the fuller range of a character&rsquo;s senses, and
+          the other words it lives in, is usually what makes it hold. Then use
+          <em>Edit Note</em> in Anki to add whichever glosses helped &mdash; the deck
+          is designed to be annotated, and a card in your own words is a card you
+          will remember.
+        </p>
+        <p>
+          Before you start, install a Buddhist lexicon in Pleco:
+          <strong>Menu sidebar &rarr; Add-ons &rarr; Dictionaries &rarr; All Free
+          Dictionaries</strong>, then choose <em>A Dictionary of Chinese Buddhist
+          Terms</em>, partway down the list. Reorder it above the general
+          dictionaries so Buddhist senses come back first. Without it, Pleco will
+          give you the everyday sense of a character where the liturgy means
+          something else entirely.
+        </p>
+      </details>
+
       <details class="doc-detail">
         <summary>Study modes: Type A and Type B</summary>
         <p>
@@ -821,18 +874,30 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       </p>
 
       <h3>Recommended use</h3>
+      <p class="doc-note">
+        <strong>This deck is designed to be used alongside an active installation of
+        Pleco.</strong> It is not a substitute for a dictionary and does not attempt
+        to be one; the two are meant to be open at the same time. Pleco is free for
+        <a href="https://play.google.com/store/apps/details?id=com.pleco.chinesesystem" target="_blank" rel="noopener">Android</a> and for
+        <a href="https://apps.apple.com/us/app/pleco-chinese-dictionary/id341922306" target="_blank" rel="noopener">iPhone and iPad</a>.
+      </p>
       <p>
         These entries are intended as an index to the liturgy, not as a lexicon. For
         each unfamiliar character, consult Pleco to establish the term&rsquo;s fuller
         range of senses, then use <em>Edit Note</em> in Anki to record whichever
-        glosses are useful. The deck is designed to be annotated.
+        glosses are useful. The deck is designed to be annotated. Every card carries a
+        Pleco link in its bottom-right corner and a
+        <a href="https://hanzicraft.com" target="_blank" rel="noopener">HanziCraft</a>
+        link in its bottom-left corner for exactly this purpose.
       </p>
       <p>
         Students are advised to install a Buddhist lexicon in Pleco before beginning.
         In Pleco: <strong>Menu sidebar &rarr; Add-ons &rarr; Dictionaries &rarr; All
         Free Dictionaries</strong>; <em>A Dictionary of Chinese Buddhist Terms</em>
         appears partway down the list. Once installed, reorder it above the general
-        dictionaries so that Buddhist senses are returned first.
+        dictionaries so that Buddhist senses are returned first. This matters: the
+        published English of the liturgy frequently turns on a Buddhist sense that the
+        general dictionaries do not carry.
       </p>
     </div>
   </div>
@@ -874,7 +939,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v2.36';
+var APP_VERSION = 'v2.37';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
