@@ -127,66 +127,12 @@ h3 { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-bottom: 8px
 .nav-bar .back-link { color: var(--accent); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 .nav-bar .back-link:hover { text-decoration: underline; }
 /* ---------- Feedback ---------- */
-.feedback-scope { max-width: 48rem; font-size: 0.86rem; padding: 10px 14px; border-radius: var(--radius);
-  border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); margin: 4px 0 16px; }
-.feedback-scope.is-local { border-color: var(--accent-light); background: #f8efe2; }
-.feedback-scope.is-public { border-color: #2f6b3f; background: rgba(47,107,63,0.07); }
-.feedback-compose { max-width: 48rem; background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px; margin-bottom: 22px; }
-.feedback-you { font-size: 0.84rem; color: var(--text-muted); margin-bottom: 10px; }
-.fb-reroll { margin-left: 8px; font-family: inherit; font-size: 0.74rem; background: none;
-  border: none; color: var(--text-muted); text-decoration: underline; cursor: pointer; }
-.fb-reroll:hover { color: var(--accent); }
-.feedback-kinds { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-.fb-kind { font-family: inherit; font-size: 0.78rem; font-weight: 600; padding: 5px 12px;
-  border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted);
-  cursor: pointer; }
-.fb-kind:hover { border-color: var(--accent); color: var(--accent); }
-.fb-kind.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-.feedback-compose textarea, .fb-inline textarea { width: 100%; font-family: inherit; font-size: 0.9rem;
-  padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--radius);
-  background: var(--bg); color: var(--text); resize: vertical; }
-.feedback-compose-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-.feedback-msg { font-size: 0.82rem; color: var(--text-muted); }
-.feedback-msg.is-error { color: var(--accent); }
-
-.feedback-list { max-width: 48rem; }
-.fb-empty { font-size: 0.9rem; color: var(--text-muted); background: var(--bg-card);
-  border: 1px dashed var(--border); border-radius: var(--radius); padding: 18px; text-align: center; }
-.fb-thread { margin-bottom: 16px; }
-.fb-post { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 12px 14px; }
-.fb-post.is-mine { border-left: 3px solid var(--accent); }
-.fb-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-.fb-alias { font-weight: 700; font-size: 0.85rem; }
-.fb-you { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-  color: #fff; background: var(--accent); border-radius: 999px; padding: 1px 7px; }
-.fb-kind-chip { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
-  border-radius: 999px; padding: 2px 8px; border: 1.5px solid var(--border); color: var(--text-muted); }
-.fb-kind-feature { border-color: #2f6b3f; color: #2f6b3f; }
-.fb-kind-bug { border-color: var(--accent); color: var(--accent); }
-.fb-time { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
-.fb-body { font-size: 0.92rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-.fb-deleted { color: var(--text-muted); }
-.fb-actions { display: flex; gap: 12px; margin-top: 8px; }
-.fb-act { font-family: inherit; font-size: 0.78rem; font-weight: 600; background: none; border: none;
-  color: var(--text-muted); cursor: pointer; padding: 0; }
-.fb-act:hover { color: var(--accent); text-decoration: underline; }
-.fb-act-danger:hover { color: var(--accent); }
-.fb-replies { margin: 8px 0 0 22px; border-left: 2px solid var(--border-light); padding-left: 12px; }
-.fb-post.is-reply { margin-bottom: 8px; background: var(--bg); }
-.fb-inline { margin-top: 10px; }
-.fb-inline-row { display: flex; gap: 8px; margin-top: 8px; }
-
-/* Alias tones — the colour in the alias is the colour it is shown in. */
-.fb-tone-amber{color:#a8730c}.fb-tone-azure{color:#1f6f9c}.fb-tone-cinnabar{color:#b23a1e}
-.fb-tone-copper{color:#a15c2a}.fb-tone-crimson{color:#9b1b30}.fb-tone-emerald{color:#1f7a52}
-.fb-tone-indigo{color:#3a3f8f}.fb-tone-ivory{color:#8a7c58}.fb-tone-jade{color:#2f7d63}
-.fb-tone-lilac{color:#7a5aa3}.fb-tone-ochre{color:#9a6a11}.fb-tone-onyx{color:#3b3b3b}
-.fb-tone-pearl{color:#7d7a72}.fb-tone-russet{color:#8b4513}.fb-tone-saffron{color:#b07d09}
-.fb-tone-sable{color:#4a3b32}.fb-tone-slate{color:#4f6272}.fb-tone-teal{color:#1c6f70}
-.fb-tone-umber{color:#6b4423}.fb-tone-verdant{color:#3d7a2a}
-.fb-tone-lilac{color:#7a5aa3}
+.feedback-intro { max-width: 48rem; font-size: 0.92rem; line-height: 1.6; color: var(--text); margin-bottom: 16px; }
+.feedback-form-wrap { max-width: 48rem; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+.feedback-form-wrap iframe { display: block; width: 100%; height: 1200px; border: 0; }
+.feedback-fallback { max-width: 48rem; font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
+.feedback-fallback a { color: var(--accent); }
 /* ---------- end Feedback ---------- */
 /* ---------- Quiz ---------- */
 .quiz-setup { max-width: 46rem; padding-bottom: 16px; margin-bottom: 18px;
@@ -922,28 +868,22 @@ table.card-table input[type="checkbox"] { accent-color: var(--accent); }
       <h2>Feedback</h2>
     </div>
 
-    <div id="feedback-scope" class="feedback-scope"></div>
-
-    <div class="feedback-compose">
-      <div class="feedback-you">
-        Posting as <span class="fb-alias" id="feedback-alias"></span>
-        <button class="fb-reroll" onclick="rerollFeedbackAlias()" title="Give me a different alias">reroll</button>
-      </div>
-      <div class="feedback-kinds" id="feedback-kinds">
-        <button class="fb-kind active" data-kind="feature" onclick="setFeedbackKind('feature')">Feature request</button>
-        <button class="fb-kind" data-kind="bug" onclick="setFeedbackKind('bug')">Bug report</button>
-        <button class="fb-kind" data-kind="note" onclick="setFeedbackKind('note')">Feedback</button>
-      </div>
-      <textarea id="feedback-body" rows="4" maxlength="4000"
-        placeholder="What happened, or what would you like to see? Detail helps, but a sentence is fine."></textarea>
-      <div class="feedback-compose-row">
-        <button class="btn btn-primary" id="feedback-post-btn" onclick="submitFeedback()">Post</button>
-        <span id="feedback-compose-msg" class="feedback-msg"></span>
-      </div>
+    <div class="feedback-intro">
+      Found a bug, or want to see something added? Fill in the form below — it
+      goes straight to the person who maintains this page.
     </div>
 
-    <div id="feedback-list" class="feedback-list"></div>
+    <div class="feedback-form-wrap">
+      <iframe id="feedback-form" title="Feedback form" loading="lazy"
+        src="about:blank" data-src="https://docs.google.com/forms/d/e/1FAIpQLSeQghBW7SmTLxSwC7TTmMfOgJUkjKnoLvrFXha-yFdxwKab0g/viewform?embedded=true">Loading the form…</iframe>
+    </div>
+
+    <div class="feedback-fallback">
+      Form not loading? <a href="https://docs.google.com/forms/d/e/1FAIpQLSeQghBW7SmTLxSwC7TTmMfOgJUkjKnoLvrFXha-yFdxwKab0g/viewform" target="_blank" rel="noopener">Open it in a new tab</a>,
+      or email <a href="mailto:artemisamsonite@gmail.com">artemisamsonite@gmail.com</a>.
+    </div>
   </div>
+
 
   <!-- SCREEN: Instructions -->
   <div id="screen-instructions" class="screen">
@@ -1374,7 +1314,7 @@ let fontDataCache = {};
 let studyMode = 'A';        // 'A' or 'B'
 let showKnown = false;       // toggle for known cards visibility
 let knownViewerMode = 'A';   // mode for known viewer screen
-var APP_VERSION = 'v3.6';
+var APP_VERSION = 'v3.7';
 let accordionState = {}; // tracks expanded state: { 'trad:key': bool, 'subcat:key': bool }
 function loadAccordionState() {
   try {
@@ -5113,449 +5053,15 @@ document.addEventListener('keydown', function(e) {
 /* ============================================================
    FEEDBACK
 
-   A public board for bug reports and feature requests, posted under a
-   per-device alias.
-
-   STORAGE. This app is a static page with no server of its own, so
-   "public" needs somewhere to put the posts. FEEDBACK_ENDPOINT is that
-   somewhere: point it at a Supabase (or any PostgREST-compatible) table
-   and every visitor reads and writes the same board. Leave it empty and
-   the board still works, but only on this device — and the page says so
-   plainly rather than pretending a post went somewhere it did not.
-
-   See feedback-schema.sql in the repo for the table and its policies.
+   Feedback is collected by a Google Form rather than by this page: nothing
+   is stored here, and there is no board to moderate. The form is framed on
+   first visit to the screen — not on page load — so opening the app never
+   reaches out to Google. The link and the mailto beside it are the fallback
+   for anyone whose browser blocks the frame.
    ============================================================ */
-var FEEDBACK_ENDPOINT = '';        // writes, e.g. 'https://xxxx.supabase.co/rest/v1/feedback'
-var FEEDBACK_READ_ENDPOINT = '';   // reads; the view that omits edit_token, e.g. '.../feedback_public'
-var FEEDBACK_API_KEY  = '';        // Supabase anon key — publishable; the row policies do the guarding
-
-/* Two words: an adjective — colour, texture or quality — and a noun drawn from
-   the contemplative and antique traditions this app sits alongside: Buddhist,
-   Sufi, yogic, Mesopotamian, and the wider mystical vocabulary.
-   Objects, creatures, places and states only — never the terms a tradition
-   venerates (the Three Jewels, awakening itself, the names of gods), so an
-   alias reads as an image and never as a claim about the person holding it. */
-var FB_ADJECTIVES = [
-  // qualities
-  'Luminous','Boundless','Hidden','Silent','Unborn','Ineffable','Radiant','Empty','Still','Veiled',
-  'Wandering','Unhurried','Fathomless','Wakeful','Tranquil','Effortless','Undivided','Patient',
-  'Nameless','Wayward','Errant','Steadfast','Weightless','Tidal','Nocturnal','Vesperal','Auroral',
-  'Threadbare','Unbidden','Unspoken','Sunlit','Moonlit','Windborne','Riverine','Winnowing',
-  'Circling','Kindling','Distant','Quickening','Abiding','Unhoused','Lucid','Drifting','Murmuring',
-  // textures and materials
-  'Gilded','Weathered','Burnished','Hollow','Woven','Salted','Ashen','Alabaster','Basalt','Clay',
-  // colours
-  'Golden','Indigo','Saffron','Vermilion','Azure','Cinnabar','Jade','Amber','Sable','Pearl',
-  'Verdant','Umber','Russet','Teal','Ochre','Crimson','Emerald','Lilac','Slate'];
-var FB_NOUNS = [
-  // Buddhist — implements, imagery, states
-  'Lotus','Vajra','Stupa','Mandala','Mudra','Mantra','Kalpa','Samadhi','Dhyana','Dharani',
-  'Cintamani','Naga','Garuda','Kinnara','Deva','Ksana','Torana','Bell','Alms','Pagoda',
-  // Sufi
-  'Simurgh','Dervish','Baraka','Qalb','Huma','Sama','Nafas','Tariqa','Reed','Tavern',
-  // yogic
-  'Prana','Chakra','Nadi','Bindu','Ojas','Kosha','Asana','Breath',
-  // Babylonian and Sumerian — architecture, creatures, places, objects
-  'Ziggurat','Lamassu','Anzu','Abzu','Mushussu','Kudurru','Dilmun','Eridu','Uruk','Lagash',
-  'Kur','Cuneiform','Stylus','Lapis','Bitumen','Tablet','Barque','Canal','Date-Palm','Gate',
-  // wider mystical
-  'Alembic','Cipher','Lantern','Mirror','Threshold','Ember','Cairn','Chrysalis','Astrolabe',
-  'Compass','Hourglass','Key','Lodestone','Well','Ferry','Kiln'];
-
-/* The tone an alias is drawn in. A colour adjective is shown in its own
-   colour; anything else takes one from the palette by hash. */
-var FB_TONES = ['amber','azure','cinnabar','crimson','emerald','indigo','jade','ochre',
-  'russet','saffron','sable','slate','teal','umber','verdant','lilac'];
-var FB_ADJ_TONE = {
-  golden: 'saffron', indigo: 'indigo', saffron: 'saffron', vermilion: 'cinnabar', azure: 'azure',
-  cinnabar: 'cinnabar', jade: 'jade', amber: 'amber', sable: 'sable', pearl: 'pearl',
-  verdant: 'verdant', umber: 'umber', russet: 'russet', teal: 'teal', ochre: 'ochre',
-  crimson: 'crimson', emerald: 'emerald', lilac: 'lilac', slate: 'slate',
-  ashen: 'slate', alabaster: 'pearl', basalt: 'sable', clay: 'russet',
-  gilded: 'saffron', weathered: 'slate', burnished: 'amber', salted: 'pearl', woven: 'umber' };
-
-var FEEDBACK_IDENTITY_KEY = 'feedback_identity';
-var FEEDBACK_LOCAL_KEY = 'feedback_posts_local';
-
-function fbHash(str) {
-  var h = 2166136261;
-  for (var i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = (h * 16777619) >>> 0;
-  }
-  return h >>> 0;
-}
-
-function fbRandomId() {
-  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-}
-
-/* The alias is derived from an id this device generated once and keeps. Same
-   device, same name every time; nothing about it identifies a person. The
-   secret never leaves local storage except as a hash, and is what lets the
-   board tell "this is the author" from "this is somebody else". */
-function getFeedbackIdentity() {
-  var id;
-  try { id = JSON.parse(localStorage.getItem(FEEDBACK_IDENTITY_KEY) || 'null'); } catch (e) { id = null; }
-  if (!id || !id.uid || !id.secret) {
-    id = { uid: fbRandomId(), secret: fbRandomId(), seed: fbRandomId() };
-    try { localStorage.setItem(FEEDBACK_IDENTITY_KEY, JSON.stringify(id)); } catch (e) {}
-  }
-  return id;
-}
-
-function feedbackAliasFor(seed) {
-  var h = fbHash(String(seed));
-  var adj = FB_ADJECTIVES[h % FB_ADJECTIVES.length];
-  var noun = FB_NOUNS[Math.floor(h / FB_ADJECTIVES.length) % FB_NOUNS.length];
-  var tone = FB_ADJ_TONE[adj.toLowerCase()] ||
-             FB_TONES[Math.floor(h / (FB_ADJECTIVES.length * FB_NOUNS.length)) % FB_TONES.length];
-  return { alias: adj + ' ' + noun, color: tone };
-}
-
-function myFeedbackAlias() { return feedbackAliasFor(getFeedbackIdentity().seed); }
-
-async function rerollFeedbackAlias() {
-  var id = getFeedbackIdentity();
-  id.seed = fbRandomId();
-  try { localStorage.setItem(FEEDBACK_IDENTITY_KEY, JSON.stringify(id)); } catch (e) {}
-  var me = myFeedbackAlias();
-  renderFeedbackAlias();
-
-  // The alias is not an edit, so `updated` is left alone: rerolling must not
-  // mark every old post as having been changed.
-  try {
-    await fbUpdateMine({ author_alias: me.alias, author_color: me.color }, id.secret);
-  } catch (e) {
-    console.error('feedback: could not rename existing posts', e);
-    feedbackMsg('Renamed here, but the board did not take it. Try again in a moment.', true);
-  }
-  feedbackPosts.forEach(function(p) {
-    if (p.author_key === id.uid) { p.author_alias = me.alias; p.author_color = me.color; }
-  });
-  renderFeedbackList();
-}
-
-function renderFeedbackAlias() {
-  var el = document.getElementById('feedback-alias');
-  if (!el) return;
-  var me = myFeedbackAlias();
-  el.textContent = me.alias;
-  el.className = 'fb-alias fb-tone-' + String(me.color).toLowerCase();
-}
-
-/* ---------- storage adapter ---------- */
-var feedbackRemote = function() { return !!FEEDBACK_ENDPOINT; };
-
-function fbHeaders() {
-  var h = { 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
-  if (FEEDBACK_API_KEY) { h.apikey = FEEDBACK_API_KEY; h.Authorization = 'Bearer ' + FEEDBACK_API_KEY; }
-  return h;
-}
-
-function fbLocalRead() {
-  try { return JSON.parse(localStorage.getItem(FEEDBACK_LOCAL_KEY) || '[]'); } catch (e) { return []; }
-}
-function fbLocalWrite(rows) {
-  try { localStorage.setItem(FEEDBACK_LOCAL_KEY, JSON.stringify(rows)); } catch (e) {}
-}
-
-async function fbList() {
-  if (!feedbackRemote()) return fbLocalRead();
-  var url = (FEEDBACK_READ_ENDPOINT || FEEDBACK_ENDPOINT) + '?select=*&order=created.asc';
-  var r = await fetch(url, { headers: fbHeaders() });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  return await r.json();
-}
-
-async function fbInsert(row) {
-  if (!feedbackRemote()) { var rows = fbLocalRead(); rows.push(row); fbLocalWrite(rows); return row; }
-  var r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: fbHeaders(), body: JSON.stringify(row) });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  return row;
-}
-
-/* Authorship is proved by edit_token, which the board never hands back: the
-   public view omits it, so only the device that wrote a post can name it.
-   author_key is the visible "same person" id and is not a credential. */
-/* Rewrite every post this device wrote. Used by the reroll, which has to
-   reach the posts already on the board — a name you have changed should not
-   leave the old one attached to yesterday's report. */
-async function fbUpdateMine(patch, token) {
-  if (!feedbackRemote()) {
-    var rows = fbLocalRead();
-    rows.forEach(function(p) { if (p.edit_token === token) Object.assign(p, patch); });
-    fbLocalWrite(rows);
-    return;
-  }
-  var url = FEEDBACK_ENDPOINT + '?edit_token=eq.' + encodeURIComponent(token);
-  var r = await fetch(url, { method: 'PATCH', headers: fbHeaders(), body: JSON.stringify(patch) });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-}
-
-async function fbUpdate(id, patch, token) {
-  if (!feedbackRemote()) {
-    var rows = fbLocalRead();
-    rows.forEach(function(p) { if (p.id === id && p.edit_token === token) Object.assign(p, patch); });
-    fbLocalWrite(rows);
-    return;
-  }
-  var url = FEEDBACK_ENDPOINT + '?id=eq.' + encodeURIComponent(id) +
-            '&edit_token=eq.' + encodeURIComponent(token);
-  var r = await fetch(url, { method: 'PATCH', headers: fbHeaders(), body: JSON.stringify(patch) });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-}
-
-/* ---------- rendering ---------- */
-var feedbackPosts = [];
-var feedbackKind = 'feature';
-var feedbackReplyTo = null;
-var feedbackEditing = null;
-
-var FB_KIND_LABEL = { feature: 'Feature request', bug: 'Bug report', note: 'Feedback' };
-
-function setFeedbackKind(k) {
-  feedbackKind = k;
-  document.querySelectorAll('#feedback-kinds .fb-kind').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.kind === k);
-  });
-}
-
-function renderFeedbackScope() {
-  var el = document.getElementById('feedback-scope');
-  if (!el) return;
-  el.className = 'feedback-scope' + (feedbackRemote() ? ' is-public' : ' is-local');
-  el.innerHTML = feedbackRemote()
-    ? '<strong>This board is public.</strong> Everything you post here is visible to anyone using the app.'
-    : '<strong>Not yet connected to the shared board.</strong> Posts you write are kept on this ' +
-      'device only, so no one else can see them yet. The board goes public as soon as an endpoint ' +
-      'is configured — your posts are not lost in the meantime.';
-}
-
-function fbTimeAgo(iso) {
-  var t = new Date(iso).getTime();
-  if (!t) return '';
-  var s = Math.floor((Date.now() - t) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return Math.floor(s / 60) + 'm ago';
-  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
-  if (s < 2592000) return Math.floor(s / 86400) + 'd ago';
-  return new Date(iso).toLocaleDateString();
-}
-
-function fbIsMine(p) { return p.author_key === getFeedbackIdentity().uid; }
-
-function renderFeedbackPost(p, isReply) {
-  var mine = fbIsMine(p);
-  var tone = String(p.author_color || 'slate').toLowerCase();
-  var body = p.deleted
-    ? '<em class="fb-deleted">Deleted by its author.</em>'
-    : escapeHtml(p.body || '').replace(/\n/g, '<br>');
-
-  var head =
-    '<span class="fb-alias fb-tone-' + escapeHtml(tone) + '">' + escapeHtml(p.author_alias || 'Someone') + '</span>' +
-    (mine ? '<span class="fb-you">you</span>' : '') +
-    (!isReply ? '<span class="fb-kind-chip fb-kind-' + escapeHtml(p.kind || 'note') + '">' +
-        escapeHtml(FB_KIND_LABEL[p.kind] || 'Feedback') + '</span>' : '') +
-    '<span class="fb-time">' + escapeHtml(fbTimeAgo(p.created)) +
-      (p.updated && p.updated !== p.created ? ' · edited' : '') + '</span>';
-
-  var actions = '';
-  if (!p.deleted) {
-    actions += '<button class="fb-act" onclick="startFeedbackReply(\'' + escapeHtml(p.id) + '\')">Reply</button>';
-    if (mine) {
-      actions += '<button class="fb-act" onclick="startFeedbackEdit(\'' + escapeHtml(p.id) + '\')">Edit</button>' +
-                 '<button class="fb-act fb-act-danger" onclick="deleteFeedback(\'' + escapeHtml(p.id) + '\')">Delete</button>';
-    }
-  }
-
-  return '<div class="fb-post' + (isReply ? ' is-reply' : '') + (mine ? ' is-mine' : '') + '" data-id="' + escapeHtml(p.id) + '">' +
-    '<div class="fb-head">' + head + '</div>' +
-    '<div class="fb-body">' + body + '</div>' +
-    '<div class="fb-actions">' + actions + '</div>' +
-    '<div class="fb-slot" id="fb-slot-' + escapeHtml(p.id) + '"></div>' +
-  '</div>';
-}
-
-function renderFeedbackList() {
-  var host = document.getElementById('feedback-list');
-  if (!host) return;
-  var tops = feedbackPosts.filter(function(p) { return !p.parent_id; })
-    .sort(function(a, b) { return String(b.created).localeCompare(String(a.created)); });
-
-  if (!tops.length) {
-    host.innerHTML = '<div class="fb-empty">Nothing posted yet. Yours would be the first — ' +
-      'a bug, a request, or just what you found confusing.</div>';
-    return;
-  }
-
-  host.innerHTML = tops.map(function(p) {
-    var replies = feedbackPosts.filter(function(r) { return r.parent_id === p.id; })
-      .sort(function(a, b) { return String(a.created).localeCompare(String(b.created)); });
-    return '<div class="fb-thread">' + renderFeedbackPost(p, false) +
-      (replies.length ? '<div class="fb-replies">' + replies.map(function(r) {
-        return renderFeedbackPost(r, true);
-      }).join('') + '</div>' : '') + '</div>';
-  }).join('');
-}
-
-function feedbackMsg(text, isError) {
-  var el = document.getElementById('feedback-compose-msg');
-  if (!el) return;
-  el.textContent = text || '';
-  el.className = 'feedback-msg' + (isError ? ' is-error' : '');
-}
-
-async function openFeedback() {
-  renderFeedbackScope();
-  renderFeedbackAlias();
-  setFeedbackKind(feedbackKind);
-  var host = document.getElementById('feedback-list');
-  if (host) host.innerHTML = '<div class="fb-empty">Loading…</div>';
-  try {
-    feedbackPosts = await fbList();
-  } catch (e) {
-    console.error('feedback: could not load posts', e);
-    feedbackPosts = [];
-    if (host) host.innerHTML = '<div class="fb-empty">Could not reach the board just now. ' +
-      'Your own posts are safe; try again in a moment.</div>';
-    return;
-  }
-  renderFeedbackList();
-}
-
-async function submitFeedback() {
-  var ta = document.getElementById('feedback-body');
-  var text = (ta.value || '').trim();
-  if (!text) { feedbackMsg('Write something first.', true); return; }
-
-  var id = getFeedbackIdentity();
-  var me = myFeedbackAlias();
-  var now = new Date().toISOString();
-  var row = {
-    id: fbRandomId(), parent_id: null, kind: feedbackKind, body: text,
-    author_key: id.uid, author_alias: me.alias, author_color: me.color,
-    edit_token: id.secret, created: now, updated: now, deleted: false
-  };
-
-  var btn = document.getElementById('feedback-post-btn');
-  btn.disabled = true;
-  feedbackMsg('Posting…');
-  try {
-    await fbInsert(row);
-    feedbackPosts.push(row);
-    ta.value = '';
-    feedbackMsg(feedbackRemote() ? 'Posted — thank you.' : 'Saved on this device — thank you.');
-    renderFeedbackList();
-  } catch (e) {
-    console.error('feedback: post failed', e);
-    feedbackMsg('That did not go through. Try again in a moment.', true);
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function fbCloseSlots() {
-  document.querySelectorAll('.fb-slot').forEach(function(s) { s.innerHTML = ''; });
-  document.querySelectorAll('.fb-body').forEach(function(b) { b.style.display = ''; });
-  feedbackReplyTo = null;
-  feedbackEditing = null;
-}
-
-function startFeedbackReply(postId) {
-  fbCloseSlots();
-  feedbackReplyTo = postId;
-  var slot = document.getElementById('fb-slot-' + postId);
-  if (!slot) return;
-  slot.innerHTML =
-    '<div class="fb-inline">' +
-      '<textarea id="fb-reply-body" rows="3" maxlength="4000" placeholder="Reply…"></textarea>' +
-      '<div class="fb-inline-row">' +
-        '<button class="btn btn-primary btn-sm" onclick="sendFeedbackReply()">Reply</button>' +
-        '<button class="btn btn-outline btn-sm" onclick="fbCloseSlots()">Cancel</button>' +
-      '</div>' +
-    '</div>';
-  document.getElementById('fb-reply-body').focus();
-}
-
-async function sendFeedbackReply() {
-  var ta = document.getElementById('fb-reply-body');
-  var text = (ta.value || '').trim();
-  if (!text || !feedbackReplyTo) return;
-  var id = getFeedbackIdentity();
-  var me = myFeedbackAlias();
-  var now = new Date().toISOString();
-  var row = {
-    id: fbRandomId(), parent_id: feedbackReplyTo, kind: 'note', body: text,
-    author_key: id.uid, author_alias: me.alias, author_color: me.color,
-    edit_token: id.secret, created: now, updated: now, deleted: false
-  };
-  try {
-    await fbInsert(row);
-    feedbackPosts.push(row);
-    fbCloseSlots();
-    renderFeedbackList();
-  } catch (e) {
-    console.error('feedback: reply failed', e);
-    alert('That reply did not go through. Try again in a moment.');
-  }
-}
-
-function startFeedbackEdit(postId) {
-  var p = feedbackPosts.filter(function(x) { return x.id === postId; })[0];
-  if (!p || !fbIsMine(p)) return;
-  fbCloseSlots();
-  feedbackEditing = postId;
-  var wrap = document.querySelector('.fb-post[data-id="' + postId + '"]');
-  if (wrap) wrap.querySelector('.fb-body').style.display = 'none';
-  var slot = document.getElementById('fb-slot-' + postId);
-  slot.innerHTML =
-    '<div class="fb-inline">' +
-      '<textarea id="fb-edit-body" rows="3" maxlength="4000"></textarea>' +
-      '<div class="fb-inline-row">' +
-        '<button class="btn btn-primary btn-sm" onclick="saveFeedbackEdit()">Save</button>' +
-        '<button class="btn btn-outline btn-sm" onclick="fbCloseSlots()">Cancel</button>' +
-      '</div>' +
-    '</div>';
-  var ta = document.getElementById('fb-edit-body');
-  ta.value = p.body || '';
-  ta.focus();
-}
-
-async function saveFeedbackEdit() {
-  var ta = document.getElementById('fb-edit-body');
-  var text = (ta.value || '').trim();
-  var p = feedbackPosts.filter(function(x) { return x.id === feedbackEditing; })[0];
-  if (!text || !p) return;
-  var patch = { body: text, updated: new Date().toISOString() };
-  try {
-    await fbUpdate(p.id, patch, getFeedbackIdentity().secret);
-    Object.assign(p, patch);
-    fbCloseSlots();
-    renderFeedbackList();
-  } catch (e) {
-    console.error('feedback: edit failed', e);
-    alert('That edit did not save. Try again in a moment.');
-  }
-}
-
-/* Soft delete: replies to a deleted post stay readable, so a thread does not
-   lose its shape when someone withdraws the opening post. */
-async function deleteFeedback(postId) {
-  var p = feedbackPosts.filter(function(x) { return x.id === postId; })[0];
-  if (!p || !fbIsMine(p)) return;
-  if (!confirm('Delete this post? Any replies to it stay visible.')) return;
-  var patch = { deleted: true, body: '', updated: new Date().toISOString() };
-  try {
-    await fbUpdate(p.id, patch, getFeedbackIdentity().secret);
-    Object.assign(p, patch);
-    fbCloseSlots();
-    renderFeedbackList();
-  } catch (e) {
-    console.error('feedback: delete failed', e);
-    alert('That delete did not go through. Try again in a moment.');
-  }
+function openFeedback() {
+  var f = document.getElementById('feedback-form');
+  if (f && f.dataset.src && f.src !== f.dataset.src) f.src = f.dataset.src;
 }
 
 /* ============================================================

@@ -1,15 +1,15 @@
-Feedback board aliases
-======================
+Feedback board aliases (retired)
+================================
 
-Every alias the feedback page can assign, one per line.
-An alias is one adjective + one noun, picked by hashing the device seed,
-so this file is the full cross product of the two word lists in index.html
-(FB_ADJECTIVES x FB_NOUNS).
+The feedback page is now a Google Form and no longer assigns aliases. This is
+the full list the board used while it existed, kept for reference: one alias
+per line, each one adjective + one noun, the complete cross product of the two
+word lists that lived in index.html (FB_ADJECTIVES x FB_NOUNS).
 
 Adjectives: 73
 Nouns: 74
 Total aliases: 5402
-Source: index.html (app v3.6)
+Source: index.html at v3.6, before the board was removed
 
 Abiding Abzu
 Abiding Alembic

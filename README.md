@@ -265,70 +265,26 @@ front of the card shows.
 > gone. Do not reintroduce it as an ordering input without re-deriving the
 > counts across the whole corpus first.
 
-## Feedback board
+## Feedback
 
-A public board for bug reports and feature requests at `#/feedback`, posted
-under a per-device alias — an adjective and a noun, e.g. *Still Ziggurat*,
-*Alabaster Compass*, *Murmuring Pagoda* — derived from an id in `localStorage`.
-73 adjectives (qualities, textures, colours) × 74 nouns from Buddhist, Sufi,
-yogic, Babylonian/Sumerian and wider mystical vocabulary: 5,402 combinations.
+`#/feedback` is a form, not a board. The screen holds an embedded
+[Google Form](https://forms.gle/sFTxnPLKD3W8V56K7); submissions go to the
+person who maintains the page, and nothing is stored in the browser or on any
+endpoint this app controls. Below the frame sit two fallbacks for anyone whose
+browser blocks third-party frames: the same form as a plain link, and
+`mailto:artemisamsonite@gmail.com`.
 
-The nouns are **objects, creatures, places and states only**. Terms a tradition
-venerates are deliberately excluded — the Three Jewels (`Sangha` was removed),
-awakening itself (`Bodhi`), and the names of gods in any of these pantheons —
-so an alias reads as an image and never as a claim about the person holding it.
-Implements like `Vajra` and architecture like `Stupa` and `Ziggurat` are in. Authors can edit and delete
-their own posts; anyone can reply, one level deep. Deletes are soft, so replies
-survive the post they answer.
+The frame's `src` is set on first visit to the screen rather than in the
+markup, so loading the app never contacts Google unless the reader asks for
+the feedback page.
 
-**Rerolling an alias renames the posts already made**, on the board as well as
-on screen — a name you have changed should not leave the old one attached to
-yesterday's report. It patches every row matching the device's `edit_token` and
-deliberately leaves `updated` alone, so a rename is not mistaken for an edit.
-
-### Connecting the shared board
-
-This app is a static page, so a public board needs somewhere to live. Three
-constants at the top of the feedback section in `index.html` are the whole
-switch:
-
-```js
-var FEEDBACK_ENDPOINT      = 'https://<project>.supabase.co/rest/v1/feedback';
-var FEEDBACK_READ_ENDPOINT = 'https://<project>.supabase.co/rest/v1/feedback_public';
-var FEEDBACK_API_KEY       = '<anon key>';
-```
-
-1. Create a Supabase project (the free tier is enough).
-2. Run [`feedback-schema.sql`](feedback-schema.sql) in its SQL editor — table,
-   public view, and row policies.
-3. Paste the project URL and the **anon** key above. The anon key is meant to
-   be published; the policies are what guard the data.
-
-With those set the banner flips from "not yet connected" to "this board is
-public" on its own, and every visitor reads and writes the same rows. Until
-then the page runs against `localStorage` and **says so** rather than implying
-a post has been shared.
-
-The remote path is not untested code waiting on credentials.
-[`tools/mock-feedback-server.py`](tools/mock-feedback-server.py) is a
-PostgREST-shaped server implementing exactly the four calls the board makes,
-including the view that omits `edit_token`; the shared-board harness runs three
-independent browser contexts against it cross-origin and checks that a post
-made in one is read in the next, that replies and edits and deletes travel,
-that the token is never served, and that a reroll renames posts already on the
-board. Swapping in Supabase changes the host, nothing else.
-
-Two identifiers, deliberately distinct:
-
-| Field | Visible | Purpose |
-| ----- | ------- | ------- |
-| `author_key` | yes | "same person" marker, drives the *you* badge |
-| `edit_token` | **no** — the read view omits it | proves authorship for edit/delete |
-
-Edits and deletes filter on `edit_token`, which the public view never returns,
-so reading a post tells you nothing about how to change it. This is a soft
-guard, not authentication; it is proportionate to a feedback board, and the
-schema notes what to do if that stops being true.
+> **Removed:** a public feedback board once lived here — posts under a
+> per-device alias (adjective + noun), replies, edits, soft deletes, all backed
+> by a Supabase/PostgREST table. The board, its alias generator, its schema
+> (`feedback-schema.sql`) and its mock server (`tools/mock-feedback-server.py`)
+> have been deleted in favour of the form. The alias vocabulary it used is kept
+> as a plain list in [`feedback-aliases.txt`](feedback-aliases.txt); nothing
+> reads it.
 
 ## URLs
 
@@ -344,7 +300,7 @@ Every screen has a shareable URL:
 | `#/quiz` | Quiz |
 | `#/instructions` | Instructions |
 | `#/methodology` | Methodology |
-| `#/feedback` | Feedback board |
+| `#/feedback` | Feedback form |
 
 Selections stay readable and resolvable, so a pasted link rebuilds the same
 selection.
