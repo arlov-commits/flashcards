@@ -1,4 +1,4 @@
-# Chinese Buddhist Language Flashcards 中文佛教語言抽認卡 
+# Chinese Buddhist Language Flashcards 中文佛教語言抽認卡
 
 A single-file static web app (`index.html`) for browsing Chinese Buddhist
 liturgical vocabulary, printing double-sided flashcard PDFs, and exporting
