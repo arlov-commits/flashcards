@@ -43,3 +43,11 @@ the remaining Working Lexicon classes follow as later batches.
 - Batch order after batch 1 (Claude's proposal: Evidence and proof, Frame words, Medicine, then the rest).
 - Whether "satisficing", "Pareto principle" etc. belong under "named law" or a separate "concept" tag.
 - Not yet printed on a real printer: check sheet 1 alignment before printing all 12.
+
+## 2026-11-13: first print = writing moves, named laws and biases only
+- Xiu asked to print only the writing moves, named laws and biases first; the fallacies and reasoning forms go
+  on a separate pass later.
+- `data/terms/artful-terms-batch1a-moves-laws-biases.csv` = batch 1 filtered to class move, heuristic, bias and
+  verdict (Pyrrhic and Procrustean came from the named-heuristics section, so they ride along): 61 rows, 122
+  cards on 8 sheets (sheets 1-4 recall, 5-8 name-it; sheet 8 holds 10 cards). Rows unchanged from batch 1.
+- Still to print: the 34 fallacy and reasoning rows (class fallacy, form) of artful-terms-batch1.csv.
