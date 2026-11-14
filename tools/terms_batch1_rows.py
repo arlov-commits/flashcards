@@ -1,5 +1,5 @@
 # terms_batch1_rows.py
-# Version 1.1 (corrections from two independent checks applied as FIX overrides; checked column)
+# Version 1.2 (pre-print verification FIX2: Waldron quotes checked by OCR, named laws by web check)
 # Source rows for the artful-terms Leitner deck, batch 1: fallacies, argument forms and moves of reasoning,
 # Waldron/Cammarata writing moves, and named heuristics/laws. Writes artful-terms-batch1.csv (UTF-8 with BOM).
 # Fields: id, class, term, gloss, form, use, example, source, notes
@@ -342,6 +342,42 @@ for r in R:
     else:
         r["checked"] = "C1+C2; no change"
 assert _seen == set(FIX), set(FIX) - _seen
+
+# ---------------- PRE-PRINT VERIFICATION (2026-11-14) ----------------
+# V1 = every Waldron quote checked against an OCR of Xiu's PDF of Making Sense of Mind Only (pages read from the
+#      printed running heads); V2 = independent web check of the named-law / bias rows (URLs in NOTES.md).
+FIX2 = {
+ "contrastive compression": dict(source="Waldron p. 104", _by="V1: page located"),
+ "relocated boundary": dict(example="The private/shared line runs “not … between our skin-encapsulated body and the world, but rather between our material senses and our ‘minds.’”", _by="V1: quote restored to Waldron’s wording"),
+ "inline gloss": dict(example="“Each of these dharmas was defined in terms of its own-being (svabhāva).”", _by="V1: quote restored to Waldron’s wording"),
+ "paired axes": dict(example="Accounting for an individual “in the present moment—that is, synchronically—” and “over time, diachronically.”", source="Waldron pp. 55, 86", _by="V1: constructed ālaya example replaced by Waldron’s own sentence (p. 86)"),
+ "parallel adverbs": dict(source="Waldron p. 160 (his paraphrase of the Saṃdhinirmocana Sūtra)", _by="V1: Waldron marks it as paraphrase"),
+ "evaluative compound": dict(source="Waldron p. 116 (explanatorily vacuous); pp. 40, 128, 317 (conceptual cul-de-sac)", _by="V1: pages corrected"),
+ "vivid extreme case": dict(_by="V1: ‘Theresa’ confirmed as printed on p. 38"),
+ "Hitchens’s razor": dict(example="“Research shows flashcards don’t transfer” — no study named, so it needs no rebuttal.", _by="V2: old example asked for evidence instead of dismissing"),
+ "Campbell’s law": dict(gloss="the more a quantitative indicator drives decisions, the more it invites corruption and distorts what it monitors", _by="V2: Campbell says ‘subject to corruption pressures’"),
+ "Peter principle": dict(gloss="in a hierarchy, people tend to rise to their level of incompetence", _by="V2: Peter & Hull’s hedge restored"),
+ "satisficing": dict(gloss="settling for an option that’s good enough instead of searching for the best (Herbert Simon)", _by="V2: ‘first’ is only one search rule"),
+ "Gall’s law": dict(example="A one-page app grew into a working suite; the all-features rewrite never ran.", _by="V2: the timer’s many-menu version was abandoned as painful, not a failed build, so it misstated Gall"),
+ "Hanlon’s razor": dict(gloss="don’t attribute to malice what stupidity or plain oversight explains", _by="V2: gloss now covers the example"),
+ "Sutton’s law": dict(example="Twenty possible bugs? Run first the one test that rules out most of them.", _by="V2: still read as ‘common cause first’"),
+ "Overton window": dict(example="A policy that got you laughed off stage in 1995 is a mainstream panel topic today.", _by="V2: old example restated the gloss"),
+ "Brandolini’s law": dict(_by="V2: audit note clarified (the replaced example had cast Nattier as the rebuttal)"),
+ "Gell-Mann amnesia": dict(cls="bias", _by="V2: a bias, not a law"),
+ "Buridan’s ass": dict(cls="paradox", _by="V2: a paradox, not a law"),
+}
+_seen2 = set()
+for r in R:
+    f = FIX2.get(r["term"])
+    if f:
+        _seen2.add(r["term"])
+        for k, v in f.items():
+            if k != "_by":
+                r[k] = v
+        r["checked"] += "; pre-print " + f["_by"]
+    elif r["cls"] in ("move", "heuristic", "bias", "verdict", "paradox"):
+        r["checked"] += "; pre-print V1/V2 no change"
+assert _seen2 == set(FIX2), set(FIX2) - _seen2
 
 if __name__ == "__main__":
     out = sys.argv[1]

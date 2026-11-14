@@ -1,5 +1,5 @@
 # term_cards_pdf.py
-# Version 1.1 (tags: reasoning / named law / bias / evaluative word added after the independent checks)
+# Version 1.2 (v1.1: tags reasoning / named law / bias / evaluative word; v1.2: paradox tag)
 # Prints double-sided Leitner cards for the "artful terms" deck (fallacies, argument forms, writing moves, heuristics).
 # Each CSV row gives two cards:
 #   A  "recall":   front = term (italic 15 pt, as the MSOD Pali deck) + class tag;  back = gloss / form / use
@@ -28,9 +28,9 @@ pdfmetrics.registerFont(TTFont("R", FD + "DejaVuSerif.ttf"))
 pdfmetrics.registerFont(TTFont("I", FD + "DejaVuSerif-Italic.ttf"))
 
 TAG = {"fallacy": "fallacy", "form": "reasoning", "move": "writing move", "heuristic": "named law",
-       "bias": "bias", "verdict": "evaluative word"}
+       "bias": "bias", "verdict": "evaluative word", "paradox": "paradox"}
 CUE = {"fallacy": "name the fallacy", "form": "name it", "move": "name the move", "heuristic": "name the law",
-       "bias": "name the bias", "verdict": "name the word"}
+       "bias": "name the bias", "verdict": "name the word", "paradox": "name the paradox"}
 
 rows = list(csv.DictReader(open(src, encoding="utf-8-sig")))
 box_w = (CARD_W - 2 * PAD) * mm

@@ -51,3 +51,34 @@ the remaining Working Lexicon classes follow as later batches.
   verdict (Pyrrhic and Procrustean came from the named-heuristics section, so they ride along): 61 rows, 122
   cards on 8 sheets (sheets 1-4 recall, 5-8 name-it; sheet 8 holds 10 cards). Rows unchanged from batch 1.
 - Still to print: the 34 fallacy and reasoning rows (class fallacy, form) of artful-terms-batch1.csv.
+
+## 2026-11-14: pre-print verification of the moves / laws / biases print (61 rows, 122 cards)
+- Card structure: `pairing_check.py` read the printed PDF by text position and confirmed all 122 faces are
+  present, each front sits behind its mirrored back (short-edge duplex), every face matches its CSV row,
+  nothing overflows a card, smallest type 8 pt. (Script kept in the session scratchpad, not the repo.)
+- V1, Waldron: Xiu's PDF of Making Sense of Mind Only has no text layer, so pages 20-340 were OCR'd with
+  tesseract and every quote searched; book pages read from the printed running heads. Confirmed: p. 14
+  "depend upon mind", p. 26 transposed questions, p. 38 "Mother Theresa" (as printed), p. 39 "do not explain",
+  p. 42 in-dependent, p. 55 basis/object, p. 56 vi- "division" and the refrigerator hum, p. 78 "undercut the very
+  aim" / "We call this the Abhidharma Problematic", p. 79 psycho-logical space, p. 84 "what we will call the
+  Abhidharma Problematic", p. 86 synchronically/diachronically, p. 97 "a metaphor (not a dharma)", p. 104
+  "from deconstructing essences logically to showing how to stop imputing them psychologically", p. 116
+  "explanatorily vacuous", pp. 40/128/317 "conceptual cul-de-sac", p. 160 remedially/causally/soteriologically
+  (Waldron's paraphrase of the Samdhinirmocana), p. 216 trick birthday candles, p. 217 rubber hand, p. 231
+  habits -> "the habitats we inhabit" and the skin-encapsulated boundary (the "habitats" idea builds on a
+  William Paden quote on the same page), p. 241 "just another perception", p. 262 binding problem.
+  Fixed: two quotes restored to exact wording (relocated boundary, inline gloss), one constructed example
+  replaced by Waldron's own sentence (paired axes), page numbers corrected (contrastive compression,
+  evaluative compound).
+- V2, named laws: independent web check. Verified via source: Campbell (Eval. & Program Planning 2, 1979,
+  citation), Conway (melconway.com, Datamation 1968), Zwicky/frequency illusion (Language Log), Crichton 2002,
+  Brandolini 2013, Strathern 1997, Peter (Britannica), Hanlon (Quote Investigator), Hume Treatise 3.1.1.27
+  (davidhume.org), Chesterton The Thing 1929 (chesterton.org), Streisand/Masnick (Techdirt), Overton
+  (mackinac.org), Lindy (Ord, arXiv 2308.09045), satisficing (Palgrave; Simon 1956), zebras (Quote
+  Investigator), curse of knowledge (Camerer et al. 1989, citation), Merton 1968 (PubMed). NOT verified from a
+  primary source: Parkinson, Hickam (fetch blocked); Hitchens, Sutton, Sagan, Hofstadter, Gall, rubber duck,
+  cobra effect (search snippets only); Korzybski, bikeshedding, yak shaving, Pareto, Buridan, Occam, lectio
+  difficilior, survivorship, streetlight (general knowledge only). No false attribution was found.
+  Fixed: 4 glosses tightened (Campbell, Peter, satisficing, Hanlon), 4 examples replaced (Hitchens, Gall,
+  Sutton, Overton), 2 class tags (Gell-Mann -> bias, Buridan's ass -> new "paradox" tag).
+- Every change is in FIX2 in tools/terms_batch1_rows.py; the `checked` column records it per row.
